@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, Users, Shield } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
+import { toast } from '@/hooks/use-toast';
 
 interface LoginModalProps {
   children: React.ReactNode;
@@ -20,10 +22,13 @@ type PortalType = 'admin' | 'customer' | null;
 
 const LoginModal = ({ children }: LoginModalProps) => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
+  const [open, setOpen] = useState(false);
   const [selectedPortal, setSelectedPortal] = useState<PortalType>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handlePortalSelect = (portal: PortalType) => {
     setSelectedPortal(portal);
@@ -40,20 +45,47 @@ const LoginModal = ({ children }: LoginModalProps) => {
     setShowPassword(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (selectedPortal === 'admin') {
-      console.log('Admin portal login');
-      navigate('/admin');
-    } else if (selectedPortal === 'customer') {
-      // Test credentials for demo purposes
-      if (email === 'giuli.oneri@hotmail.com' && password === 'giuli123') {
-        console.log('Customer portal login successful');
-        navigate('/kunden-dashboard');
-      } else {
-        alert('Ungültige Anmeldedaten. Verwenden Sie: giuli.oneri@hotmail.com / giuli123');
+    setLoading(true);
+
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast({
+          title: 'Anmeldung fehlgeschlagen',
+          description: error.message || 'Ungültige Anmeldedaten',
+          variant: 'destructive'
+        });
+        return;
       }
+
+      // Success - close modal and navigate
+      setOpen(false);
+      toast({
+        title: 'Erfolgreich angemeldet',
+        description: 'Sie werden weitergeleitet...'
+      });
+
+      // Navigation will be handled by the auth state change
+      if (selectedPortal === 'admin') {
+        navigate('/admin');
+      } else if (selectedPortal === 'customer') {
+        navigate('/kunden-dashboard');
+      }
+
+      // Reset form
+      handleBack();
+
+    } catch (error) {
+      toast({
+        title: 'Anmeldung fehlgeschlagen',
+        description: 'Ein unerwarteter Fehler ist aufgetreten',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,7 +112,7 @@ const LoginModal = ({ children }: LoginModalProps) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -162,6 +194,7 @@ const LoginModal = ({ children }: LoginModalProps) => {
                     onChange={(e) => setEmail(e.target.value)}
                     className="login-form-input pl-10"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -180,11 +213,13 @@ const LoginModal = ({ children }: LoginModalProps) => {
                     onChange={(e) => setPassword(e.target.value)}
                     className="login-form-input pl-10 pr-10"
                     required
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-elegant"
+                    disabled={loading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -197,19 +232,24 @@ const LoginModal = ({ children }: LoginModalProps) => {
 
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center space-x-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-border" />
+                  <input type="checkbox" className="rounded border-border" disabled={loading} />
                   <span className="text-muted-foreground">Angemeldet bleiben</span>
                 </label>
                 <button
                   type="button"
                   className="text-primary hover:underline transition-elegant"
+                  disabled={loading}
                 >
                   Passwort vergessen?
                 </button>
               </div>
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 transition-elegant">
-                {selectedPortal === 'admin' ? 'Admin Anmeldung' : 'Anmelden'}
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90 transition-elegant"
+                disabled={loading}
+              >
+                {loading ? 'Anmeldung läuft...' : (selectedPortal === 'admin' ? 'Admin Anmeldung' : 'Anmelden')}
               </Button>
 
               {selectedPortal === 'customer' && (
@@ -218,6 +258,7 @@ const LoginModal = ({ children }: LoginModalProps) => {
                   <button
                     type="button"
                     className="text-primary hover:underline transition-elegant"
+                    disabled={loading}
                   >
                     Registrieren
                   </button>

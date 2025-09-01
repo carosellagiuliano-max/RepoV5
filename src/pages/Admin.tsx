@@ -1,25 +1,17 @@
-import { useState } from 'react';
-import { AdminLogin } from '@/components/admin/AdminLogin';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { signOut } = useAuth();
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await signOut();
+    // Navigation will be handled automatically by the auth state change and SessionGuard
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {!isLoggedIn ? (
-        <AdminLogin onLogin={handleLogin} />
-      ) : (
-        <AdminDashboard onLogout={handleLogout} />
-      )}
+      <AdminDashboard onLogout={handleLogout} />
     </div>
   );
 }

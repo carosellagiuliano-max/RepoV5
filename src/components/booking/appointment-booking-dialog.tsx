@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/hooks/use-toast'
+import { useAuth } from '@/contexts/auth-context'
+import { bookingHelpers } from '@/lib/supabase'
 import HaircutLengthDialog from './haircut-length-dialog'
 import AdditionalServicesDialog from './additional-services-dialog'
 
@@ -35,6 +37,7 @@ import vanessaLogo from '@/assets/team-owner.jpg'
 
 interface AppointmentBookingDialogProps {
   children: React.ReactNode
+  onBookingSuccess?: () => void
 }
 
 const timeSlots = [
@@ -63,8 +66,10 @@ const services = [
 ]
 
 export function AppointmentBookingDialog({
-  children
+  children,
+  onBookingSuccess
 }: AppointmentBookingDialogProps) {
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<'gender' | 'haircut' | 'booking' | 'additional'>('gender')
   const [selectedGender, setSelectedGender] = useState<'women' | 'men' | null>(null)
@@ -77,6 +82,7 @@ export function AppointmentBookingDialog({
   const [showHaircutDialog, setShowHaircutDialog] = useState(false)
   const [showAdditionalDialog, setShowAdditionalDialog] = useState(false)
   const [selectedAdditionalServices, setSelectedAdditionalServices] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date)
@@ -114,38 +120,99 @@ export function AppointmentBookingDialog({
     setShowAdditionalDialog(true)
   }
 
-  const handleAdditionalServicesConfirm = (additionalServices: any[]) => {
-    setSelectedAdditionalServices(additionalServices)
-    setShowAdditionalDialog(false)
-    
-    const additionalCost = additionalServices.reduce((sum, service) => 
-      sum + parseInt(service.price.replace('CHF ', '')), 0
-    )
-
-    const bookingDetails = {
-      date: format(selectedDate!, 'dd.MM.yyyy'),
-      time: selectedTime,
-      hairdresser: hairdressers.find(h => h.id === selectedHairdresser)?.name ?? '',
-      haircut: selectedHaircut?.name ?? '',
-      additionalServices: additionalServices.map(s => s.name).join(', '),
-      totalAdditionalCost: additionalCost
+  const handleAdditionalServicesConfirm = async (additionalServices: any[]) => {
+    if (!user) {
+      toast({
+        title: 'Anmeldung erforderlich',
+        description: 'Bitte melden Sie sich an, um einen Termin zu buchen.',
+        variant: 'destructive'
+      })
+      return
     }
 
-    toast({
-      title: 'Termin erfolgreich gebucht!',
-      description: `Ihr Termin am ${bookingDetails.date} um ${bookingDetails.time} bei ${bookingDetails.hairdresser} wurde gebucht.`
-    })
+    setSelectedAdditionalServices(additionalServices)
+    setShowAdditionalDialog(false)
+    setLoading(true)
+    
+    try {
+      const additionalCost = additionalServices.reduce((sum, service) => 
+        sum + parseInt(service.price.replace('CHF ', '')), 0
+      )
 
-    // Reset all states
-    setStep('gender')
-    setSelectedGender(null)
-    setSelectedHaircut(null)
-    setSelectedDate(undefined)
-    setSelectedTime(undefined)
-    setSelectedHairdresser(undefined)
-    setSelectedService(undefined)
-    setSelectedAdditionalServices([])
-    setOpen(false)
+      // Calculate appointment duration (base service + additional services)
+      const baseDuration = parseInt(selectedHaircut.duration?.replace(' min', '') || '60')
+      const additionalDuration = additionalServices.reduce((sum, service) => 
+        sum + parseInt(service.duration?.replace(' min', '') || '0'), 0
+      )
+      const totalDuration = baseDuration + additionalDuration
+
+      // Create starts_at and ends_at timestamps
+      const [hours, minutes] = selectedTime!.split(':').map(Number)
+      const startsAt = new Date(selectedDate!)
+      startsAt.setHours(hours, minutes, 0, 0)
+      
+      const endsAt = new Date(startsAt)
+      endsAt.setMinutes(endsAt.getMinutes() + totalDuration)
+
+      // Prepare appointment data
+      const appointmentData = {
+        user_id: user.id,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        service_type: selectedGender || 'women',
+        service_name: selectedHaircut.name + (additionalServices.length > 0 ? ` + ${additionalServices.map(s => s.name).join(', ')}` : ''),
+        hairdresser_name: hairdressers.find(h => h.id === selectedHairdresser)?.name || '',
+        price: parseInt(selectedHaircut.price?.replace('ab CHF ', '') || '0') + additionalCost,
+        status: 'pending' as const,
+        notes: `Zusätzliche Services: ${additionalServices.map(s => s.name).join(', ')}`
+      }
+
+      // Create appointment in Supabase
+      const { data, error } = await bookingHelpers.createAppointment(appointmentData)
+
+      if (error) {
+        console.error('Booking error:', error)
+        
+        // Check for duplicate booking constraint
+        if (error.code === '23505') {
+          toast({
+            title: 'Termin bereits vergeben',
+            description: 'Zu dieser Zeit ist bereits ein Termin gebucht. Bitte wählen Sie eine andere Zeit.',
+            variant: 'destructive'
+          })
+        } else {
+          toast({
+            title: 'Buchung fehlgeschlagen',
+            description: error.message || 'Ein Fehler ist beim Buchen aufgetreten.',
+            variant: 'destructive'
+          })
+        }
+        return
+      }
+
+      // Success
+      toast({
+        title: 'Termin erfolgreich gebucht!',
+        description: `Ihr Termin am ${format(selectedDate!, 'dd.MM.yyyy')} um ${selectedTime} bei ${appointmentData.hairdresser_name} wurde gebucht.`
+      })
+
+      // Reset all states
+      resetBooking()
+      setOpen(false)
+
+      // Notify parent component of successful booking
+      onBookingSuccess?.()
+
+    } catch (error) {
+      console.error('Unexpected booking error:', error)
+      toast({
+        title: 'Buchung fehlgeschlagen',
+        description: 'Ein unerwarteter Fehler ist aufgetreten.',
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const resetBooking = () => {
@@ -157,6 +224,7 @@ export function AppointmentBookingDialog({
     setSelectedHairdresser(undefined)
     setSelectedService(undefined)
     setSelectedAdditionalServices([])
+    setLoading(false)
   }
 
   return (
@@ -358,11 +426,12 @@ export function AppointmentBookingDialog({
                   disabled={
                     !selectedDate ||
                     !selectedTime ||
-                    !selectedHairdresser
+                    !selectedHairdresser ||
+                    loading
                   }
                   onClick={handleBookingRequest}
                 >
-                  Termin buchen
+                  {loading ? 'Buchung läuft...' : 'Termin buchen'}
                 </Button>
               </div>
             </div>
