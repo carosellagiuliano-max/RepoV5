@@ -177,7 +177,7 @@ async function handleCancelBooking(event: NetlifyEvent) {
     }
 
     // Update the appointment to cancelled
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status: 'cancelled',
       updated_at: new Date().toISOString()
     }

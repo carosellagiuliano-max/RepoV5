@@ -161,7 +161,7 @@ export interface MediaAsset {
 export interface Setting {
   id: string
   key: string
-  value: any
+  value: unknown
   description?: string
   category: string
   is_public: boolean

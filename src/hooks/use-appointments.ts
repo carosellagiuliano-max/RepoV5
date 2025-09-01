@@ -240,8 +240,8 @@ export const useLegacyAppointments = () => {
     try {
       await cancelMutation.mutateAsync({ appointmentId })
       return { data: true }
-    } catch (err: any) {
-      return { error: err.message || 'Failed to cancel appointment' }
+    } catch (err: unknown) {
+      return { error: (err as Error).message || 'Failed to cancel appointment' }
     }
   }
 
