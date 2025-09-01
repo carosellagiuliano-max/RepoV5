@@ -17,9 +17,15 @@ import {
   Camera,
   Eye,
   Edit,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/auth-context';
+import { useAppointments } from '@/hooks/use-appointments';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { toast } from '@/hooks/use-toast';
 import EnhancedCalendar from '@/components/customer/EnhancedCalendar';
 import CustomerStatus from '@/components/customer/CustomerStatus';
 // Try both import methods to ensure compatibility
@@ -32,38 +38,66 @@ import CustomerCalendarView from '@/components/customer/CustomerCalendarView';
 import { AppointmentBookingDialog } from '@/components/booking/appointment-booking-dialog';
 
 // Mock data
-const mockAppointments = [
-  {
-    id: 1,
-    date: '2024-01-16',
-    time: '14:30',
-    service: 'Damenschnitt + Coloring',
-    stylist: 'Vanessa',
-    duration: '120 min',
-    price: 180,
-    status: 'confirmed'
-  },
-  {
-    id: 2,
-    date: '2024-02-05',
-    time: '10:00',
-    service: 'Herrenschnitt',
-    stylist: 'Marco',
-    duration: '45 min',
-    price: 45,
-    status: 'pending'
-  }
-];
+// Removed - now using real data from Supabase
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
+  const { appointments, loading: appointmentsLoading, cancelAppointment, refreshAppointments } = useAppointments();
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
   const [showRescheduleConfirm, setShowRescheduleConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showPurchaseHistory, setShowPurchaseHistory] = useState(false);
   const [showProfileEditDialog, setShowProfileEditDialog] = useState(false);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const handleCancelAppointment = async () => {
+    if (!selectedAppointment) return;
+
+    const { error } = await cancelAppointment(selectedAppointment.id);
+    
+    if (error) {
+      toast({
+        title: 'Stornierung fehlgeschlagen',
+        description: error,
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Termin storniert',
+        description: 'Ihr Termin wurde erfolgreich storniert.'
+      });
+    }
+
+    setShowCancelConfirm(false);
+    setSelectedAppointment(null);
+  };
+
+  // Get next upcoming appointment
+  const upcomingAppointments = appointments
+    .filter(apt => apt.status !== 'cancelled' && new Date(apt.starts_at) > new Date())
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+  
+  const nextAppointment = upcomingAppointments[0];
+
+  // Format appointment for display
+  const formatAppointment = (appointment: any) => ({
+    id: appointment.id,
+    date: format(new Date(appointment.starts_at), 'dd.MM.yyyy', { locale: de }),
+    time: format(new Date(appointment.starts_at), 'HH:mm', { locale: de }),
+    service: appointment.service_name,
+    stylist: appointment.hairdresser_name,
+    duration: `${Math.round((new Date(appointment.ends_at).getTime() - new Date(appointment.starts_at).getTime()) / (1000 * 60))} min`,
+    price: appointment.price,
+    status: appointment.status
+  });
 
   const handleAppointmentDetails = (appointment: any) => {
     setSelectedAppointment(appointment);
@@ -86,13 +120,23 @@ const CustomerDashboard = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Schnittwerk</h1>
+            <p className="text-muted-foreground">Willkommen, {user?.email}</p>
           </div>
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/')}
-          >
-            Zur Hauptseite
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/')}
+            >
+              Zur Hauptseite
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Abmelden
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
@@ -177,51 +221,80 @@ const CustomerDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">Damenschnitt + Coloring</h3>
-                      <p className="text-muted-foreground">Mit Vanessa</p>
-                    </div>
-                    <Badge className="bg-green-100 text-green-800">Bestätigt</Badge>
+                {appointmentsLoading ? (
+                  <div className="p-4 text-center">
+                    <p className="text-muted-foreground">Termine werden geladen...</p>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-muted-foreground">Datum</p>
-                      <p className="font-medium">16.01.2024</p>
+                ) : nextAppointment ? (
+                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-lg">{nextAppointment.service_name}</h3>
+                        <p className="text-muted-foreground">Mit {nextAppointment.hairdresser_name}</p>
+                      </div>
+                      <Badge className={`${nextAppointment.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {nextAppointment.status === 'confirmed' ? 'Bestätigt' : 'Ausstehend'}
+                      </Badge>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Zeit</p>
-                      <p className="font-medium">14:30</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                      <div>
+                        <p className="text-muted-foreground">Datum</p>
+                        <p className="font-medium">{format(new Date(nextAppointment.starts_at), 'dd.MM.yyyy', { locale: de })}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Zeit</p>
+                        <p className="font-medium">{format(new Date(nextAppointment.starts_at), 'HH:mm', { locale: de })}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Dauer</p>
+                        <p className="font-medium">{Math.round((new Date(nextAppointment.ends_at).getTime() - new Date(nextAppointment.starts_at).getTime()) / (1000 * 60))} min</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Preis</p>
+                        <p className="font-medium">CHF {nextAppointment.price}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Dauer</p>
-                      <p className="font-medium">120 min</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Preis</p>
-                      <p className="font-medium">ca CHF 180</p>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleAppointmentDetails(formatAppointment(nextAppointment))}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Details
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleReschedule(formatAppointment(nextAppointment))}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Verschieben
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedAppointment(nextAppointment);
+                          setShowCancelConfirm(true);
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Stornieren
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleAppointmentDetails(mockAppointments[0])}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Details
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleReschedule(mockAppointments[0])}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Verschieben
-                    </Button>
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-muted-foreground mb-4">Sie haben derzeit keine bevorstehenden Termine.</p>
+                    <AppointmentBookingDialog onBookingSuccess={refreshAppointments}>
+                      <Button>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Termin buchen
+                      </Button>
+                    </AppointmentBookingDialog>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -232,7 +305,7 @@ const CustomerDashboard = () => {
                   <Calendar className="h-8 w-8 mx-auto mb-3 text-blue-600" />
                   <h3 className="font-semibold mb-2 text-blue-800">Neuer Termin</h3>
                   <p className="text-sm text-blue-600 mb-4">Buchen Sie Ihren nächsten Besuch</p>
-                  <AppointmentBookingDialog>
+                  <AppointmentBookingDialog onBookingSuccess={refreshAppointments}>
                     <Button className="bg-blue-600 hover:bg-blue-700">
                       Termin buchen
                     </Button>
@@ -264,57 +337,97 @@ const CustomerDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {mockAppointments.map((appointment) => (
-                    <div key={appointment.id} className="border border-border p-4 rounded-lg">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-semibold text-lg">{appointment.service}</h4>
-                          <p className="text-muted-foreground">Mit {appointment.stylist}</p>
+                {appointmentsLoading ? (
+                  <div className="p-4 text-center">
+                    <p className="text-muted-foreground">Termine werden geladen...</p>
+                  </div>
+                ) : appointments.length === 0 ? (
+                  <div className="p-4 text-center">
+                    <p className="text-muted-foreground mb-4">Sie haben noch keine Termine gebucht.</p>
+                    <AppointmentBookingDialog onBookingSuccess={refreshAppointments}>
+                      <Button>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Ersten Termin buchen
+                      </Button>
+                    </AppointmentBookingDialog>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {appointments.map((appointment) => {
+                      const formattedAppointment = formatAppointment(appointment);
+                      return (
+                        <div key={appointment.id} className="border border-border p-4 rounded-lg">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-semibold text-lg">{appointment.service_name}</h4>
+                              <p className="text-muted-foreground">Mit {appointment.hairdresser_name}</p>
+                            </div>
+                            <Badge variant={
+                              appointment.status === 'confirmed' ? 'default' : 
+                              appointment.status === 'cancelled' ? 'destructive' : 
+                              'secondary'
+                            }>
+                              {appointment.status === 'confirmed' ? 'Bestätigt' : 
+                               appointment.status === 'cancelled' ? 'Storniert' : 
+                               'Ausstehend'}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                            <div>
+                              <p className="text-muted-foreground">Datum</p>
+                              <p className="font-medium">{formattedAppointment.date}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Zeit</p>
+                              <p className="font-medium">{formattedAppointment.time}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Dauer</p>
+                              <p className="font-medium">{formattedAppointment.duration}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Preis</p>
+                              <p className="font-medium">CHF {formattedAppointment.price}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleAppointmentDetails(formattedAppointment)}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Details
+                            </Button>
+                            {appointment.status !== 'cancelled' && new Date(appointment.starts_at) > new Date() && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleReschedule(formattedAppointment)}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Verschieben
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedAppointment(appointment);
+                                    setShowCancelConfirm(true);
+                                  }}
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Stornieren
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <Badge variant={appointment.status === 'confirmed' ? 'default' : 'secondary'}>
-                          {appointment.status === 'confirmed' ? 'Bestätigt' : 'Ausstehend'}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                        <div>
-                          <p className="text-muted-foreground">Datum</p>
-                          <p className="font-medium">{appointment.date}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Zeit</p>
-                          <p className="font-medium">{appointment.time}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Dauer</p>
-                          <p className="font-medium">{appointment.duration}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Preis</p>
-                          <p className="font-medium">ca CHF {appointment.price}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleAppointmentDetails(appointment)}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Details
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleReschedule(appointment)}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Verschieben
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -461,6 +574,23 @@ const CustomerDashboard = () => {
             <AlertDialogCancel>Abbrechen</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmReschedule}>
               Ja, verschieben
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Termin stornieren</AlertDialogTitle>
+            <AlertDialogDescription>
+              Möchten Sie diesen Termin wirklich stornieren? Diese Aktion kann nicht rückgängig gemacht werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelAppointment} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Ja, stornieren
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
