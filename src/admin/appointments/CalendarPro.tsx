@@ -16,16 +16,6 @@ import { useAdminAppointments, AppointmentCreate } from '@/hooks/use-admin-appoi
 import { AppointmentCreateDialog } from './AppointmentCreateDialog'
 import { toast } from 'sonner'
 
-export interface AppointmentFilters {
-  staffId?: string
-  serviceId?: string
-  status?: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
-  startDate?: string
-  endDate?: string
-  search?: string
-  page?: number
-  limit?: number
-}
 
 export function CalendarPro() {
   const [activeView, setActiveView] = useState<'calendar' | 'list'>('calendar')
