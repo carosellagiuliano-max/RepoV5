@@ -6,6 +6,8 @@
 import { Handler } from '@netlify/functions'
 import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient } from '../../../src/lib/auth/netlify-auth'
 import { validateBody, schemas } from '../../../src/lib/validation/schemas'
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '../../../src/lib/types/database'
 import { z } from 'zod'
 
 const conflictCheckSchema = z.object({
@@ -96,7 +98,11 @@ export const handler: Handler = withAuthAndRateLimit(
   { maxRequests: 200, windowMs: 60 * 1000 } // Higher rate limit for real-time checks
 )
 
-async function getSuggestions(supabase: any, conflictData: any, logger: any) {
+async function getSuggestions(
+  supabase: ReturnType<typeof createAdminClient>, 
+  conflictData: z.infer<typeof conflictCheckSchema>, 
+  logger: ReturnType<typeof createLogger>
+) {
   try {
     // Get next available slots for the same staff member
     const requestedDate = new Date(conflictData.startTime).toISOString().split('T')[0]

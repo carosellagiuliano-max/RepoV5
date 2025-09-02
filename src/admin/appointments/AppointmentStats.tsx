@@ -7,11 +7,12 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, User, DollarSign, TrendingUp, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
+import { AppointmentWithDetails } from '@/lib/types/database'
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns'
 import { de } from 'date-fns/locale'
 
 interface AppointmentStatsProps {
-  appointments: any[]
+  appointments: AppointmentWithDetails[]
 }
 
 export function AppointmentStats({ appointments }: AppointmentStatsProps) {

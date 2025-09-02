@@ -6,6 +6,7 @@
 import { Handler } from '@netlify/functions'
 import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient } from '../../../src/lib/auth/netlify-auth'
 import { validateQuery, schemas } from '../../../src/lib/validation/schemas'
+import { AppointmentWithDetails } from '../../../src/lib/types/database'
 import { z } from 'zod'
 
 // Enhanced filters schema for admin appointments
@@ -16,6 +17,50 @@ const adminAppointmentFiltersSchema = schemas.appointmentFilters.extend({
   cursor: z.string().optional(), // For keyset pagination
   direction: z.enum(['next', 'prev']).optional().default('next')
 })
+
+type AdminAppointmentFilters = z.infer<typeof adminAppointmentFiltersSchema>
+
+interface AppointmentListResponse {
+  appointments: AppointmentWithDetails[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+  stats?: AppointmentStats
+  cursor?: {
+    next?: string
+    prev?: string
+  }
+}
+
+interface AppointmentStats {
+  todayCount: number
+  todayRevenue: number
+  statusBreakdown: Array<{
+    status: string
+    count: number
+    percentage: number
+  }>
+  topStaff: Array<{
+    staffId: string
+    staffName: string
+    appointmentCount: number
+    revenue: number
+  }>
+  topServices: Array<{
+    serviceId: string
+    serviceName: string
+    bookingCount: number
+    revenue: number
+  }>
+}
+
+interface CursorData {
+  timestamp: string
+  id: string
+}
 
 export const handler: Handler = withAuthAndRateLimit(
   async (event, context) => {
@@ -74,7 +119,7 @@ export const handler: Handler = withAuthAndRateLimit(
       }
 
       // Build response
-      const response: any = {
+      const response: AppointmentListResponse = {
         appointments: appointments || [],
         pagination: {
           page: filters.page,
@@ -115,7 +160,7 @@ export const handler: Handler = withAuthAndRateLimit(
   { maxRequests: 100, windowMs: 60 * 1000 }
 )
 
-function buildKeysetQuery(supabase: any, filters: any) {
+function buildKeysetQuery(supabase: ReturnType<typeof createAdminClient>, filters: AdminAppointmentFilters) {
   let query = supabase
     .from('appointments_with_details')
     .select(`
@@ -155,7 +200,7 @@ function buildKeysetQuery(supabase: any, filters: any) {
   return query
 }
 
-function buildOffsetQuery(supabase: any, filters: any) {
+function buildOffsetQuery(supabase: ReturnType<typeof createAdminClient>, filters: AdminAppointmentFilters) {
   return supabase
     .from('appointments_with_details')
     .select(`
@@ -185,7 +230,7 @@ function buildOffsetQuery(supabase: any, filters: any) {
     `, { count: 'exact' })
 }
 
-function applyFilters(query: any, filters: any) {
+function applyFilters(query: ReturnType<typeof createAdminClient>['from'], filters: AdminAppointmentFilters) {
   // Staff filter
   if (filters.staffId) {
     query = query.eq('staff_id', filters.staffId)
@@ -221,11 +266,12 @@ function applyFilters(query: any, filters: any) {
     let startDate: Date, endDate: Date
 
     switch (filters.view) {
-      case 'day':
+      case 'day': {
         startDate = new Date(now.setHours(0, 0, 0, 0))
         endDate = new Date(now.setHours(23, 59, 59, 999))
         break
-      case 'week':
+      }
+      case 'week': {
         const weekStart = new Date(now)
         weekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
         weekStart.setHours(0, 0, 0, 0)
@@ -237,10 +283,12 @@ function applyFilters(query: any, filters: any) {
         startDate = weekStart
         endDate = weekEnd
         break
-      case 'month':
+      }
+      case 'month': {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1)
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
         break
+      }
       default:
         return query
     }
@@ -265,13 +313,13 @@ function applyFilters(query: any, filters: any) {
   return query
 }
 
-function generateCursor(record: any, sortColumn: string): string {
+function generateCursor(record: AppointmentWithDetails, sortColumn: string): string {
   const timestamp = record[sortColumn] || record.start_time
   const id = record.id
   return Buffer.from(JSON.stringify({ timestamp, id })).toString('base64')
 }
 
-function parseCursor(cursor: string): { timestamp: string, id: string } {
+function parseCursor(cursor: string): CursorData {
   try {
     return JSON.parse(Buffer.from(cursor, 'base64').toString())
   } catch {
@@ -279,7 +327,11 @@ function parseCursor(cursor: string): { timestamp: string, id: string } {
   }
 }
 
-async function getAppointmentStats(supabase: any, filters: any, logger: any) {
+async function getAppointmentStats(
+  supabase: ReturnType<typeof createAdminClient>, 
+  filters: AdminAppointmentFilters, 
+  logger: ReturnType<typeof createLogger>
+): Promise<AppointmentStats> {
   try {
     // Build base query for stats
     let statsQuery = supabase

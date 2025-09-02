@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { AppointmentWithDetails } from '@/lib/types/database'
 import { 
   MoreVertical, 
   ArrowUpDown, 
@@ -35,7 +36,7 @@ import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 
 interface AppointmentsListProps {
-  appointments: any[]
+  appointments: AppointmentWithDetails[]
   loading: boolean
   onReschedule: (appointmentId: string, newStartTime: string, newEndTime: string) => Promise<boolean>
   onCancel: (appointmentId: string, reason?: string) => Promise<void>
@@ -46,7 +47,7 @@ interface AppointmentsListProps {
 
 interface CancelDialogState {
   isOpen: boolean
-  appointment: any | null
+  appointment: AppointmentWithDetails | null
   reason: string
 }
 
@@ -78,15 +79,15 @@ export function AppointmentsList({
     if (!appointments) return []
     
     return [...appointments].sort((a, b) => {
-      let aValue: any = a[sortConfig.key]
-      let bValue: any = b[sortConfig.key]
+      let aValue: string | number | Date = ''
+      let bValue: string | number | Date = ''
       
       // Handle nested properties
       if (sortConfig.key.includes('_')) {
         const [table, field] = sortConfig.key.split('_', 2)
         if (table === 'customer') {
-          aValue = a.customer_name
-          bValue = b.customer_name
+          aValue = a.customer_name || ''
+          bValue = b.customer_name || ''
         } else if (table === 'staff') {
           aValue = a.staff_name
           bValue = b.staff_name
@@ -136,14 +137,14 @@ export function AppointmentsList({
     onFilterChange({ page })
   }
 
-  const handleStatusChange = async (appointment: any, newStatus: string) => {
+  const handleStatusChange = async (appointment: AppointmentWithDetails, newStatus: string) => {
     await onStatusUpdate({
       appointmentId: appointment.id,
       status: newStatus
     })
   }
 
-  const handleCancelClick = (appointment: any) => {
+  const handleCancelClick = (appointment: AppointmentWithDetails) => {
     setCancelDialog({
       isOpen: true,
       appointment,

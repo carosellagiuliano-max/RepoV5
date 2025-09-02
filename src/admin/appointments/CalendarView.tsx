@@ -11,11 +11,12 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, ChevronLeft, ChevronRight, Clock, User, Phone, Mail, MoreVertical } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AppointmentFilters } from './CalendarPro'
+import { AppointmentWithDetails } from '@/lib/types/database'
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, isToday } from 'date-fns'
 import { de } from 'date-fns/locale'
 
 interface CalendarViewProps {
-  appointments: any[]
+  appointments: AppointmentWithDetails[]
   loading: boolean
   onReschedule: (appointmentId: string, newStartTime: string, newEndTime: string) => Promise<boolean>
   onCancel: (appointmentId: string, reason?: string) => Promise<void>
@@ -139,7 +140,7 @@ export function CalendarView({
   }, [currentDate, viewType])
 
   // Drag and Drop handlers
-  const handleDragStart = useCallback((e: React.DragEvent, appointment: any) => {
+  const handleDragStart = useCallback((e: React.DragEvent, appointment: AppointmentWithDetails) => {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', appointment.id)
     
@@ -212,7 +213,7 @@ export function CalendarView({
   }, [])
 
   // Get appointment position in grid
-  const getAppointmentPosition = useCallback((appointment: any, dayIndex: number) => {
+  const getAppointmentPosition = useCallback((appointment: AppointmentWithDetails, dayIndex: number) => {
     const startTime = new Date(appointment.start_time)
     const hour = startTime.getHours()
     const minute = startTime.getMinutes()
@@ -253,10 +254,11 @@ export function CalendarView({
     switch (viewType) {
       case 'day':
         return format(currentDate, 'EEEE, d. MMMM yyyy', { locale: de })
-      case 'week':
+      case 'week': {
         const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
         const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 })
         return `${format(weekStart, 'd. MMM', { locale: de })} - ${format(weekEnd, 'd. MMM yyyy', { locale: de })}`
+      }
       case 'month':
         return format(currentDate, 'MMMM yyyy', { locale: de })
     }

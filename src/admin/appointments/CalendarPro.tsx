@@ -12,7 +12,7 @@ import { AppointmentsList } from './AppointmentsList'
 import { AppointmentFilters } from './AppointmentFilters'
 import { AppointmentStats } from './AppointmentStats'
 import { Plus, Calendar, List, Filter, Settings } from 'lucide-react'
-import { useAdminAppointments } from '@/hooks/use-admin-appointments'
+import { useAdminAppointments, AppointmentCreate } from '@/hooks/use-admin-appointments'
 import { AppointmentCreateDialog } from './AppointmentCreateDialog'
 import { toast } from 'sonner'
 
@@ -47,7 +47,7 @@ export function CalendarPro() {
     checkConflicts
   } = useAdminAppointments(filters)
 
-  const handleCreateAppointment = useCallback(async (appointmentData: any) => {
+  const handleCreateAppointment = useCallback(async (appointmentData: AppointmentCreate) => {
     try {
       await createAppointment.mutateAsync(appointmentData)
       toast.success('Termin erfolgreich erstellt')
@@ -169,7 +169,7 @@ export function CalendarPro() {
       )}
 
       {/* Main Content */}
-      <Tabs value={activeView} onValueChange={setActiveView as any}>
+      <Tabs value={activeView} onValueChange={(value) => setActiveView(value as 'calendar' | 'list')}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="calendar" className="gap-2">
             <Calendar className="w-4 h-4" />

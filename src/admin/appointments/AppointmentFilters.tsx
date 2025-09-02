@@ -39,7 +39,7 @@ export function AppointmentFilters({ filters, onChange, onClose }: AppointmentFi
     setLocalFilters(filters)
   }, [filters])
 
-  const handleFilterChange = (key: keyof AppointmentFilters, value: any) => {
+  const handleFilterChange = (key: keyof AppointmentFilters, value: string | undefined) => {
     const newFilters = { ...localFilters, [key]: value }
     setLocalFilters(newFilters)
   }

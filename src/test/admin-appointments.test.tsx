@@ -8,6 +8,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CalendarPro } from '@/admin/appointments/CalendarPro'
 import { useAdminAppointments } from '@/hooks/use-admin-appointments'
+import { AppointmentWithDetails } from '@/lib/types/database'
 
 // Mock the hooks
 vi.mock('@/hooks/use-admin-appointments')
@@ -27,6 +28,66 @@ vi.mock('sonner', () => ({
 
 const mockUseAdminAppointments = vi.mocked(useAdminAppointments)
 
+// Helper function to create properly typed mock return values
+const createMockAdminAppointments = (overrides = {}) => ({
+  appointments: [mockAppointment],
+  pagination: { page: 1, limit: 50, total: 1, totalPages: 1 },
+  loading: false,
+  error: null,
+  createAppointment: {
+    mutateAsync: vi.fn().mockResolvedValue({}),
+    isPending: false,
+    error: null
+  },
+  rescheduleAppointment: {
+    mutateAsync: vi.fn().mockResolvedValue({}),
+    isPending: false,
+    error: null
+  },
+  cancelAppointment: {
+    mutateAsync: vi.fn().mockResolvedValue({}),
+    isPending: false,
+    error: null
+  },
+  updateAppointmentStatus: {
+    mutateAsync: vi.fn().mockResolvedValue({}),
+    isPending: false,
+    error: null
+  },
+  checkConflicts: {
+    mutateAsync: vi.fn().mockResolvedValue({ hasConflicts: false, conflicts: [], suggestions: [] }),
+    isPending: false,
+    error: null
+  },
+  refetch: vi.fn(),
+  isRefetching: false,
+  ...overrides
+})
+
+// Mock appointment data
+const mockAppointment: AppointmentWithDetails = {
+  id: 'test-appointment-1',
+  customer_id: 'customer-1',
+  staff_id: 'staff-1', 
+  service_id: 'service-1',
+  start_time: '2024-01-15T10:00:00Z',
+  end_time: '2024-01-15T11:00:00Z',
+  status: 'confirmed',
+  notes: null,
+  cancellation_reason: null,
+  cancelled_at: null,
+  created_at: '2024-01-14T10:00:00Z',
+  updated_at: '2024-01-14T10:00:00Z',
+  customer_email: 'test@example.com',
+  customer_first_name: 'Test',
+  customer_last_name: 'Customer',
+  staff_first_name: 'Test',
+  staff_last_name: 'Staff',
+  service_name: 'Haircut',
+  service_duration_minutes: 60,
+  service_price_cents: 5000
+}
+
 describe('CalendarPro', () => {
   let queryClient: QueryClient
 
@@ -39,41 +100,7 @@ describe('CalendarPro', () => {
     })
 
     // Mock the hook return value
-    mockUseAdminAppointments.mockReturnValue({
-      appointments: [
-        {
-          id: '1',
-          customer_name: 'Test Customer',
-          customer_email: 'test@example.com',
-          staff_name: 'Test Staff',
-          service_name: 'Test Service',
-          start_time: '2024-01-15T10:00:00Z',
-          end_time: '2024-01-15T11:00:00Z',
-          status: 'confirmed',
-          service_price_cents: 5000
-        }
-      ],
-      pagination: { page: 1, limit: 50, total: 1, totalPages: 1 },
-      loading: false,
-      error: null,
-      createAppointment: {
-        mutateAsync: vi.fn().mockResolvedValue({})
-      },
-      rescheduleAppointment: {
-        mutateAsync: vi.fn().mockResolvedValue({})
-      },
-      cancelAppointment: {
-        mutateAsync: vi.fn().mockResolvedValue({})
-      },
-      updateAppointmentStatus: {
-        mutateAsync: vi.fn().mockResolvedValue({})
-      },
-      checkConflicts: {
-        mutateAsync: vi.fn().mockResolvedValue({ hasConflicts: false, conflicts: [] })
-      },
-      refetch: vi.fn(),
-      isRefetching: false
-    } as any)
+    mockUseAdminAppointments.mockReturnValue(createMockAdminAppointments())
   })
 
   const renderCalendarPro = () => {
@@ -128,10 +155,13 @@ describe('CalendarPro', () => {
 
   it('handles appointment creation', async () => {
     const mockCreate = vi.fn().mockResolvedValue({})
-    mockUseAdminAppointments.mockReturnValue({
-      ...mockUseAdminAppointments(),
-      createAppointment: { mutateAsync: mockCreate }
-    } as any)
+    mockUseAdminAppointments.mockReturnValue(createMockAdminAppointments({
+      createAppointment: { 
+        mutateAsync: mockCreate,
+        isPending: false,
+        error: null
+      }
+    }))
 
     renderCalendarPro()
     
@@ -143,14 +173,21 @@ describe('CalendarPro', () => {
 
 describe('Appointment Reschedule', () => {
   it('checks for conflicts before rescheduling', async () => {
-    const mockCheckConflicts = vi.fn().mockResolvedValue({ hasConflicts: false, conflicts: [] })
+    const mockCheckConflicts = vi.fn().mockResolvedValue({ hasConflicts: false, conflicts: [], suggestions: [] })
     const mockReschedule = vi.fn().mockResolvedValue({})
 
-    mockUseAdminAppointments.mockReturnValue({
-      ...mockUseAdminAppointments(),
-      checkConflicts: { mutateAsync: mockCheckConflicts },
-      rescheduleAppointment: { mutateAsync: mockReschedule }
-    } as any)
+    mockUseAdminAppointments.mockReturnValue(createMockAdminAppointments({
+      checkConflicts: { 
+        mutateAsync: mockCheckConflicts,
+        isPending: false,
+        error: null
+      },
+      rescheduleAppointment: { 
+        mutateAsync: mockReschedule,
+        isPending: false,
+        error: null
+      }
+    }))
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -172,13 +209,17 @@ describe('Appointment Reschedule', () => {
   it('prevents rescheduling when conflicts exist', async () => {
     const mockCheckConflicts = vi.fn().mockResolvedValue({
       hasConflicts: true,
-      conflicts: [{ id: 'conflict-1', customer_name: 'Other Customer' }]
+      conflicts: [{ type: 'double_booking', message: 'Conflict with existing appointment', conflictingAppointment: { id: 'conflict-1', customer_name: 'Other Customer' } }],
+      suggestions: []
     })
 
-    mockUseAdminAppointments.mockReturnValue({
-      ...mockUseAdminAppointments(),
-      checkConflicts: { mutateAsync: mockCheckConflicts }
-    } as any)
+    mockUseAdminAppointments.mockReturnValue(createMockAdminAppointments({
+      checkConflicts: { 
+        mutateAsync: mockCheckConflicts,
+        isPending: false,
+        error: null
+      }
+    }))
 
     // Test would verify that rescheduling is prevented when conflicts exist
     expect(mockCheckConflicts).toBeDefined()
@@ -189,10 +230,13 @@ describe('Appointment Cancellation', () => {
   it('allows cancellation with reason', async () => {
     const mockCancel = vi.fn().mockResolvedValue({})
 
-    mockUseAdminAppointments.mockReturnValue({
-      ...mockUseAdminAppointments(),
-      cancelAppointment: { mutateAsync: mockCancel }
-    } as any)
+    mockUseAdminAppointments.mockReturnValue(createMockAdminAppointments({
+      cancelAppointment: { 
+        mutateAsync: mockCancel,
+        isPending: false,
+        error: null
+      }
+    }))
 
     // Test would verify cancellation flow with reason
     expect(mockCancel).toBeDefined()

@@ -17,13 +17,41 @@ import { Calendar, Clock, User, Scissors, AlertTriangle, CheckCircle, X } from '
 import { useServices } from '@/hooks/use-services'
 import { useStaff } from '@/hooks/use-staff'
 import { useCustomers } from '@/hooks/use-customers'
+import { Service } from '@/lib/types/database'
+import { AppointmentCreate, ConflictCheck } from '@/hooks/use-admin-appointments'
 import { format, addMinutes, parseISO } from 'date-fns'
 import { de } from 'date-fns/locale'
 
+// Type definitions for props and data structures
+interface ConflictDetails {
+  type: string
+  message: string
+  conflictingAppointment?: {
+    id: string
+    start_time: string
+    end_time: string
+    customer_name: string
+    service_name: string
+  }
+}
+
+interface ConflictSuggestion {
+  startTime: string
+  endTime: string
+  staffId: string
+}
+
+interface ConflictCheckResponse {
+  hasConflicts: boolean
+  conflicts: ConflictDetails[]
+  availability: boolean
+  suggestions: ConflictSuggestion[]
+}
+
 interface AppointmentCreateDialogProps {
   onClose: () => void
-  onSave: (appointmentData: any) => Promise<void>
-  onCheckConflicts: (conflictData: any) => Promise<any>
+  onSave: (appointmentData: AppointmentCreate) => Promise<void>
+  onCheckConflicts: (conflictData: ConflictCheck) => Promise<ConflictCheckResponse>
   initialData?: {
     date?: string
     time?: string
@@ -44,9 +72,9 @@ interface FormData {
 
 interface ConflictResult {
   hasConflicts: boolean
-  conflicts: any[]
+  conflicts: ConflictDetails[]
   availability: boolean
-  suggestions: any[]
+  suggestions: ConflictSuggestion[]
 }
 
 export function AppointmentCreateDialog({
@@ -68,7 +96,7 @@ export function AppointmentCreateDialog({
   const [conflicts, setConflicts] = useState<ConflictResult | null>(null)
   const [checkingConflicts, setCheckingConflicts] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [selectedService, setSelectedService] = useState<any>(null)
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
 
   const { data: services } = useServices()
   const { data: staff } = useStaff()

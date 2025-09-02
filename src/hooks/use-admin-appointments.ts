@@ -6,6 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
+import { AppointmentWithDetails } from '@/lib/types/database'
 import { toast } from 'sonner'
 
 export interface AppointmentFilters {
@@ -57,10 +58,56 @@ export interface AppointmentStatusUpdate {
   notes?: string
 }
 
+// API Response types
+interface AdminAppointmentsResponse {
+  appointments: AppointmentWithDetails[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+  stats?: {
+    todayCount: number
+    todayRevenue: number
+    statusBreakdown: Array<{
+      status: string
+      count: number
+      percentage: number
+    }>
+    topStaff: Array<{
+      staffId: string
+      staffName: string
+      appointmentCount: number
+      revenue: number
+    }>
+    topServices: Array<{
+      serviceId: string
+      serviceName: string
+      bookingCount: number
+      revenue: number
+    }>
+  }
+}
+
+interface ConflictCheckResponse {
+  hasConflicts: boolean
+  conflicts: Array<{
+    type: string
+    message: string
+    conflictingAppointment?: AppointmentWithDetails
+  }>
+  suggestions: Array<{
+    startTime: string
+    endTime: string
+    staffId: string
+  }>
+}
+
 // Admin API base URL
 const ADMIN_API_BASE = '/.netlify/functions/admin'
 
-async function adminRequest(endpoint: string, options: RequestInit = {}) {
+async function adminRequest<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
   // Get auth token from localStorage for now - in production this should use proper auth context
   const token = localStorage.getItem('admin_token') || localStorage.getItem('supabase.auth.token')
   
@@ -98,7 +145,7 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
         }
       })
 
-      const data = await adminRequest(`/appointments?${searchParams}`)
+      const data = await adminRequest<AdminAppointmentsResponse>(`/appointments/list?${searchParams}`)
       return data
     },
     enabled: !!user && isAdmin,
@@ -143,7 +190,7 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
         service_name: 'Lädt...',
       }
 
-      queryClient.setQueryData(['admin-appointments', filters], (old: any) => ({
+      queryClient.setQueryData(['admin-appointments', filters], (old: AdminAppointmentsResponse | undefined) => ({
         ...old,
         appointments: [...(old?.appointments || []), optimisticAppointment]
       }))
@@ -183,9 +230,9 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
       const previousAppointments = queryClient.getQueryData(['admin-appointments', filters])
 
       // Optimistically update the appointment
-      queryClient.setQueryData(['admin-appointments', filters], (old: any) => ({
+      queryClient.setQueryData(['admin-appointments', filters], (old: AdminAppointmentsResponse | undefined) => ({
         ...old,
-        appointments: old?.appointments?.map((apt: any) =>
+        appointments: old?.appointments?.map((apt: AppointmentWithDetails) =>
           apt.id === rescheduleData.appointmentId
             ? {
                 ...apt,
@@ -194,7 +241,7 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
                 staff_id: rescheduleData.staffId || apt.staff_id,
               }
             : apt
-        )
+        ) || []
       }))
 
       return { previousAppointments }
@@ -230,13 +277,13 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
       const previousAppointments = queryClient.getQueryData(['admin-appointments', filters])
 
       // Optimistically update the appointment
-      queryClient.setQueryData(['admin-appointments', filters], (old: any) => ({
+      queryClient.setQueryData(['admin-appointments', filters], (old: AdminAppointmentsResponse | undefined) => ({
         ...old,
-        appointments: old?.appointments?.map((apt: any) =>
+        appointments: old?.appointments?.map((apt: AppointmentWithDetails) =>
           apt.id === cancelData.appointmentId
             ? { ...apt, status: 'cancelled', cancellation_reason: cancelData.reason }
             : apt
-        )
+        ) || []
       }))
 
       return { previousAppointments }
@@ -271,13 +318,13 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
 
       const previousAppointments = queryClient.getQueryData(['admin-appointments', filters])
 
-      queryClient.setQueryData(['admin-appointments', filters], (old: any) => ({
+      queryClient.setQueryData(['admin-appointments', filters], (old: AdminAppointmentsResponse | undefined) => ({
         ...old,
-        appointments: old?.appointments?.map((apt: any) =>
+        appointments: old?.appointments?.map((apt: AppointmentWithDetails) =>
           apt.id === statusData.appointmentId
             ? { ...apt, status: statusData.status, notes: statusData.notes }
             : apt
-        )
+        ) || []
       }))
 
       return { previousAppointments }
