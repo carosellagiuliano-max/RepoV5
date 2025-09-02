@@ -277,6 +277,115 @@ export const mediaUploadSchema = z.object({
 export const mediaFileCreateSchema = mediaCreateSchema
 export const mediaFileUpdateSchema = mediaUpdateSchema
 
+// Notification schemas
+export const notificationTypeSchema = z.enum(['email', 'sms'])
+export const notificationChannelSchema = z.enum(['reminder', 'cancellation', 'rescheduling', 'daily_schedule'])
+export const notificationStatusSchema = z.enum(['pending', 'processing', 'sent', 'failed', 'cancelled'])
+
+export const notificationSettingCreateSchema = z.object({
+  key: z.string().min(1, 'Key is required').max(100),
+  value: z.union([z.string(), z.number(), z.boolean()]).transform(String),
+  category: z.string().max(50).optional().default('general'),
+  description: z.string().max(500).optional(),
+  is_active: z.boolean().optional().default(true)
+})
+
+export const notificationSettingUpdateSchema = z.object({
+  value: z.union([z.string(), z.number(), z.boolean()]).transform(String).optional(),
+  category: z.string().max(50).optional(),
+  description: z.string().max(500).optional(),
+  is_active: z.boolean().optional()
+})
+
+export const notificationTemplateCreateSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  type: notificationTypeSchema,
+  channel: notificationChannelSchema,
+  subject: z.string().max(200).optional(),
+  content: z.string().min(1, 'Content is required').max(5000),
+  variables: z.array(z.string()).optional().default([]),
+  is_active: z.boolean().optional().default(true),
+  is_default: z.boolean().optional().default(false)
+}).refine(
+  (data) => {
+    // Email templates must have a subject
+    if (data.type === 'email' && !data.subject) {
+      return false
+    }
+    return true
+  },
+  { message: 'Email templates must have a subject', path: ['subject'] }
+)
+
+export const notificationTemplateUpdateSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  subject: z.string().max(200).optional(),
+  content: z.string().min(1).max(5000).optional(),
+  variables: z.array(z.string()).optional(),
+  is_active: z.boolean().optional(),
+  is_default: z.boolean().optional()
+})
+
+export const notificationQueueCreateSchema = z.object({
+  type: notificationTypeSchema,
+  channel: notificationChannelSchema,
+  recipient_email: emailSchema.optional(),
+  recipient_phone: phoneSchema.optional(),
+  recipient_name: z.string().max(100).optional(),
+  subject: z.string().max(200).optional(),
+  content: z.string().min(1, 'Content is required').max(5000),
+  appointment_id: uuidSchema.optional(),
+  customer_id: uuidSchema.optional(),
+  staff_id: uuidSchema.optional(),
+  scheduled_for: datetimeSchema.optional(),
+  template_id: uuidSchema.optional(),
+  correlation_id: z.string().max(100).optional(),
+  metadata: z.record(z.unknown()).optional().default({})
+}).refine(
+  (data) => {
+    // Email notifications need email, SMS needs phone
+    if (data.type === 'email' && !data.recipient_email) return false
+    if (data.type === 'sms' && !data.recipient_phone) return false
+    return true
+  },
+  { message: 'Recipient email required for email notifications, phone required for SMS' }
+)
+
+export const notificationQueueUpdateSchema = z.object({
+  status: notificationStatusSchema.optional(),
+  error_message: z.string().max(1000).optional(),
+  error_details: z.record(z.unknown()).optional(),
+  retry_count: z.number().min(0).optional(),
+  metadata: z.record(z.unknown()).optional()
+})
+
+export const notificationFiltersSchema = paginationSchema.extend({
+  type: notificationTypeSchema.optional(),
+  channel: notificationChannelSchema.optional(),
+  status: notificationStatusSchema.optional(),
+  appointment_id: uuidSchema.optional(),
+  customer_id: uuidSchema.optional(),
+  staff_id: uuidSchema.optional(),
+  scheduled_after: datetimeSchema.optional(),
+  scheduled_before: datetimeSchema.optional(),
+  correlation_id: z.string().optional(),
+  sortBy: z.enum(['created_at', 'scheduled_for', 'sent_at', 'status']).optional().default('created_at')
+})
+
+export const notificationSettingFiltersSchema = paginationSchema.extend({
+  category: z.string().optional(),
+  is_active: z.coerce.boolean().optional(),
+  sortBy: z.enum(['key', 'category', 'created_at']).optional().default('key')
+})
+
+export const notificationTemplateFiltersSchema = paginationSchema.extend({
+  type: notificationTypeSchema.optional(),
+  channel: notificationChannelSchema.optional(),
+  is_active: z.coerce.boolean().optional(),
+  is_default: z.coerce.boolean().optional(),
+  sortBy: z.enum(['name', 'type', 'channel', 'created_at']).optional().default('name')
+})
+
 // Query parameter schemas
 export const paginationSchema = z.object({
   page: z.coerce.number().positive().optional().default(1),
@@ -464,6 +573,23 @@ export const schemas = {
   // Bulk operations
   bulkStaffServiceAssignment: bulkStaffServiceAssignmentSchema,
   bulkAvailabilityUpdate: bulkAvailabilityUpdateSchema,
+  
+  // Notifications
+  notificationSetting: {
+    create: notificationSettingCreateSchema,
+    update: notificationSettingUpdateSchema
+  },
+  notificationTemplate: {
+    create: notificationTemplateCreateSchema,
+    update: notificationTemplateUpdateSchema
+  },
+  notificationQueue: {
+    create: notificationQueueCreateSchema,
+    update: notificationQueueUpdateSchema
+  },
+  notificationFilters: notificationFiltersSchema,
+  notificationSettingFilters: notificationSettingFiltersSchema,
+  notificationTemplateFilters: notificationTemplateFiltersSchema,
   
   // API response
   apiError: apiErrorSchema,
