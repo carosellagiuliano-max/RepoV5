@@ -107,6 +107,88 @@ export const customerFiltersSchema = paginationSchema.extend({
   registeredBefore: dateSchema.optional()
 })
 
+// Duplicate detection schemas
+export const duplicateDetectionSchema = z.object({
+  customerId: uuidSchema.optional(),
+  confidenceThreshold: z.coerce.number().min(0).max(1).optional().default(0.7),
+  limit: z.coerce.number().positive().max(1000).optional().default(100)
+})
+
+export const duplicateFiltersSchema = paginationSchema.extend({
+  status: z.enum(['pending', 'reviewed', 'merged', 'dismissed']).optional(),
+  matchType: z.enum(['email', 'phone', 'name_fuzzy', 'manual']).optional(),
+  minConfidence: z.coerce.number().min(0).max(1).optional()
+})
+
+export const duplicateActionSchema = z.object({
+  duplicateId: uuidSchema
+})
+
+export const duplicateDismissSchema = z.object({
+  duplicateId: uuidSchema,
+  reason: z.string().max(500).optional()
+})
+
+// Merge schemas
+export const mergePreviewSchema = z.object({
+  primaryCustomerId: uuidSchema,
+  mergeCustomerId: uuidSchema,
+  mergeStrategy: z.object({
+    full_name: z.enum(['primary', 'merge']).optional().default('primary'),
+    phone: z.enum(['primary', 'merge', 'combine']).optional().default('primary'),
+    date_of_birth: z.enum(['primary', 'merge']).optional().default('primary'),
+    address_street: z.enum(['primary', 'merge']).optional().default('primary'),
+    address_city: z.enum(['primary', 'merge']).optional().default('primary'),
+    address_postal_code: z.enum(['primary', 'merge']).optional().default('primary'),
+    emergency_contact_name: z.enum(['primary', 'merge']).optional().default('primary'),
+    emergency_contact_phone: z.enum(['primary', 'merge']).optional().default('primary'),
+    notes: z.enum(['primary', 'merge', 'combine']).optional().default('combine')
+  })
+})
+
+export const mergeExecutionSchema = mergePreviewSchema.extend({
+  notes: z.string().max(1000).optional()
+})
+
+// Import/Export schemas
+export const exportFiltersSchema = z.object({
+  format: z.enum(['basic', 'detailed', 'gdpr_full']).optional().default('basic'),
+  hasGdprConsent: z.coerce.boolean().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
+  registeredAfter: dateSchema.optional(),
+  registeredBefore: dateSchema.optional(),
+  includeDeleted: z.coerce.boolean().optional().default(false)
+})
+
+export const exportPreviewSchema = z.object({
+  filters: exportFiltersSchema,
+  format: z.enum(['basic', 'detailed', 'gdpr_full']).default('basic')
+})
+
+export const fieldMappingSchema = z.object({
+  csvColumn: z.string().min(1, 'CSV column name is required'),
+  databaseField: z.string().min(1, 'Database field is required'),
+  required: z.boolean().optional().default(false),
+  transform: z.enum(['date', 'boolean', 'phone', 'email']).optional()
+})
+
+export const importValidateSchema = z.object({
+  csvData: z.string().min(1, 'CSV data is required'),
+  filename: z.string().min(1, 'Filename is required'),
+  fieldMapping: z.array(fieldMappingSchema).min(1, 'At least one field mapping is required'),
+  importMode: z.enum(['create_only', 'update_existing', 'create_and_update']).optional().default('create_only'),
+  duplicateHandling: z.enum(['skip', 'update', 'create_new']).optional().default('skip')
+})
+
+export const importExecuteSchema = z.object({
+  importLogId: uuidSchema.optional(),
+  csvData: z.string().min(1, 'CSV data is required'),
+  fieldMapping: z.array(fieldMappingSchema).min(1, 'At least one field mapping is required'),
+  importMode: z.enum(['create_only', 'update_existing', 'create_and_update']).optional().default('create_only'),
+  duplicateHandling: z.enum(['skip', 'update', 'create_new']).optional().default('skip')
+})
+
 // Service schemas
 export const serviceCreateSchema = z.object({
   name: z.string().min(1, 'Service name is required').max(100),
@@ -417,6 +499,21 @@ export const schemas = {
     softDelete: customerSoftDeleteSchema,
     gdprExport: customerGdprExportSchema
   },
+  
+  // Duplicate detection & merge schemas
+  duplicateDetection: duplicateDetectionSchema,
+  duplicateFilters: duplicateFiltersSchema,
+  duplicateAction: duplicateActionSchema,
+  duplicateDismiss: duplicateDismissSchema,
+  mergePreview: mergePreviewSchema,
+  mergeExecution: mergeExecutionSchema,
+  
+  // Import/Export schemas
+  exportFilters: exportFiltersSchema,
+  exportPreview: exportPreviewSchema,
+  fieldMapping: fieldMappingSchema,
+  importValidate: importValidateSchema,
+  importExecute: importExecuteSchema,
   service: {
     create: serviceCreateSchema,
     update: serviceUpdateSchema
