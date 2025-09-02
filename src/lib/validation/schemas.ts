@@ -428,6 +428,23 @@ export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
     }).optional()
   })
 
+// Analytics schemas
+export const analyticsFiltersSchema = z.object({
+  startDate: dateSchema.optional(),
+  endDate: dateSchema.optional(),
+  staffId: uuidSchema.optional(),
+  serviceId: uuidSchema.optional(),
+  period: z.enum(['day', 'week', 'month']).optional().default('month')
+})
+
+export const csvExportFiltersSchema = z.object({
+  startDate: dateSchema.optional(),
+  endDate: dateSchema.optional(),
+  staffId: uuidSchema.optional(),
+  serviceId: uuidSchema.optional(),
+  type: z.enum(['appointments', 'staff-utilization', 'services-revenue']).default('appointments')
+})
+
 // Validation helper functions
 export const validateBody = <T extends z.ZodTypeAny>(
   schema: T,
@@ -516,6 +533,8 @@ export const schemas = {
   serviceFilters: serviceFiltersSchema,
   customerFilters: customerFiltersSchema,
   mediaFilters: mediaFiltersSchema,
+  analyticsFilters: analyticsFiltersSchema,
+  csvExportFilters: csvExportFiltersSchema,
   
   // Auth schemas
   login: loginSchema,
