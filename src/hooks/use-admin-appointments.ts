@@ -160,7 +160,11 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
         method: 'POST',
         body: JSON.stringify(conflictData),
       })
-      return response.conflicts || []
+      return {
+        hasConflicts: response.hasConflicts ?? Array.isArray(response.conflicts) && response.conflicts.length > 0,
+        conflicts: response.conflicts ?? [],
+        suggestions: response.suggestions ?? [],
+      }
     },
   })
 
