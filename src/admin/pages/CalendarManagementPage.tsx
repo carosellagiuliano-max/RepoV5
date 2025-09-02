@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
-import { CalendarDays, Copy, ExternalLink, Plus, Trash2, RefreshCw } from 'lucide-react'
+import { CalendarDays, Copy, ExternalLink, Plus, Trash2, RefreshCw, Link, Unlink, Sync } from 'lucide-react'
 
 interface CalendarToken {
   id: string
@@ -43,11 +43,28 @@ interface Staff {
   is_active: boolean
 }
 
+interface GoogleCalendarStatus {
+  connected: boolean
+  sync_enabled: boolean
+  last_sync_at: string | null
+  calendar_id?: string
+}
+
+interface SyncResult {
+  success: boolean
+  eventsCreated: number
+  eventsUpdated: number
+  eventsDeleted: number
+  errors: string[]
+}
+
 export default function CalendarManagementPage() {
   const [tokens, setTokens] = useState<CalendarToken[]>([])
   const [staff, setStaff] = useState<Staff[]>([])
+  const [googleStatuses, setGoogleStatuses] = useState<Map<string, GoogleCalendarStatus>>(new Map())
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [syncing, setSyncing] = useState<Set<string>>(new Set())
   const [selectedStaffId, setSelectedStaffId] = useState<string>('')
   const [feedType, setFeedType] = useState<'ical' | 'google'>('ical')
   const [expiresHours, setExpiresHours] = useState<string>('')
@@ -85,6 +102,38 @@ export default function CalendarManagementPage() {
       if (staffResponse.ok) {
         const staffData = await staffResponse.json()
         setStaff(staffData.staff || [])
+        
+        // Fetch Google Calendar statuses for each staff member
+        const statuses = new Map<string, GoogleCalendarStatus>()
+        await Promise.all(staffData.staff.map(async (staffMember: Staff) => {
+          try {
+            const statusResponse = await fetch(`/.netlify/functions/calendar/google/sync?staff_id=${staffMember.id}`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+              }
+            })
+            
+            if (statusResponse.ok) {
+              const status = await statusResponse.json()
+              statuses.set(staffMember.id, status)
+            } else {
+              statuses.set(staffMember.id, {
+                connected: false,
+                sync_enabled: false,
+                last_sync_at: null
+              })
+            }
+          } catch (error) {
+            console.error(`Error fetching Google status for ${staffMember.id}:`, error)
+            statuses.set(staffMember.id, {
+              connected: false,
+              sync_enabled: false,
+              last_sync_at: null
+            })
+          }
+        }))
+        
+        setGoogleStatuses(statuses)
       }
       
     } catch (error) {
@@ -238,6 +287,140 @@ export default function CalendarManagementPage() {
     }
   }
 
+  const handleConnectGoogle = async (staffId: string) => {
+    try {
+      const response = await fetch('/.netlify/functions/calendar/google/connect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+        },
+        body: JSON.stringify({ staff_id: staffId })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        // Open OAuth URL in new window
+        window.open(result.auth_url, '_blank', 'width=600,height=600')
+        
+        toast({
+          title: 'Authorization Required',
+          description: 'Please complete the authorization in the popup window'
+        })
+      } else {
+        const error = await response.json()
+        toast({
+          title: 'Error',
+          description: error.error || 'Failed to start Google Calendar connection',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      console.error('Error connecting Google Calendar:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to connect Google Calendar',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleDisconnectGoogle = async (staffId: string) => {
+    try {
+      const response = await fetch(`/.netlify/functions/calendar/google/connect/${staffId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+        }
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'Google Calendar disconnected successfully'
+        })
+        
+        // Update status
+        const newStatuses = new Map(googleStatuses)
+        newStatuses.set(staffId, {
+          connected: false,
+          sync_enabled: false,
+          last_sync_at: null
+        })
+        setGoogleStatuses(newStatuses)
+      } else {
+        const error = await response.json()
+        toast({
+          title: 'Error',
+          description: error.error || 'Failed to disconnect Google Calendar',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      console.error('Error disconnecting Google Calendar:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to disconnect Google Calendar',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleSyncGoogle = async (staffId: string) => {
+    try {
+      setSyncing(prev => new Set([...prev, staffId]))
+      
+      const response = await fetch('/.netlify/functions/calendar/google/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+        },
+        body: JSON.stringify({ staff_id: staffId, direction: 'to_google' })
+      })
+
+      if (response.ok) {
+        const result: SyncResult = await response.json()
+        
+        if (result.success) {
+          toast({
+            title: 'Sync Complete',
+            description: `${result.eventsCreated} created, ${result.eventsUpdated} updated`
+          })
+        } else {
+          toast({
+            title: 'Sync Issues',
+            description: `Sync completed with ${result.errors.length} errors`,
+            variant: 'destructive'
+          })
+        }
+        
+        // Refresh status
+        fetchData()
+      } else {
+        const error = await response.json()
+        toast({
+          title: 'Sync Failed',
+          description: error.error || 'Failed to sync with Google Calendar',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      console.error('Error syncing Google Calendar:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to sync Google Calendar',
+        variant: 'destructive'
+      })
+    } finally {
+      setSyncing(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(staffId)
+        return newSet
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -264,6 +447,7 @@ export default function CalendarManagementPage() {
       <Tabs defaultValue="tokens" className="space-y-4">
         <TabsList>
           <TabsTrigger value="tokens">Calendar Tokens</TabsTrigger>
+          <TabsTrigger value="google">Google Calendar</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -350,6 +534,150 @@ export default function CalendarManagementPage() {
                   </TableBody>
                 </Table>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="google" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Google Calendar Integration</CardTitle>
+              <CardDescription>
+                Connect staff Google Calendar accounts for two-way synchronization. Appointments will be automatically synced to Google Calendar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Staff Member</TableHead>
+                    <TableHead>Connection Status</TableHead>
+                    <TableHead>Last Sync</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {staff.filter(s => s.is_active).map((staffMember) => {
+                    const googleStatus = googleStatuses.get(staffMember.id) || {
+                      connected: false,
+                      sync_enabled: false,
+                      last_sync_at: null
+                    }
+                    
+                    return (
+                      <TableRow key={staffMember.id}>
+                        <TableCell className="font-medium">
+                          {staffMember.first_name} {staffMember.last_name}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={googleStatus.connected ? 'default' : 'secondary'}>
+                              {googleStatus.connected ? 'Connected' : 'Not Connected'}
+                            </Badge>
+                            {googleStatus.connected && (
+                              <Badge variant={googleStatus.sync_enabled ? 'default' : 'secondary'} className="text-xs">
+                                {googleStatus.sync_enabled ? 'Sync On' : 'Sync Off'}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {googleStatus.last_sync_at 
+                            ? formatDate(googleStatus.last_sync_at)
+                            : 'Never'
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {googleStatus.connected ? (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleSyncGoogle(staffMember.id)}
+                                  disabled={syncing.has(staffMember.id)}
+                                >
+                                  {syncing.has(staffMember.id) ? (
+                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Sync className="h-4 w-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDisconnectGoogle(staffMember.id)}
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Unlink className="h-4 w-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleConnectGoogle(staffMember.id)}
+                              >
+                                <Link className="h-4 w-4 mr-2" />
+                                Connect
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+              
+              {staff.filter(s => s.is_active).length === 0 && (
+                <div className="text-center py-8">
+                  <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No active staff members</h3>
+                  <p className="text-muted-foreground">
+                    Add active staff members to enable Google Calendar integration.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Google Calendar Setup</CardTitle>
+              <CardDescription>
+                Information about setting up Google Calendar integration.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Required Setup Steps</h4>
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p>1. Create a Google Cloud Console project</p>
+                  <p>2. Enable the Google Calendar API</p>
+                  <p>3. Create OAuth 2.0 credentials</p>
+                  <p>4. Configure environment variables</p>
+                  <p>5. Set up the OAuth redirect URI</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="text-sm font-medium">Required Scopes</h4>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>• https://www.googleapis.com/auth/calendar</p>
+                  <p>• https://www.googleapis.com/auth/calendar.events</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="text-sm font-medium">Security Notes</h4>
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p>• Google OAuth tokens are encrypted at rest</p>
+                  <p>• Tokens are automatically refreshed when expired</p>
+                  <p>• Only appointment data is synced, no personal information</p>
+                  <p>• Staff can disconnect their calendar at any time</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -442,7 +770,9 @@ export default function CalendarManagementPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ical">iCal Feed (Read-only)</SelectItem>
-                  <SelectItem value="google" disabled>Google Calendar Sync (Coming Soon)</SelectItem>
+                  <SelectItem value="google" disabled={!process.env.GOOGLE_CALENDAR_CLIENT_ID}>
+                    Google Calendar Sync {!process.env.GOOGLE_CALENDAR_CLIENT_ID && '(Not Configured)'}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
