@@ -223,25 +223,34 @@ export interface Database {
           updated_at?: string
         }
       }
-      business_settings: {
+      settings: {
         Row: {
           id: string
           key: string
-          value: string
+          value: any // JSONB type
           description: string | null
+          category: string
+          is_sensitive: boolean
           created_at: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           id?: string
           key: string
-          value: string
+          value: any // JSONB type
           description?: string | null
+          category?: string
+          is_sensitive?: boolean
+          updated_by?: string | null
         }
         Update: {
-          value?: string
+          value?: any // JSONB type
           description?: string | null
+          category?: string
+          is_sensitive?: boolean
           updated_at?: string
+          updated_by?: string | null
         }
       }
       media: {

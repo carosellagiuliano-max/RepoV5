@@ -19,6 +19,114 @@ All admin API endpoints require:
 
 ## Admin API Endpoints
 
+### Business Settings (`/netlify/functions/admin/settings`) 🆕
+
+#### GET - List Business Settings
+```
+GET /admin/settings?category=business&include_sensitive=false
+```
+
+**Query Parameters:**
+- `page` (number): Page number (default: 1)
+- `limit` (number): Items per page (default: 50, max: 100)
+- `category` (string): Filter by category (business, booking, email)
+- `search` (string): Search in key and description
+- `include_sensitive` (boolean): Include sensitive settings (default: false, admin only)
+
+**Response:**
+```json
+{
+  "settings": [
+    {
+      "id": "uuid",
+      "key": "business.opening_hours",
+      "value": {
+        "monday": {"enabled": true, "start": "09:00", "end": "18:00"},
+        "tuesday": {"enabled": true, "start": "09:00", "end": "18:00"}
+      },
+      "description": "Default opening hours for each day",
+      "category": "business",
+      "is_sensitive": false,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "updated_by": "admin-uuid"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 50,
+    "total": 15,
+    "totalPages": 1
+  }
+}
+```
+
+#### PUT - Update Setting
+```
+PUT /admin/settings/{key}
+```
+
+**Body:**
+```json
+{
+  "value": "new_value_or_object",
+  "description": "Updated description",
+  "category": "business",
+  "is_sensitive": false
+}
+```
+
+#### POST - Create Setting
+```
+POST /admin/settings
+```
+
+**Body:**
+```json
+{
+  "key": "custom.setting",
+  "value": "setting_value",
+  "description": "Setting description",
+  "category": "custom",
+  "is_sensitive": false
+}
+```
+
+#### DELETE - Delete Setting
+```
+DELETE /admin/settings/{key}
+```
+
+**Note:** Core settings (business.opening_hours, booking.window_days, etc.) cannot be deleted.
+
+### SMTP Test Email (`/netlify/functions/admin/settings-test-email`) 🆕
+
+#### POST - Send Test Email
+```
+POST /admin/settings-test-email
+```
+
+**Body:**
+```json
+{
+  "to": "test@example.com",
+  "subject": "SMTP Test Email",
+  "body": "This is a test email to verify SMTP configuration."
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Test email sent successfully",
+  "messageId": "smtp-message-id",
+  "accepted": ["test@example.com"],
+  "rejected": []
+}
+```
+
+**Rate Limiting:** 5 requests per minute for email testing
+
 ### Customer Management (`/netlify/functions/admin/customers`) 🆕
 
 #### GET - List Customers
@@ -686,6 +794,105 @@ The system automatically prevents:
 - Error rates by endpoint
 - Authentication failures
 - Database query performance
+
+## Business Settings Management 🆕
+
+### Overview
+The business settings system provides centralized configuration management for all business operations. Settings are stored in the database and can be managed through the admin interface.
+
+### Settings Categories
+
+#### Business Information
+- **Business Name**: Display name for the salon
+- **Address**: Physical business address
+- **Phone**: Contact phone number  
+- **Email**: Business email address
+- **Opening Hours**: Configurable hours for each day of the week
+
+#### Booking Configuration
+- **Booking Window**: Maximum days in advance customers can book (1-365 days)
+- **Buffer Time**: Minutes between appointments (0-120 minutes)
+- **Cancellation Hours**: Minimum notice required for cancellations (0-168 hours)
+
+#### Email & SMTP Configuration
+- **SMTP Host**: Email server hostname
+- **SMTP Port**: Server port (typically 587 or 465)
+- **SMTP User**: Authentication username
+- **SMTP Password**: Authentication password (encrypted)
+- **From Email**: Sender email address
+- **From Name**: Sender display name
+
+### Admin UI Features
+
+#### Settings Management Interface
+- **Tabbed Interface**: Organized by category (Business, Booking, Email)
+- **Real-time Validation**: Form validation with helpful error messages
+- **Visual Feedback**: Live preview of setting effects
+- **Audit Trail**: Track who made changes and when
+
+#### Opening Hours Configuration
+- **Day-by-day Setup**: Enable/disable and set hours for each day
+- **Visual Schedule**: Clear display of business hours
+- **Flexible Timing**: Support for different hours per day
+
+#### SMTP Testing
+- **Configuration Test**: Send test emails to verify setup
+- **Error Diagnosis**: Detailed error messages for troubleshooting
+- **Security**: Sensitive credentials are masked in the UI
+
+### Security & Access Control
+
+#### Role-Based Access
+- **Admin**: Full access to all settings including sensitive data
+- **Staff**: Read-only access to non-sensitive settings
+- **Customer**: No access to business settings
+
+#### Data Protection
+- **Sensitive Settings**: SMTP passwords and other credentials are encrypted
+- **Audit Logging**: All changes are tracked with user and timestamp
+- **Rate Limiting**: API endpoints have appropriate rate limits
+
+### Integration with Booking System
+
+#### How Settings Affect Bookings
+- **Opening Hours**: Determines available appointment slots
+- **Buffer Time**: Automatically added between appointments
+- **Booking Window**: Limits how far in advance customers can book
+- **Cancellation Policy**: Enforced in the booking interface
+
+#### Real-time Updates
+- Settings changes take effect immediately
+- React Query cache invalidation ensures UI stays synchronized
+- No server restart required for configuration changes
+
+### Technical Implementation
+
+#### Database Schema
+```sql
+CREATE TABLE settings (
+  id UUID PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,
+  value JSONB NOT NULL,
+  description TEXT,
+  category TEXT DEFAULT 'general',
+  is_sensitive BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by UUID REFERENCES profiles(id)
+);
+```
+
+#### API Architecture
+- **RESTful Endpoints**: Standard CRUD operations
+- **JWT Authentication**: Secure admin-only access
+- **Zod Validation**: Type-safe request/response validation
+- **Error Handling**: Structured error responses
+
+#### Frontend Architecture
+- **React Query**: Efficient data fetching and caching
+- **Form Validation**: Real-time validation with react-hook-form
+- **Type Safety**: Full TypeScript support
+- **Responsive Design**: Works on all device sizes
 
 ## Future Enhancements
 

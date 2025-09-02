@@ -42,6 +42,35 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 ### Core Tables
 
+#### Settings Table 🆕
+Central configuration storage for business settings:
+```sql
+CREATE TABLE settings (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,
+  value JSONB NOT NULL,
+  description TEXT,
+  category TEXT DEFAULT 'general',
+  is_sensitive BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by UUID REFERENCES profiles(id) ON DELETE SET NULL
+);
+```
+
+**Key Features:**
+- **JSONB Values**: Support for complex configuration objects
+- **Categories**: Organized grouping (business, booking, email)
+- **Sensitive Data**: Encryption flag for credentials
+- **Audit Trail**: Track changes with user and timestamp
+- **RLS Policies**: Role-based access control
+
+**Default Settings:**
+- `business.opening_hours`: Weekly schedule configuration
+- `business.name/address/phone/email`: Contact information
+- `booking.window_days/buffer_time_minutes/cancellation_hours`: Booking rules
+- `smtp.*`: Email server configuration
+
 #### Profiles (extends auth.users)
 - `id` (UUID, primary key, references auth.users)
 - `email` (TEXT, unique)
@@ -568,6 +597,113 @@ Response: {
   }
 }
 ```
+
+## Business Settings Integration 🆕
+
+### Frontend Integration Patterns
+
+#### Using Settings in Components
+```typescript
+import { useSetting, useSettingsObject } from '@/hooks/use-settings'
+
+// Get a single setting value
+const bufferTime = useSetting<number>('booking.buffer_time_minutes')
+
+// Get all settings in a category as an object
+const businessInfo = useSettingsObject('business')
+
+// Use in component logic
+const availableSlots = calculateSlots(openingHours, bufferTime)
+```
+
+#### Reactive Updates
+```typescript
+// Settings automatically update across all components
+const { data: settings, isLoading } = useSettings()
+
+// Form submission updates all related queries
+const updateSettings = useUpdateMultipleSettings()
+await updateSettings.mutateAsync([
+  { key: 'business.name', update: { value: 'New Business Name' } }
+])
+```
+
+### Backend Integration
+
+#### Fetching Settings in Netlify Functions
+```javascript
+import { supabase } from '@/lib/supabase'
+
+// Get specific setting
+const { data: setting } = await supabase
+  .from('settings')
+  .select('value')
+  .eq('key', 'booking.window_days')
+  .single()
+
+// Use in business logic
+const maxBookingDate = new Date()
+maxBookingDate.setDate(maxBookingDate.getDate() + setting.value)
+```
+
+#### Settings-Aware Booking Logic
+```javascript
+// Booking validation considers current settings
+const { data: settings } = await supabase
+  .from('settings')
+  .select('key, value')
+  .in('key', ['booking.window_days', 'booking.buffer_time_minutes'])
+
+const windowDays = settings.find(s => s.key === 'booking.window_days').value
+const bufferMinutes = settings.find(s => s.key === 'booking.buffer_time_minutes').value
+
+// Apply business rules
+if (appointmentDate > new Date(Date.now() + windowDays * 24 * 60 * 60 * 1000)) {
+  throw new Error('Appointment too far in advance')
+}
+```
+
+### Email Integration
+
+#### SMTP Configuration Usage
+```javascript
+// Email sending with dynamic SMTP settings
+const smtpSettings = await fetchSmtpSettings()
+const transporter = nodemailer.createTransporter({
+  host: smtpSettings.host,
+  port: smtpSettings.port,
+  auth: {
+    user: smtpSettings.user,
+    pass: smtpSettings.password
+  }
+})
+```
+
+### Migration Strategy
+
+#### Database Migration Order
+1. **11_business_settings.sql**: Create settings table and RLS policies
+2. Run migration: `psql -f docs/db/11_business_settings.sql`
+3. Verify default settings are inserted
+4. Update Netlify environment variables if needed
+
+#### Rollback Plan
+```sql
+-- If needed, rollback with:
+-- psql -f docs/db/11_business_settings_rollback.sql
+```
+
+### Performance Considerations
+
+#### Caching Strategy
+- **React Query**: 5-minute stale time for settings
+- **Database**: Use RLS for security, indexes for performance
+- **API**: Rate limiting to prevent abuse
+
+#### Optimization Tips
+- Settings are cached client-side after first load
+- Only sensitive settings require admin privileges
+- Bulk updates are atomic database transactions
 
 ## Support
 For technical issues:

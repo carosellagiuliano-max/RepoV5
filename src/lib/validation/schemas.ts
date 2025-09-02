@@ -366,6 +366,118 @@ export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
     }).optional()
   })
 
+// Settings schemas
+const openingHoursDaySchema = z.object({
+  enabled: z.boolean(),
+  start: timeSchema,
+  end: timeSchema
+})
+
+const openingHoursSchema = z.object({
+  monday: openingHoursDaySchema,
+  tuesday: openingHoursDaySchema,
+  wednesday: openingHoursDaySchema,
+  thursday: openingHoursDaySchema,
+  friday: openingHoursDaySchema,
+  saturday: openingHoursDaySchema,
+  sunday: openingHoursDaySchema
+})
+
+const smtpSettingsSchema = z.object({
+  host: z.string().min(1, 'SMTP host is required'),
+  port: z.number().int().min(1).max(65535),
+  user: z.string().min(1, 'SMTP user is required'),
+  password: z.string().min(1, 'SMTP password is required'),
+  from_email: emailSchema,
+  from_name: z.string().min(1, 'From name is required')
+})
+
+const businessInfoSchema = z.object({
+  name: z.string().min(1, 'Business name is required'),
+  address: z.string().min(1, 'Business address is required'),
+  phone: phoneSchema,
+  email: emailSchema
+})
+
+const bookingSettingsSchema = z.object({
+  window_days: z.number().int().min(1).max(365),
+  buffer_time_minutes: z.number().int().min(0).max(120),
+  cancellation_hours: z.number().int().min(0).max(168) // max 7 days
+})
+
+const settingValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  openingHoursSchema,
+  smtpSettingsSchema,
+  businessInfoSchema,
+  bookingSettingsSchema,
+  z.record(z.any()) // for other JSONB values
+])
+
+const settingSchema = z.object({
+  id: uuidSchema,
+  key: z.string().min(1, 'Setting key is required'),
+  value: settingValueSchema,
+  description: z.string().nullable(),
+  category: z.string().min(1, 'Category is required'),
+  is_sensitive: z.boolean(),
+  created_at: datetimeSchema,
+  updated_at: datetimeSchema,
+  updated_by: uuidSchema.nullable()
+})
+
+const settingCreateSchema = z.object({
+  key: z.string().min(1, 'Setting key is required'),
+  value: settingValueSchema,
+  description: z.string().optional(),
+  category: z.string().min(1, 'Category is required').default('general'),
+  is_sensitive: z.boolean().default(false)
+})
+
+const settingUpdateSchema = z.object({
+  value: settingValueSchema.optional(),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  is_sensitive: z.boolean().optional()
+}).refine(data => Object.keys(data).length > 0, {
+  message: 'At least one field must be provided for update'
+})
+
+const settingsFormDataSchema = z.object({
+  business: businessInfoSchema.extend({
+    opening_hours: openingHoursSchema
+  }),
+  booking: bookingSettingsSchema,
+  smtp: smtpSettingsSchema
+})
+
+const settingsFiltersSchema = z.object({
+  category: z.string().optional(),
+  search: z.string().optional(),
+  include_sensitive: z.boolean().default(false)
+}).merge(paginationSchema)
+
+const testEmailSchema = z.object({
+  to: emailSchema,
+  subject: z.string().min(1, 'Subject is required'),
+  body: z.string().min(1, 'Email body is required')
+})
+
+const settingsSchemas = {
+  setting: settingSchema,
+  create: settingCreateSchema,
+  update: settingUpdateSchema,
+  formData: settingsFormDataSchema,
+  filters: settingsFiltersSchema,
+  openingHours: openingHoursSchema,
+  smtpSettings: smtpSettingsSchema,
+  businessInfo: businessInfoSchema,
+  bookingSettings: bookingSettingsSchema,
+  testEmail: testEmailSchema
+}
+
 // Validation helper functions
 export const validateBody = <T extends z.ZodTypeAny>(
   schema: T,
@@ -467,5 +579,8 @@ export const schemas = {
   
   // API response
   apiError: apiErrorSchema,
-  apiResponse: apiResponseSchema
+  apiResponse: apiResponseSchema,
+  
+  // Settings schemas
+  settings: settingsSchemas
 }
