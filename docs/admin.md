@@ -19,6 +19,169 @@ All admin API endpoints require:
 
 ## Admin API Endpoints
 
+### Customer Management (`/netlify/functions/admin/customers`) 🆕
+
+#### GET - List Customers
+```
+GET /admin/customers?page=1&limit=20&isDeleted=false&search=maria&hasGdprConsent=true
+```
+
+**Query Parameters:**
+- `page` (number): Page number (default: 1)
+- `limit` (number): Items per page (default: 20, max: 100)
+- `search` (string): Search in name, email, phone, customer number
+- `sortBy` (string): Sort field (created_at, updated_at, profiles.full_name)
+- `sortOrder` (asc|desc): Sort direction (default: desc)
+- `isDeleted` (boolean): Include deleted customers (default: false)
+- `hasGdprConsent` (boolean): Filter by GDPR consent status
+- `city` (string): Filter by city
+- `postalCode` (string): Filter by postal code
+- `registeredAfter` (date): Filter customers registered after date
+- `registeredBefore` (date): Filter customers registered before date
+
+**Response:**
+```json
+{
+  "success": true,
+  "customers": [
+    {
+      "id": "uuid",
+      "customer_number": "C20240001",
+      "profile_id": "uuid",
+      "date_of_birth": "1990-05-15",
+      "address_street": "Musterstraße 123",
+      "address_city": "Zürich",
+      "address_postal_code": "8001",
+      "emergency_contact_name": "John Doe",
+      "emergency_contact_phone": "+41791234567",
+      "notes": "Customer notes",
+      "gdpr_consent_given": true,
+      "gdpr_consent_date": "2024-01-15T10:00:00Z",
+      "is_deleted": false,
+      "created_at": "2024-01-15T10:00:00Z",
+      "updated_at": "2024-01-20T15:30:00Z",
+      "profiles": {
+        "id": "uuid",
+        "email": "maria@example.com",
+        "full_name": "Maria Schmidt",
+        "phone": "+41791234567",
+        "role": "customer"
+      },
+      "stats": {
+        "total_appointments": 15,
+        "upcoming_appointments": 2,
+        "completed_appointments": 12,
+        "cancelled_appointments": 1,
+        "total_spent": 850.50,
+        "last_appointment_date": "2024-01-20T14:00:00Z"
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 150,
+    "totalPages": 8
+  }
+}
+```
+
+#### GET - Get Customer Details
+```
+GET /admin/customers/{customerId}
+```
+
+Returns detailed customer information including statistics.
+
+#### POST - Create Customer
+```
+POST /admin/customers
+Content-Type: application/json
+
+{
+  "email": "new.customer@example.com",
+  "full_name": "New Customer",
+  "phone": "+41791234567",
+  "date_of_birth": "1985-03-20",
+  "address_street": "Beispielstraße 456",
+  "address_city": "Bern",
+  "address_postal_code": "3001",
+  "emergency_contact_name": "Emergency Contact",
+  "emergency_contact_phone": "+41791234568",
+  "notes": "VIP customer",
+  "gdpr_consent_given": true
+}
+```
+
+**Response:** Created customer object (201)
+
+#### PUT - Update Customer
+```
+PUT /admin/customers/{customerId}
+Content-Type: application/json
+
+{
+  "full_name": "Updated Name",
+  "phone": "+41799999999",
+  "notes": "Updated notes",
+  "gdpr_consent_given": true
+}
+```
+
+**Response:** Updated customer object
+
+#### DELETE - Soft Delete Customer (GDPR Compliant)
+```
+DELETE /admin/customers/{customerId}
+Content-Type: application/json
+
+{
+  "reason": "Customer requested account deletion"
+}
+```
+
+**Features:**
+- Soft delete (sets `is_deleted: true`)
+- Maintains data integrity for historical records
+- Logs deletion reason and administrator
+- Automatic audit trail entry
+
+#### PATCH - Restore Deleted Customer
+```
+PATCH /admin/customers/{customerId}/restore
+```
+
+Restores a soft-deleted customer account.
+
+#### GET - Export Customer Data (GDPR Right to Portability)
+```
+GET /admin/customers/{customerId}/export
+```
+
+**Response:**
+```json
+{
+  "export_timestamp": "2024-01-20T15:30:00Z",
+  "customer_data": {
+    "customer_info": { /* customer record */ },
+    "profile_info": { /* profile record */ }
+  },
+  "appointments": [ /* all appointments */ ],
+  "audit_history": [ /* GDPR audit trail */ ]
+}
+```
+
+#### GET - Customer Audit Log
+```
+GET /admin/customers/{customerId}/audit-log
+```
+
+Returns complete GDPR-compliant audit trail for customer:
+- All data modifications
+- Export requests
+- Deletion/restoration events
+- Who performed each action and when
+
 ### Staff Management (`/netlify/functions/admin/staff`)
 
 #### GET - List Staff
