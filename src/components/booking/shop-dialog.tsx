@@ -34,7 +34,7 @@ const ShopDialog = ({ children }: ShopDialogProps) => {
     setIsDetailOpen(true);
   };
 
-  const handleAddToCart = (product: any, category: string) => {
+  const handleAddToCart = (product: unknown, category: string) => {
     addToCart({
       id: product.id,
       name: product.name,

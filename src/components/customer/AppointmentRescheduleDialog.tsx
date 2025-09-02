@@ -22,11 +22,12 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { AppointmentBookingDialog } from '@/components/booking/appointment-booking-dialog';
+import { Appointment } from '@/lib/supabase';
 
 interface AppointmentRescheduleDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  appointment: any;
+  appointment: Appointment;
 }
 
 const AppointmentRescheduleDialog = ({ isOpen, onClose, appointment }: AppointmentRescheduleDialogProps) => {

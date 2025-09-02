@@ -15,7 +15,7 @@ import { Sparkles } from 'lucide-react';
 interface AdditionalServicesDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (selectedServices: any[]) => void;
+  onConfirm: (selectedServices: unknown[]) => void;
   genderType: 'women' | 'men';
 }
 

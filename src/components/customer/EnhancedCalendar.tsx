@@ -90,10 +90,11 @@ const EnhancedCalendar = () => {
     switch (viewType) {
       case 'day':
         return format(currentDate, 'PPPP', { locale: de });
-      case 'week':
+      case 'week': {
         const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
         const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
         return `${format(weekStart, 'dd.MM')} - ${format(weekEnd, 'dd.MM.yyyy')}`;
+      }
       case 'month':
         return format(currentDate, 'MMMM yyyy', { locale: de });
       case 'year':
@@ -486,7 +487,7 @@ const EnhancedCalendar = () => {
                       key={value}
                       variant={viewType === value ? "default" : "ghost"}
                       size="sm"
-                      onClick={() => setViewType(value as any)}
+                      onClick={() => setViewType(value as 'day' | 'week' | 'month' | 'year')}
                       className="gap-2"
                     >
                       <Icon className="w-4 h-4" />

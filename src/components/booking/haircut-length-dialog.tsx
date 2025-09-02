@@ -14,7 +14,7 @@ import { Scissors } from 'lucide-react';
 interface HaircutLengthDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (length: string, service: any) => void;
+  onSelect: (length: string, service: unknown) => void;
   genderType: 'women' | 'men';
 }
 

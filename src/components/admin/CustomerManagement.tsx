@@ -183,7 +183,7 @@ export function CustomerManagement() {
       return matchesSearch && matchesGender && matchesStatus && matchesAppointment;
     })
     .sort((a, b) => {
-      let aValue: any, bValue: any;
+      let aValue: string | number | Date, bValue: string | number | Date;
       
       switch (sortBy) {
         case 'name':
@@ -313,7 +313,7 @@ export function CustomerManagement() {
           </Select>
 
           {/* Sort Options */}
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'name' | 'lastVisit' | 'totalSpent' | 'nextAppointment')}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Sortieren" />
             </SelectTrigger>

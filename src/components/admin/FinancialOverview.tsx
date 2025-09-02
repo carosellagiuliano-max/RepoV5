@@ -103,7 +103,7 @@ export function FinancialOverview() {
   const [timePeriod, setTimePeriod] = useState<'day' | 'week' | 'month' | 'year'>('month');
   const [selectedYear, setSelectedYear] = useState('2024');
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedDataPoint, setSelectedDataPoint] = useState<any>(null);
+  const [selectedDataPoint, setSelectedDataPoint] = useState<unknown>(null);
 
   const generatePDF = () => {
     // Simulate PDF generation
@@ -147,7 +147,7 @@ Generiert am: ${new Date().toLocaleDateString('de-CH')}
     }
   };
 
-  const handleBarClick = (data: any) => {
+  const handleBarClick = (data: unknown) => {
     setSelectedDataPoint(data);
     setShowDetailModal(true);
   };
@@ -185,7 +185,7 @@ Generiert am: ${new Date().toLocaleDateString('de-CH')}
                 key={value}
                 variant={timePeriod === value ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setTimePeriod(value as any)}
+                onClick={() => setTimePeriod(value as 'day' | 'week' | 'month' | 'year')}
               >
                 {label}
               </Button>
@@ -306,7 +306,7 @@ Generiert am: ${new Date().toLocaleDateString('de-CH')}
       </div>
 
       {/* Interactive Charts */}
-      <Tabs value={timePeriod} onValueChange={(value) => setTimePeriod(value as any)} className="space-y-4">
+      <Tabs value={timePeriod} onValueChange={(value) => setTimePeriod(value as 'day' | 'week' | 'month' | 'year')} className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="day">Tagesansicht</TabsTrigger>
           <TabsTrigger value="week">Wochenansicht</TabsTrigger>
