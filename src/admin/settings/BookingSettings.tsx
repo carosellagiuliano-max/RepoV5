@@ -16,12 +16,21 @@ import { Calendar, Clock, Users, Save, RefreshCw, AlertTriangle } from 'lucide-r
 import { useBookingConfig, useUpdateSetting } from '../../hooks/use-settings'
 import { bookingConfigSchema } from '../../lib/validation/schemas'
 
+type BookingConfigFormData = {
+  booking_window_days: number
+  buffer_time_minutes: number
+  min_advance_booking_hours: number
+  max_appointments_per_day: number
+  cancellation_hours: number
+  no_show_policy: string
+}
+
 export function BookingSettings() {
   const { bookingConfig, isLoading, error } = useBookingConfig()
   const updateSetting = useUpdateSetting()
   const [hasChanges, setHasChanges] = useState(false)
 
-  const form = useForm({
+  const form = useForm<BookingConfigFormData>({
     resolver: zodResolver(bookingConfigSchema),
     defaultValues: bookingConfig || {
       booking_window_days: 30,
@@ -47,7 +56,7 @@ export function BookingSettings() {
     return () => subscription.unsubscribe()
   }, [form])
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: BookingConfigFormData) => {
     try {
       // Update each setting individually since they're stored separately
       await Promise.all([

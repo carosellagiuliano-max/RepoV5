@@ -19,6 +19,75 @@ All admin API endpoints require:
 
 ## Admin API Endpoints
 
+### Business Settings Management (`/netlify/functions/admin/settings`) 🆕
+
+#### GET - Retrieve Settings
+```
+GET /admin/settings?category=business_hours&public_only=false
+```
+
+**Query Parameters:**
+- `category` (string): Filter by setting category (business_hours, booking, email, business_info, notifications)
+- `public_only` (boolean): Only return public settings visible to customers
+
+**Response:**
+```json
+{
+  "data": {
+    "settings": {
+      "business_hours": {
+        "monday": {"open": "09:00", "close": "18:00", "closed": false},
+        "tuesday": {"open": "09:00", "close": "18:00", "closed": false}
+      },
+      "booking_window_days": 30,
+      "buffer_time_minutes": 15
+    },
+    "raw": [
+      {
+        "id": "uuid",
+        "key": "business_hours",
+        "value": {...},
+        "category": "business_hours",
+        "is_public": true,
+        "updated_at": "2024-01-01T12:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+#### PUT - Update Setting
+```
+PUT /admin/settings?key=booking_window_days
+Content-Type: application/json
+
+{
+  "value": 45,
+  "description": "Updated booking window",
+  "category": "booking",
+  "is_public": true
+}
+```
+
+**Access Control:**
+- Admins: Full read/write access
+- Staff: Read-only access to all settings
+- Customers: Read-only access to public settings only
+
+#### POST - Test SMTP Configuration
+```
+POST /admin/settings/test-smtp
+Content-Type: application/json
+
+{
+  "to_email": "test@example.com",
+  "subject": "SMTP Test",
+  "message": "Test message to verify SMTP configuration"
+}
+```
+
+**Admin Only:** This endpoint requires admin privileges and tests the current SMTP configuration.
+
 ### Customer Management (`/netlify/functions/admin/customers`) 🆕
 
 #### GET - List Customers
@@ -602,6 +671,119 @@ The system automatically prevents:
 - Only admin users can upload/delete media files 🆕
 - File size limited to 10MB by default 🆕
 - Supported file types: JPEG, PNG, WebP, GIF, MP4, WebM, MOV 🆕
+- **Business Settings Integration** 🆕:
+  - Appointments must be within configured business hours
+  - Booking window enforced (max days in advance)
+  - Minimum advance booking time enforced
+  - Buffer time between appointments enforced
+  - Daily appointment limits enforced
+  - Cancellation deadline enforced
+
+## Business Settings Configuration 🆕
+
+### Setting Categories
+
+#### Business Hours (`business_hours`)
+```json
+{
+  "business_hours": {
+    "monday": {"open": "09:00", "close": "18:00", "closed": false},
+    "tuesday": {"open": "09:00", "close": "18:00", "closed": false},
+    "wednesday": {"open": "09:00", "close": "18:00", "closed": false},
+    "thursday": {"open": "09:00", "close": "18:00", "closed": false},
+    "friday": {"open": "09:00", "close": "18:00", "closed": false},
+    "saturday": {"open": "09:00", "close": "16:00", "closed": false},
+    "sunday": {"open": "10:00", "close": "16:00", "closed": true}
+  }
+}
+```
+- **Visibility**: Public (customers can see business hours)
+- **Impact**: Prevents bookings outside opening hours
+- **Format**: 24-hour time format (HH:MM)
+
+#### Booking Configuration (`booking`)
+- `booking_window_days` (1-365): Maximum days in advance for bookings
+- `buffer_time_minutes` (0-120): Time buffer between appointments
+- `min_advance_booking_hours` (0-168): Minimum advance booking time
+- `max_appointments_per_day` (1-200): Daily appointment limit
+- `cancellation_hours` (0-168): Cancellation deadline in hours
+- `no_show_policy` (text): Policy for no-show appointments
+
+**All booking settings are public** so customers understand the limitations.
+
+#### Email Configuration (`email`)
+- `smtp_host`: SMTP server hostname
+- `smtp_port`: SMTP server port (default: 587)
+- `smtp_user`: SMTP username
+- `smtp_password`: SMTP password (encrypted)
+- `smtp_from_email`: Default sender email
+- `smtp_from_name`: Default sender name
+- `smtp_use_tls`: Use TLS encryption (boolean)
+
+**All email settings are private** (admin-only access).
+
+#### Business Information (`business_info`)
+- `business_name`: Salon name
+- `business_address`: Full address
+- `business_phone`: Contact phone number
+- `business_email`: Contact email address
+
+**All business info is public** and displayed to customers.
+
+#### Notification Settings (`notifications`)
+- `email_notifications_enabled`: Enable/disable email notifications
+- `sms_notifications_enabled`: Enable/disable SMS notifications
+- `booking_confirmation_email`: Send booking confirmations
+- `booking_reminder_email`: Send appointment reminders
+- `reminder_hours_before`: Hours before appointment to send reminder
+
+**All notification settings are private** (admin-only access).
+
+### Settings Integration in Booking Flow
+
+#### 1. Availability Calculation
+```typescript
+// Buffer time is now configurable
+const bufferTime = await getBufferTime() // From settings instead of hardcoded
+
+// Business hours are enforced
+const isOpen = isWithinBusinessHours(appointmentTime, businessHours)
+```
+
+#### 2. Booking Validation
+```typescript
+const validation = await validateBooking(
+  appointmentDateTime,
+  endDateTime,
+  staffId
+)
+
+if (!validation.valid) {
+  throw new Error(validation.errors.join(', '))
+}
+```
+
+#### 3. Booking Window Enforcement
+- Customers cannot book beyond `booking_window_days`
+- Customers cannot book within `min_advance_booking_hours`
+- Daily limit `max_appointments_per_day` is enforced
+
+#### 4. Cancellation Policy
+- Cancellations blocked within `cancellation_hours` of appointment
+- `no_show_policy` text displayed during booking
+
+### SMTP Testing
+Admins can test email configuration:
+1. Navigate to Settings → Email Configuration
+2. Configure SMTP settings
+3. Click "Test SMTP" button
+4. Enter test email details
+5. System sends test email and reports success/failure
+
+### Settings Cache Strategy
+- Settings are cached for 5 minutes for performance
+- Cache is invalidated when settings are updated
+- React Query handles client-side caching with revalidation on focus
 
 ## Error Handling
 

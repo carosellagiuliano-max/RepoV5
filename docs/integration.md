@@ -28,6 +28,19 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_URL=your_supabase_project_url
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 SITE_URL=https://your-site.netlify.app
+
+# SMTP Configuration (Business Settings) 🆕
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+SMTP_FROM_EMAIL=noreply@your-domain.com
+SMTP_FROM_NAME=Your Business Name
+SMTP_USE_TLS=true
+
+# Optional JWT Configuration
+JWT_SECRET=your-jwt-secret-32-chars-minimum
+JWT_EXPIRES_IN=24h
 ```
 
 ### CI/CD (GitHub Actions)
@@ -335,6 +348,9 @@ Execute the following SQL migration files in order using Supabase SQL Editor:
    - `docs/db/09_media_management.sql` - Media storage table and metadata
    - `docs/db/10_media_rls_policies.sql` - Media access policies
 
+4. **Business Settings & Configuration** 🆕:
+   - `docs/db/11_business_settings.sql` - Enhanced business settings with configurable booking rules
+
 **Migration Order:**
 ```bash
 # Connect to your Supabase project and run in SQL Editor:
@@ -342,6 +358,7 @@ Execute the following SQL migration files in order using Supabase SQL Editor:
 \i docs/db/08_customer_rls_policies.sql
 \i docs/db/09_media_management.sql
 \i docs/db/10_media_rls_policies.sql
+\i docs/db/11_business_settings.sql
 ```
 
 **Post-Migration Verification:**

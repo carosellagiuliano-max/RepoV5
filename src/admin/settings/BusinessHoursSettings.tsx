@@ -29,12 +29,22 @@ const DAYS = [
 
 type DayKey = typeof DAYS[number]['key']
 
+type BusinessHoursFormData = {
+  monday: { open: string; close: string; closed: boolean }
+  tuesday: { open: string; close: string; closed: boolean }
+  wednesday: { open: string; close: string; closed: boolean }
+  thursday: { open: string; close: string; closed: boolean }
+  friday: { open: string; close: string; closed: boolean }
+  saturday: { open: string; close: string; closed: boolean }
+  sunday: { open: string; close: string; closed: boolean }
+}
+
 export function BusinessHoursSettings() {
   const { businessHours, isLoading, error } = useBusinessHours()
   const updateSetting = useUpdateSetting()
   const [hasChanges, setHasChanges] = useState(false)
 
-  const form = useForm({
+  const form = useForm<BusinessHoursFormData>({
     resolver: zodResolver(businessHoursSchema),
     defaultValues: businessHours || {
       monday: { open: '09:00', close: '18:00', closed: false },
@@ -61,7 +71,7 @@ export function BusinessHoursSettings() {
     return () => subscription.unsubscribe()
   }, [form])
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: BusinessHoursFormData) => {
     try {
       await updateSetting.mutateAsync({
         key: 'business_hours',

@@ -102,7 +102,7 @@ async function handleSmtpTest(
     const settings = smtpSettings.reduce((acc, setting) => {
       acc[setting.key] = setting.value
       return acc
-    }, {} as Record<string, any>)
+    }, {} as Record<string, unknown>)
 
     // Validate required SMTP settings
     const requiredSettings = ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_password', 'smtp_from_email', 'smtp_from_name']
@@ -172,24 +172,26 @@ async function handleSmtpTest(
       }
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('SMTP test failed', { 
-      error: error.message,
-      code: error.code,
-      command: error.command
+      error: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as { code?: string })?.code,
+      command: (error as { command?: string })?.command
     })
 
     // Provide more specific error messages
     let errorMessage = 'SMTP test failed'
     let errorCode = 'SMTP_TEST_FAILED'
+    
+    const errorObj = error as { code?: string; message?: string }
 
-    if (error.code === 'EAUTH') {
+    if (errorObj.code === 'EAUTH') {
       errorMessage = 'SMTP authentication failed. Please check username and password.'
       errorCode = 'SMTP_AUTH_FAILED'
-    } else if (error.code === 'ECONNECTION') {
+    } else if (errorObj.code === 'ECONNECTION') {
       errorMessage = 'Cannot connect to SMTP server. Please check host and port.'
       errorCode = 'SMTP_CONNECTION_FAILED'
-    } else if (error.code === 'ESECURITY') {
+    } else if (errorObj.code === 'ESECURITY') {
       errorMessage = 'SMTP security error. Please check TLS settings.'
       errorCode = 'SMTP_SECURITY_ERROR'
     }
@@ -199,8 +201,8 @@ async function handleSmtpTest(
       message: errorMessage,
       code: errorCode,
       details: {
-        originalError: error.message,
-        errorCode: error.code
+        originalError: errorObj.message || 'Unknown error',
+        errorCode: errorObj.code
       }
     })
   }

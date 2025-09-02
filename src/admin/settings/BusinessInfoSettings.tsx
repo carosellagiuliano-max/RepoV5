@@ -14,12 +14,19 @@ import { Building, Save, RefreshCw } from 'lucide-react'
 import { useBusinessInfo, useUpdateSetting } from '../../hooks/use-settings'
 import { businessInfoSchema } from '../../lib/validation/schemas'
 
+type BusinessInfoFormData = {
+  business_name: string
+  business_address: string
+  business_phone: string
+  business_email: string
+}
+
 export function BusinessInfoSettings() {
   const { businessInfo, isLoading, error } = useBusinessInfo()
   const updateSetting = useUpdateSetting()
   const [hasChanges, setHasChanges] = useState(false)
 
-  const form = useForm({
+  const form = useForm<BusinessInfoFormData>({
     resolver: zodResolver(businessInfoSchema),
     defaultValues: businessInfo || {
       business_name: 'Schnittwerk Your Style',
@@ -50,7 +57,7 @@ export function BusinessInfoSettings() {
     return () => subscription.unsubscribe()
   }, [form])
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: BusinessInfoFormData) => {
     try {
       // Update each business info setting individually
       await Promise.all([

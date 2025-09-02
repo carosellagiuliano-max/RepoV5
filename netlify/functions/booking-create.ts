@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
 import { z } from 'zod'
+import { validateBooking } from '../src/lib/booking-logic'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -156,14 +157,35 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
       }
     }
 
-    // Validate the appointment slot using our database function
+    // Validate the appointment using business settings
+    const appointmentStart = new Date(validatedData.starts_at)
+    const appointmentEnd = new Date(validatedData.ends_at)
+    
+    const businessValidation = await validateBooking(
+      appointmentStart,
+      appointmentEnd,
+      validatedData.staff_id
+    )
+
+    if (!businessValidation.valid) {
+      return {
+        statusCode: 409,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Booking violates business rules',
+          details: businessValidation.errors
+        }),
+      }
+    }
+
+    // Additional database-level validation using our database function
     const { data: validationResult, error: validationError } = await supabase
       .rpc('rpc_validate_appointment_slot', {
         p_staff_id: validatedData.staff_id,
         p_service_id: validatedData.service_id,
         p_starts_at: validatedData.starts_at,
         p_ends_at: validatedData.ends_at,
-        p_buffer_minutes: 10,
+        p_buffer_minutes: 10, // This will be overridden by our settings-based validation
         p_exclude_appointment_id: null
       })
 

@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 const SETTINGS_QUERY_KEY = ['settings'] as const
 
 // API functions
-async function fetchSettings(category?: SettingsCategory, publicOnly = false): Promise<{ settings: BusinessSettings, raw: any[] }> {
+async function fetchSettings(category?: SettingsCategory, publicOnly = false): Promise<{ settings: BusinessSettings, raw: unknown[] }> {
   const params = new URLSearchParams()
   if (category) params.append('category', category)
   if (publicOnly) params.append('public_only', 'true')
@@ -31,7 +31,7 @@ async function fetchSettings(category?: SettingsCategory, publicOnly = false): P
   return result.data
 }
 
-async function updateSetting(key: string, data: { value: any, description?: string, category?: string, is_public?: boolean }) {
+async function updateSetting(key: string, data: { value: unknown, description?: string, category?: string, is_public?: boolean }) {
   const params = new URLSearchParams({ key })
 
   const response = await fetch(`/.netlify/functions/admin/settings?${params}`, {
@@ -151,7 +151,7 @@ export function useUpdateSetting() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ key, data }: { key: string, data: any }) => updateSetting(key, data),
+    mutationFn: ({ key, data }: { key: string, data: unknown }) => updateSetting(key, data),
     onSuccess: (data, variables) => {
       // Invalidate all settings queries to refetch
       queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEY })
@@ -187,7 +187,7 @@ export function isSettingEnabled(settings: BusinessSettings | undefined, key: ke
 }
 
 // Hook to get a single setting value
-export function useSetting<T = any>(key: string): {
+export function useSetting<T = unknown>(key: string): {
   value: T | undefined
   isLoading: boolean
   error: Error | null

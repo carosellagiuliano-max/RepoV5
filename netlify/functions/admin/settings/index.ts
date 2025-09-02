@@ -102,7 +102,7 @@ async function handleGetSettings(
       updated_at: setting.updated_at
     }
     return acc
-  }, {} as Record<string, any>)
+  }, {} as Record<string, unknown>)
 
   logger.info('Settings fetched successfully', { 
     count: settings.length,

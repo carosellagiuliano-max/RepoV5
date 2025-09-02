@@ -227,7 +227,7 @@ export interface Database {
         Row: {
           id: string
           key: string
-          value: any // JSONB type
+          value: unknown // JSONB type
           description: string | null
           category: string
           is_public: boolean
@@ -238,13 +238,13 @@ export interface Database {
         Insert: {
           id?: string
           key: string
-          value: any
+          value: unknown
           description?: string | null
           category?: string
           is_public?: boolean
         }
         Update: {
-          value?: any
+          value?: unknown
           description?: string | null
           category?: string
           is_public?: boolean

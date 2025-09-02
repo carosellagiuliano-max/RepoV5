@@ -16,12 +16,20 @@ import { Bell, Mail, MessageSquare, Save, RefreshCw, Clock } from 'lucide-react'
 import { useNotificationConfig, useUpdateSetting } from '../../hooks/use-settings'
 import { notificationConfigSchema } from '../../lib/validation/schemas'
 
+type NotificationConfigFormData = {
+  email_notifications_enabled: boolean
+  sms_notifications_enabled: boolean
+  booking_confirmation_email: boolean
+  booking_reminder_email: boolean
+  reminder_hours_before: number
+}
+
 export function NotificationSettings() {
   const { notificationConfig, isLoading, error } = useNotificationConfig()
   const updateSetting = useUpdateSetting()
   const [hasChanges, setHasChanges] = useState(false)
 
-  const form = useForm({
+  const form = useForm<NotificationConfigFormData>({
     resolver: zodResolver(notificationConfigSchema),
     defaultValues: notificationConfig || {
       email_notifications_enabled: true,
@@ -46,7 +54,7 @@ export function NotificationSettings() {
     return () => subscription.unsubscribe()
   }, [form])
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: NotificationConfigFormData) => {
     try {
       // Update each notification setting individually
       await Promise.all([

@@ -18,6 +18,22 @@ import { Mail, Save, RefreshCw, TestTube, Eye, EyeOff, CheckCircle, AlertCircle 
 import { useSmtpConfig, useUpdateSetting, useTestSmtp } from '../../hooks/use-settings'
 import { smtpConfigSchema, smtpTestSchema } from '../../lib/validation/schemas'
 
+type SmtpConfigFormData = {
+  smtp_host: string
+  smtp_port: number
+  smtp_user: string
+  smtp_password: string
+  smtp_from_email: string
+  smtp_from_name: string
+  smtp_use_tls: boolean
+}
+
+type SmtpTestFormData = {
+  to_email: string
+  subject: string
+  message: string
+}
+
 export function SmtpSettings() {
   const { smtpConfig, isLoading, error } = useSmtpConfig()
   const updateSetting = useUpdateSetting()
@@ -26,7 +42,7 @@ export function SmtpSettings() {
   const [showPassword, setShowPassword] = useState(false)
   const [testDialogOpen, setTestDialogOpen] = useState(false)
 
-  const form = useForm({
+  const form = useForm<SmtpConfigFormData>({
     resolver: zodResolver(smtpConfigSchema),
     defaultValues: smtpConfig || {
       smtp_host: '',
@@ -39,7 +55,7 @@ export function SmtpSettings() {
     }
   })
 
-  const testForm = useForm({
+  const testForm = useForm<SmtpTestFormData>({
     resolver: zodResolver(smtpTestSchema),
     defaultValues: {
       to_email: '',
@@ -71,7 +87,7 @@ export function SmtpSettings() {
     return () => subscription.unsubscribe()
   }, [form])
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: SmtpConfigFormData) => {
     try {
       // Update each SMTP setting individually
       await Promise.all([
@@ -110,7 +126,7 @@ export function SmtpSettings() {
     }
   }
 
-  const onTestSubmit = async (data: any) => {
+  const onTestSubmit = async (data: SmtpTestFormData) => {
     try {
       await testSmtp.mutateAsync(data)
       setTestDialogOpen(false)

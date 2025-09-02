@@ -66,8 +66,8 @@ export async function sendEmail(
       messageId: info.messageId,
       response: info.response
     }
-  } catch (error: any) {
-    throw new Error(`Failed to send email: ${error.message}`)
+  } catch (error: unknown) {
+    throw new Error(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 

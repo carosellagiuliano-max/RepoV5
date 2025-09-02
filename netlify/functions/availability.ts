@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
 import { z } from 'zod'
+import { getBufferTime } from '../src/lib/booking-logic'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -82,7 +83,7 @@ async function handleGetAvailability(event: NetlifyEvent) {
       }
     }
 
-    const bufferMinutes = buffer_minutes ? parseInt(buffer_minutes) : 10
+    const bufferMinutes = buffer_minutes ? parseInt(buffer_minutes) : await getBufferTime()
 
     if (staff_id) {
       // Get available slots for specific staff member
