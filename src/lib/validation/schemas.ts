@@ -98,6 +98,15 @@ export const customerGdprExportSchema = z.object({
   customer_id: uuidSchema
 })
 
+// Query parameter schemas (moved here to fix ordering issue)
+export const paginationSchema = z.object({
+  page: z.coerce.number().positive().optional().default(1),
+  limit: z.coerce.number().positive().max(100).optional().default(20),
+  search: z.string().optional(),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('asc')
+})
+
 export const customerFiltersSchema = paginationSchema.extend({
   isDeleted: z.coerce.boolean().optional().default(false),
   hasGdprConsent: z.coerce.boolean().optional(),
@@ -256,9 +265,20 @@ export const emailSettingsSchema = z.object({
   smtp_use_tls: z.boolean()
 })
 
+// Settings value schema - union of all possible setting types
+export const settingValueSchema = z.union([
+  openingHoursSchema,
+  z.number(),
+  z.string(),
+  z.boolean(),
+  dayHoursSchema,
+  z.record(z.unknown()),
+  z.array(z.unknown())
+])
+
 export const settingCreateSchema = z.object({
   key: z.string().min(1, 'Key is required').max(100),
-  value: z.any(), // JSONB can be any valid JSON
+  value: settingValueSchema, // Properly typed instead of z.any()
   description: z.string().max(500).optional(),
   category: z.string().max(50).optional().default('general'),
   is_public: z.boolean().optional().default(false),
@@ -266,7 +286,7 @@ export const settingCreateSchema = z.object({
 })
 
 export const settingUpdateSchema = z.object({
-  value: z.any().optional(),
+  value: settingValueSchema.optional(),
   description: z.string().max(500).optional(),
   category: z.string().max(50).optional(),
   is_public: z.boolean().optional(),
@@ -327,15 +347,6 @@ export const mediaUploadSchema = z.object({
 // Legacy schema compatibility (deprecated)
 export const mediaFileCreateSchema = mediaCreateSchema
 export const mediaFileUpdateSchema = mediaUpdateSchema
-
-// Query parameter schemas
-export const paginationSchema = z.object({
-  page: z.coerce.number().positive().optional().default(1),
-  limit: z.coerce.number().positive().max(100).optional().default(20),
-  search: z.string().optional(),
-  sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('asc')
-})
 
 export const appointmentFiltersSchema = paginationSchema.extend({
   staffId: uuidSchema.optional(),
@@ -484,9 +495,9 @@ export const schemas = {
     create: staffTimeoffCreateSchema,
     update: staffTimeoffUpdateSchema
   },
-  businessSetting: {
-    create: businessSettingCreateSchema,
-    update: businessSettingUpdateSchema
+  setting: {
+    create: settingCreateSchema,
+    update: settingUpdateSchema
   },
   media: {
     create: mediaCreateSchema,

@@ -172,11 +172,11 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
       }
     }
 
-    // Convert settings to object
+    // Convert settings to object with proper typing
     const settings = businessSettings.reduce((acc, setting) => {
       acc[setting.key] = setting.value
       return acc
-    }, {} as Record<string, any>)
+    }, {} as Record<string, string | number | boolean>)
 
     const bufferMinutes = settings.buffer_time_minutes || 15
     const maxAdvanceDays = settings.max_advance_booking_days || 30

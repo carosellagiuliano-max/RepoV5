@@ -5,10 +5,25 @@
 
 import { Handler, HandlerEvent } from '@netlify/functions'
 import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient, AuthenticatedContext } from '../../../src/lib/auth/netlify-auth'
-import { validateBody, validateQuery, settingCreateSchema, settingUpdateSchema, businessSettingsSchema, emailSettingsSchema } from '../../../src/lib/validation/schemas'
+import { businessSettingsSchema, emailSettingsSchema, settingUpdateSchema } from '../../../src/lib/validation/schemas'
+import { SettingValue, BusinessSettings, EmailSettings } from '../../../src/lib/types/database'
 
 type SupabaseClient = ReturnType<typeof createAdminClient>
 type Logger = ReturnType<typeof createLogger>
+
+// Helper function to safely extract query parameters
+function getQueryParam(params: Record<string, unknown> | null, key: string): string | undefined {
+  if (!params || typeof params[key] !== 'string') return undefined
+  return params[key] as string
+}
+
+// Helper function to convert settings array to typed object
+function convertSettingsToObject(settings: Array<{ key: string; value: SettingValue }>): Record<string, SettingValue> {
+  return settings.reduce((acc, setting) => {
+    acc[setting.key] = setting.value
+    return acc
+  }, {} as Record<string, SettingValue>)
+}
 
 export const handler: Handler = withAuthAndRateLimit(
   async (event, context) => {
@@ -61,9 +76,7 @@ async function handleGetSettings(
   supabase: SupabaseClient,
   logger: Logger
 ) {
-  const { category } = validateQuery(event.queryStringParameters, {
-    category: { required: false, type: 'string' }
-  })
+  const category = getQueryParam(event.queryStringParameters, 'category')
 
   logger.info('Fetching settings', { category })
 
@@ -96,7 +109,7 @@ async function handleGetSettings(
       }
       acc[setting.category][setting.key] = setting.value
       return acc
-    }, {} as Record<string, Record<string, any>>)
+    }, {} as Record<string, Record<string, SettingValue>>)
 
     logger.info('Settings fetched successfully', { 
       totalSettings: settings.length,
@@ -222,9 +235,7 @@ async function handlePatchSetting(
     })
   }
 
-  const { key } = validateQuery(event.queryStringParameters, {
-    key: { required: true, type: 'string' }
-  })
+  const key = getQueryParam(event.queryStringParameters, 'key')
 
   if (!key) {
     return createErrorResponse({

@@ -58,11 +58,11 @@ export const handler: Handler = withAuthAndRateLimit(
         })
       }
 
-      // Convert settings array to object
+      // Convert settings array to object with proper typing
       const settings = emailSettings.reduce((acc, setting) => {
-        acc[setting.key] = setting.value
+        acc[setting.key] = setting.value as string
         return acc
-      }, {} as Record<string, any>)
+      }, {} as Record<string, string>)
 
       // Validate we have all required SMTP settings
       const requiredSettings = ['smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_from_email', 'smtp_from_name']

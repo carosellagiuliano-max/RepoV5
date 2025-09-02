@@ -5,7 +5,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { BusinessSettings, EmailSettings, SettingsState } from '../types/database'
+import { BusinessSettings, EmailSettings, SettingsState, SettingValue } from '../types/database'
 import { toast } from 'sonner'
 
 const SETTINGS_QUERY_KEY = ['settings']
@@ -154,7 +154,7 @@ export function useUpdateSetting() {
   return useMutation({
     mutationFn: async ({ key, value, description, category, is_public }: {
       key: string
-      value: any
+      value: SettingValue
       description?: string
       category?: string
       is_public?: boolean

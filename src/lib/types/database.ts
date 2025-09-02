@@ -227,7 +227,7 @@ export interface Database {
         Row: {
           id: string
           key: string
-          value: any // JSONB field
+          value: SettingValue // JSONB field - properly typed
           description: string | null
           category: string
           is_public: boolean
@@ -238,14 +238,14 @@ export interface Database {
         Insert: {
           id?: string
           key: string
-          value: any
+          value: SettingValue
           description?: string | null
           category?: string
           is_public?: boolean
           updated_by?: string | null
         }
         Update: {
-          value?: any
+          value?: SettingValue
           description?: string | null
           category?: string
           is_public?: boolean
@@ -436,6 +436,38 @@ export interface SettingsState {
   email: EmailSettings
   loading: boolean
   error: string | null
+}
+
+// Union type for all possible setting values
+export type SettingValue = 
+  | OpeningHours
+  | number
+  | string
+  | boolean
+  | DayHours
+  | Record<string, unknown>
+  | unknown[]
+
+// Typed settings by category
+export type BusinessSettingKeys = keyof BusinessSettings
+export type EmailSettingKeys = keyof EmailSettings
+
+// Setting value mapping for type safety
+export interface SettingValueMap {
+  'opening_hours': OpeningHours
+  'max_advance_booking_days': number
+  'buffer_time_minutes': number
+  'business_name': string
+  'business_address': string
+  'business_phone': string
+  'business_email': string
+  'smtp_host': string
+  'smtp_port': number
+  'smtp_username': string
+  'smtp_password': string
+  'smtp_from_email': string
+  'smtp_from_name': string
+  'smtp_use_tls': boolean
 }
 
 export type MediaFile = Database['public']['Tables']['media_files']['Row']
