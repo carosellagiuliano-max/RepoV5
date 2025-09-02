@@ -82,7 +82,24 @@ async function handleGetAvailability(event: NetlifyEvent) {
       }
     }
 
-    const bufferMinutes = buffer_minutes ? parseInt(buffer_minutes) : 10
+    // Get business settings for buffer time if not provided
+    let bufferMinutes = buffer_minutes ? parseInt(buffer_minutes) : null
+    
+    if (!bufferMinutes) {
+      const { data: bufferSetting, error: settingsError } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'buffer_time_minutes')
+        .eq('category', 'business')
+        .single()
+      
+      if (settingsError) {
+        console.error('Error fetching buffer time setting:', settingsError)
+        bufferMinutes = 15 // fallback
+      } else {
+        bufferMinutes = bufferSetting.value || 15
+      }
+    }
 
     if (staff_id) {
       // Get available slots for specific staff member

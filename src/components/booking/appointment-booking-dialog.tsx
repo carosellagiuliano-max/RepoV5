@@ -29,6 +29,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/auth-context'
 import { bookingHelpers } from '@/lib/supabase'
+import { useBusinessSettings, useAppointmentValidation } from '@/hooks/use-settings'
 import HaircutLengthDialog from './haircut-length-dialog'
 import AdditionalServicesDialog from './additional-services-dialog'
 
@@ -40,11 +41,44 @@ interface AppointmentBookingDialogProps {
   onBookingSuccess?: () => void
 }
 
-const timeSlots = [
-  '09:00','09:30','10:00','10:30','11:00','11:30',
-  '12:00','12:30','13:00','13:30','14:00','14:30',
-  '15:00','15:30','16:00','16:30','17:00','17:30','18:00'
-]
+  // Generate available time slots based on business hours for selected date
+  const getAvailableTimeSlots = () => {
+    if (!selectedDate || !businessSettings?.opening_hours) {
+      return timeSlots // fallback to default slots
+    }
+    
+    const dayOfWeek = selectedDate.getDay()
+    const dayHours = businessSettings.opening_hours[dayOfWeek.toString()]
+    
+    if (!dayHours?.is_open) {
+      return [] // No slots if closed
+    }
+    
+    const startTime = dayHours.start_time
+    const endTime = dayHours.end_time
+    
+    // Generate 30-minute slots between opening and closing
+    const slots: string[] = []
+    const [startHour, startMin] = startTime.split(':').map(Number)
+    const [endHour, endMin] = endTime.split(':').map(Number)
+    
+    let currentHour = startHour
+    let currentMin = startMin
+    
+    while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+      const timeSlot = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`
+      slots.push(timeSlot)
+      
+      // Add 30 minutes
+      currentMin += 30
+      if (currentMin >= 60) {
+        currentMin = 0
+        currentHour += 1
+      }
+    }
+    
+    return slots
+  }
 
 const hairdressers = [
   {
@@ -70,6 +104,18 @@ export function AppointmentBookingDialog({
   onBookingSuccess
 }: AppointmentBookingDialogProps) {
   const { user } = useAuth()
+  
+  // Default time slots for fallback
+  const timeSlots = [
+    '09:00','09:30','10:00','10:30','11:00','11:30',
+    '12:00','12:30','13:00','13:30','14:00','14:30',
+    '15:00','15:30','16:00','16:30','17:00','17:30','18:00'
+  ]
+  
+  // Load business settings for validation
+  const { settings: businessSettings } = useBusinessSettings()
+  const { validateAppointmentTime } = useAppointmentValidation()
+  
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<'gender' | 'haircut' | 'booking' | 'additional'>('gender')
   const [selectedGender, setSelectedGender] = useState<'women' | 'men' | null>(null)
@@ -84,7 +130,40 @@ export function AppointmentBookingDialog({
   const [selectedAdditionalServices, setSelectedAdditionalServices] = useState<unknown[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Calculate available dates based on business settings  
+  const getAvailableDates = () => {
+    if (!businessSettings?.max_advance_booking_days) return undefined
+    
+    const today = new Date()
+    const maxDate = new Date()
+    maxDate.setDate(today.getDate() + businessSettings.max_advance_booking_days)
+    
+    return {
+      from: today,
+      to: maxDate
+    }
+  }
+
+  // Check if a date is available based on opening hours
+  const isDateAvailable = (date: Date) => {
+    if (!businessSettings?.opening_hours) return true
+    
+    const dayOfWeek = date.getDay()
+    const dayHours = businessSettings.opening_hours[dayOfWeek.toString()]
+    
+    return dayHours?.is_open || false
+  }
+
   const handleDateSelect = (date: Date | undefined) => {
+    if (date && !isDateAvailable(date)) {
+      toast({
+        title: 'Geschlossen',
+        description: 'An diesem Tag ist der Salon geschlossen.',
+        variant: 'destructive'
+      })
+      return
+    }
+    
     setSelectedDate(date)
     if (date) setCalendarOpen(false)
   }
@@ -153,6 +232,18 @@ export function AppointmentBookingDialog({
       
       const endsAt = new Date(startsAt)
       endsAt.setMinutes(endsAt.getMinutes() + totalDuration)
+
+      // Validate appointment timing against business rules
+      const validation = validateAppointmentTime(startsAt, endsAt)
+      if (!validation.isValid) {
+        toast({
+          title: 'Ungültige Terminzeit',
+          description: validation.error,
+          variant: 'destructive'
+        })
+        setLoading(false)
+        return
+      }
 
       // Prepare appointment data
       const appointmentData = {
@@ -330,7 +421,20 @@ export function AppointmentBookingDialog({
                       mode="single"
                       selected={selectedDate}
                       onSelect={handleDateSelect}
-                      disabled={date => date < new Date() || date.getDay() === 0}
+                      disabled={(date) => {
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+                        
+                        // Disable past dates
+                        if (date < today) return true
+                        
+                        // Disable dates beyond max advance booking
+                        const availableDates = getAvailableDates()
+                        if (availableDates && date > availableDates.to) return true
+                        
+                        // Disable closed days based on business hours
+                        return !isDateAvailable(date)
+                      }}
                       initialFocus
                       className="p-3 pointer-events-auto"
                       locale={de}
@@ -348,7 +452,7 @@ export function AppointmentBookingDialog({
                     <SelectValue placeholder="Zeit wählen" />
                   </SelectTrigger>
                   <SelectContent>
-                    {timeSlots.map(time => (
+                    {getAvailableTimeSlots().map(time => (
                       <SelectItem key={time} value={time}>
                         {time}
                       </SelectItem>

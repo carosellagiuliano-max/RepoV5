@@ -166,7 +166,101 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 ## API Endpoints (Netlify Functions)
 
-### Customer Management API 🆕
+### Business Settings Management 🆕
+
+#### Get All Settings (`/netlify/functions/admin/settings`)
+
+##### GET - List Settings by Category
+```
+GET /admin/settings?category=business
+Headers: { Authorization: "Bearer <admin_token>" }
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "settings": {
+      "business": {
+        "opening_hours": {"1": {"is_open": true, "start_time": "09:00", "end_time": "18:00"}, ...},
+        "max_advance_booking_days": 30,
+        "buffer_time_minutes": 15,
+        "business_name": "Schnittwerk Your Style",
+        "business_address": "Musterstraße 123, 12345 Musterstadt",
+        "business_phone": "+49 123 456789",
+        "business_email": "info@schnittwerk-your-style.de"
+      }
+    },
+    "raw": [...]
+  }
+}
+```
+
+##### PUT - Update Settings Batch
+```
+PUT /admin/settings
+Headers: { Authorization: "Bearer <admin_token>" }
+Body: {
+  "category": "business",
+  "settings": {
+    "business_name": "Updated Salon Name",
+    "max_advance_booking_days": 45,
+    "buffer_time_minutes": 20,
+    "opening_hours": {
+      "1": {"is_open": true, "start_time": "08:00", "end_time": "19:00"},
+      "2": {"is_open": true, "start_time": "08:00", "end_time": "19:00"},
+      "3": {"is_open": true, "start_time": "08:00", "end_time": "19:00"},
+      "4": {"is_open": true, "start_time": "08:00", "end_time": "20:00"},
+      "5": {"is_open": true, "start_time": "08:00", "end_time": "20:00"},
+      "6": {"is_open": true, "start_time": "07:00", "end_time": "17:00"},
+      "0": {"is_open": false, "start_time": "10:00", "end_time": "14:00"}
+    }
+  }
+}
+```
+
+##### PATCH - Update Single Setting
+```
+PATCH /admin/settings?key=buffer_time_minutes
+Headers: { Authorization: "Bearer <admin_token>" }
+Body: {
+  "value": 25,
+  "description": "Buffer time between appointments in minutes"
+}
+```
+
+#### SMTP Test (`/netlify/functions/admin/smtp-test`) 🆕
+
+##### POST - Send Test Email
+```
+POST /admin/smtp-test
+Headers: { Authorization: "Bearer <admin_token>" }
+Body: {
+  "to_email": "admin@salon.com",
+  "subject": "SMTP Configuration Test",
+  "message": "Testing email configuration for Schnittwerk salon system."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Test email sent successfully",
+  "data": {
+    "messageId": "<generated-message-id>",
+    "to": "admin@salon.com",
+    "subject": "SMTP Configuration Test",
+    "sentAt": "2024-01-15T14:30:00Z"
+  }
+}
+```
+
+**Error Responses:**
+- `SMTP_CONFIG_INCOMPLETE`: Missing required SMTP settings
+- `SMTP_CONNECTION_FAILED`: Cannot connect to SMTP server
+- `SMTP_AUTH_FAILED`: SMTP authentication failed
 - `GET /.netlify/functions/admin/customers` - List customers (admin only)
   - Query params: `page`, `limit`, `search`, `sortBy`, `sortOrder`, `isDeleted`, `hasGdprConsent`, `city`, `postalCode`
 - `GET /.netlify/functions/admin/customers/{id}` - Get customer details (admin only)
