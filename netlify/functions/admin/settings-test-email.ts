@@ -54,7 +54,7 @@ export const handler: Handler = withAuthAndRateLimit(
         const key = setting.key.replace('smtp.', '')
         acc[key] = setting.value
         return acc
-      }, {} as Record<string, any>)
+      }, {} as Record<string, unknown>)
 
       // Validate that all required SMTP settings are present
       const requiredKeys = ['host', 'port', 'user', 'password', 'from_email', 'from_name']
@@ -126,10 +126,10 @@ export const handler: Handler = withAuthAndRateLimit(
         rejected: info.rejected
       })
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to send test email', { 
-        error: error.message,
-        stack: error.stack,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
         userId: context.user.id
       })
 
@@ -137,22 +137,31 @@ export const handler: Handler = withAuthAndRateLimit(
       let errorMessage = 'Failed to send test email'
       let errorCode = 'SMTP_ERROR'
 
-      if (error.code === 'EAUTH') {
-        errorMessage = 'SMTP authentication failed. Please check username and password.'
-        errorCode = 'SMTP_AUTH_FAILED'
-      } else if (error.code === 'ENOTFOUND') {
-        errorMessage = 'SMTP server not found. Please check the host address.'
-        errorCode = 'SMTP_HOST_NOT_FOUND'
-      } else if (error.code === 'ECONNECTION') {
-        errorMessage = 'Could not connect to SMTP server. Please check host and port.'
-        errorCode = 'SMTP_CONNECTION_FAILED'
-      } else if (error.code === 'ETIMEDOUT') {
-        errorMessage = 'SMTP connection timed out. Please check host and port.'
-        errorCode = 'SMTP_TIMEOUT'
-      } else if (error.responseCode >= 500) {
+      if (error && typeof error === 'object' && 'code' in error) {
+        const errorCode = (error as { code: string }).code
+        if (errorCode === 'EAUTH') {
+          errorMessage = 'SMTP authentication failed. Please check username and password.'
+          errorCode = 'SMTP_AUTH_FAILED'
+        } else if (errorCode === 'ENOTFOUND') {
+          errorMessage = 'SMTP server not found. Please check the host address.'
+          errorCode = 'SMTP_HOST_NOT_FOUND'
+        } else if (errorCode === 'ECONNECTION') {
+          errorMessage = 'Could not connect to SMTP server. Please check host and port.'
+          errorCode = 'SMTP_CONNECTION_FAILED'
+        } else if (errorCode === 'ETIMEDOUT') {
+          errorMessage = 'SMTP connection timed out. Please check host and port.'
+          errorCode = 'SMTP_TIMEOUT'
+        }
+      }
+
+      const responseCode = error && typeof error === 'object' && 'responseCode' in error 
+        ? (error as { responseCode: number }).responseCode 
+        : 0
+
+      if (responseCode >= 500) {
         errorMessage = 'SMTP server error. Please try again later.'
         errorCode = 'SMTP_SERVER_ERROR'
-      } else if (error.responseCode >= 400) {
+      } else if (responseCode >= 400) {
         errorMessage = 'SMTP request error. Please check your configuration.'
         errorCode = 'SMTP_REQUEST_ERROR'
       }
@@ -162,9 +171,11 @@ export const handler: Handler = withAuthAndRateLimit(
         message: errorMessage,
         code: errorCode,
         details: {
-          originalError: error.message,
-          smtpCode: error.responseCode,
-          smtpCommand: error.command
+          originalError: error instanceof Error ? error.message : 'Unknown error',
+          smtpCode: responseCode,
+          smtpCommand: error && typeof error === 'object' && 'command' in error 
+            ? (error as { command: string }).command 
+            : undefined
         }
       })
     }

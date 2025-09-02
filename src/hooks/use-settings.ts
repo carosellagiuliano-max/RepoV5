@@ -17,7 +17,7 @@ const fetchSettings = async (params: {
   include_sensitive?: boolean
   page?: number
   limit?: number
-} = {}): Promise<{ settings: Setting[]; pagination: any }> => {
+} = {}): Promise<{ settings: Setting[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> => {
   const queryParams = new URLSearchParams()
   
   if (params.category) queryParams.append('category', params.category)
@@ -191,7 +191,7 @@ export const useTestSmtpSettings = () => {
 }
 
 // Helper hook to get a single setting value
-export const useSetting = <T = any>(key: SettingKey): T | undefined => {
+export const useSetting = <T = unknown>(key: SettingKey): T | undefined => {
   const { data } = useSettings({ limit: 100 })
   const setting = data?.settings.find(s => s.key === key)
   return setting?.value as T
@@ -206,5 +206,5 @@ export const useSettingsObject = (category: string) => {
   return data.reduce((acc, setting) => {
     acc[setting.key] = setting.value
     return acc
-  }, {} as Record<string, any>)
+  }, {} as Record<string, unknown>)
 }

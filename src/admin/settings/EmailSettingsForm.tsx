@@ -31,7 +31,7 @@ export function EmailSettingsForm({ settings }: EmailSettingsFormProps) {
   const testSmtp = useTestSmtpSettings()
 
   // Extract current values from settings
-  const getSettingValue = (key: string, defaultValue: any = '') => {
+  const getSettingValue = (key: string, defaultValue: unknown = '') => {
     const setting = settings.find(s => s.key === key)
     // Remove quotes if present in string values
     const value = setting?.value ?? defaultValue
@@ -72,7 +72,7 @@ export function EmailSettingsForm({ settings }: EmailSettingsFormProps) {
         { key: 'smtp.from_name', update: { value: data.from_name } }
       ]
 
-      await updateSettings.mutateAsync(updates as any)
+      await updateSettings.mutateAsync(updates as Array<{ key: string; update: SettingUpdate }>)
     } catch (error) {
       console.error('Failed to update SMTP settings:', error)
     }

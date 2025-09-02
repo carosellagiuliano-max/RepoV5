@@ -23,7 +23,7 @@ export function BookingSettingsForm({ settings }: BookingSettingsFormProps) {
   const updateSettings = useUpdateMultipleSettings()
 
   // Extract current values from settings
-  const getSettingValue = (key: string, defaultValue: any = 0) => {
+  const getSettingValue = (key: string, defaultValue: unknown = 0) => {
     const setting = settings.find(s => s.key === key)
     return setting?.value ?? defaultValue
   }
@@ -47,7 +47,7 @@ export function BookingSettingsForm({ settings }: BookingSettingsFormProps) {
         { key: 'booking.cancellation_hours', update: { value: data.cancellation_hours } }
       ]
 
-      await updateSettings.mutateAsync(updates as any)
+      await updateSettings.mutateAsync(updates as Array<{ key: string; update: SettingUpdate }>)
     } catch (error) {
       console.error('Failed to update booking settings:', error)
     }

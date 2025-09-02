@@ -35,7 +35,7 @@ export function BusinessSettingsForm({ settings }: BusinessSettingsFormProps) {
   const updateSettings = useUpdateMultipleSettings()
 
   // Extract current values from settings
-  const getSettingValue = (key: string, defaultValue: any = '') => {
+  const getSettingValue = (key: string, defaultValue: unknown = '') => {
     const setting = settings.find(s => s.key === key)
     return setting?.value ?? defaultValue
   }
@@ -65,7 +65,7 @@ export function BusinessSettingsForm({ settings }: BusinessSettingsFormProps) {
         { key: 'business.opening_hours', update: { value: data.opening_hours } }
       ]
 
-      await updateSettings.mutateAsync(updates as any)
+      await updateSettings.mutateAsync(updates as Array<{ key: string; update: SettingUpdate }>)
     } catch (error) {
       console.error('Failed to update business settings:', error)
     }
