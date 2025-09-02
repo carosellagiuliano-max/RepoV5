@@ -131,8 +131,10 @@ export const handler: Handler = withAuthAndRateLimit(
 
       // Add keyset pagination info
       if (useKeysetPagination && appointments && appointments.length > 0) {
-        response.pagination.nextCursor = generateCursor(appointments[appointments.length - 1], sortColumn)
-        response.pagination.prevCursor = generateCursor(appointments[0], sortColumn)
+        response.cursor = {
+          next: generateCursor(appointments[appointments.length - 1], sortColumn),
+          prev: generateCursor(appointments[0], sortColumn)
+        }
       }
 
       // Add statistics if requested
