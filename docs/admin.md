@@ -19,6 +19,83 @@ All admin API endpoints require:
 
 ## Admin API Endpoints
 
+### Business Settings Management (`/netlify/functions/admin/settings`) 🆕
+
+#### GET - List Settings
+```
+GET /admin/settings?category=business
+```
+
+**Query Parameters:**
+- `category` (string): Filter by category (business, email, system)
+
+#### PUT - Update Settings Batch
+```
+PUT /admin/settings
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "category": "business",
+  "settings": {
+    "opening_hours": {
+      "1": {"is_open": true, "start_time": "09:00", "end_time": "18:00"},
+      "2": {"is_open": true, "start_time": "09:00", "end_time": "18:00"},
+      "3": {"is_open": true, "start_time": "09:00", "end_time": "18:00"},
+      "4": {"is_open": true, "start_time": "09:00", "end_time": "19:00"},
+      "5": {"is_open": true, "start_time": "09:00", "end_time": "19:00"},
+      "6": {"is_open": true, "start_time": "08:00", "end_time": "16:00"},
+      "0": {"is_open": false, "start_time": "10:00", "end_time": "14:00"}
+    },
+    "max_advance_booking_days": 30,
+    "buffer_time_minutes": 15,
+    "business_name": "Schnittwerk Your Style",
+    "business_address": "Musterstraße 123, 12345 Musterstadt",
+    "business_phone": "+49 123 456789",
+    "business_email": "info@schnittwerk-your-style.de"
+  }
+}
+```
+
+#### PATCH - Update Single Setting
+```
+PATCH /admin/settings?key=buffer_time_minutes
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "value": 20,
+  "description": "Buffer time between appointments"
+}
+```
+
+### SMTP Test (`/netlify/functions/admin/smtp-test`) 🆕
+
+#### POST - Send Test Email
+```
+POST /admin/smtp-test
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "to_email": "admin@salon.com",
+  "subject": "Test Email",
+  "message": "Testing SMTP configuration"
+}
+```
+
+**Features:**
+- Server-side only (no client access to SMTP credentials)
+- Validates SMTP configuration before sending
+- Professional HTML email template
+- Detailed error reporting for connection/auth issues
+
 ### Customer Management (`/netlify/functions/admin/customers`) 🆕
 
 #### GET - List Customers
@@ -551,6 +628,35 @@ DELETE /admin/appointments/{appointmentId}
 Soft delete - marks as cancelled. Cannot delete completed appointments.
 
 ## Business Logic
+
+## Business Logic
+
+### Business Settings Enforcement 🆕
+
+All booking operations now strictly enforce business settings:
+
+#### Opening Hours Validation
+- Appointments can only be booked during configured business hours
+- Each day of week (0=Sunday to 6=Saturday) has individual settings
+- Closed days prevent any bookings
+- Frontend calendar automatically disables unavailable dates
+
+#### Advance Booking Limits
+- `max_advance_booking_days` setting limits how far ahead customers can book
+- Default: 30 days, configurable 1-365 days
+- Frontend and backend both enforce this limit
+
+#### Buffer Time Management
+- `buffer_time_minutes` setting adds mandatory time between appointments
+- Prevents back-to-back bookings without preparation time
+- Used by availability calculations and conflict detection
+- Default: 15 minutes, configurable 0-120 minutes
+
+#### Real-time Validation
+- Business settings loaded from database on each booking attempt
+- Frontend validates before submission
+- Backend validates before database insertion
+- Database functions enforce business rules at data layer
 
 ### Conflict Detection
 The system automatically prevents:

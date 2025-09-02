@@ -156,6 +156,58 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
       }
     }
 
+    // Get business settings for validation
+    const { data: businessSettings, error: settingsError } = await supabase
+      .from('settings')
+      .select('key, value')
+      .in('key', ['buffer_time_minutes', 'max_advance_booking_days'])
+      .eq('category', 'business')
+
+    if (settingsError) {
+      console.error('Error fetching business settings:', settingsError)
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Failed to fetch business settings' }),
+      }
+    }
+
+    // Convert settings to object with proper typing
+    const settings = businessSettings.reduce((acc, setting) => {
+      acc[setting.key] = setting.value
+      return acc
+    }, {} as Record<string, string | number | boolean>)
+
+    const bufferMinutes = settings.buffer_time_minutes || 15
+    const maxAdvanceDays = settings.max_advance_booking_days || 30
+
+    // Validate appointment timing against business rules
+    const { data: timingValidation, error: timingError } = await supabase
+      .rpc('validate_appointment_timing', {
+        appointment_start: validatedData.starts_at,
+        appointment_end: validatedData.ends_at
+      })
+
+    if (timingError) {
+      console.error('Error validating appointment timing:', timingError)
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Failed to validate appointment timing' }),
+      }
+    }
+
+    if (!timingValidation[0]?.is_valid) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Invalid appointment timing',
+          details: timingValidation[0]?.error_message
+        }),
+      }
+    }
+
     // Validate the appointment slot using our database function
     const { data: validationResult, error: validationError } = await supabase
       .rpc('rpc_validate_appointment_slot', {
@@ -163,7 +215,7 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
         p_service_id: validatedData.service_id,
         p_starts_at: validatedData.starts_at,
         p_ends_at: validatedData.ends_at,
-        p_buffer_minutes: 10,
+        p_buffer_minutes: bufferMinutes,
         p_exclude_appointment_id: null
       })
 

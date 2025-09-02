@@ -98,6 +98,15 @@ export const customerGdprExportSchema = z.object({
   customer_id: uuidSchema
 })
 
+// Query parameter schemas (moved here to fix ordering issue)
+export const paginationSchema = z.object({
+  page: z.coerce.number().positive().optional().default(1),
+  limit: z.coerce.number().positive().max(100).optional().default(20),
+  search: z.string().optional(),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('asc')
+})
+
 export const customerFiltersSchema = paginationSchema.extend({
   isDeleted: z.coerce.boolean().optional().default(false),
   hasGdprConsent: z.coerce.boolean().optional(),
@@ -217,15 +226,77 @@ export const staffTimeoffUpdateSchema = z.object({
 )
 
 // Business settings schemas
-export const businessSettingCreateSchema = z.object({
-  key: z.string().min(1, 'Key is required').max(100),
-  value: z.string().min(1, 'Value is required'),
-  description: z.string().max(500).optional()
+export const dayHoursSchema = z.object({
+  is_open: z.boolean(),
+  start_time: timeSchema,
+  end_time: timeSchema
+}).refine(
+  (data) => !data.is_open || data.start_time < data.end_time,
+  { message: 'End time must be after start time', path: ['end_time'] }
+)
+
+export const openingHoursSchema = z.object({
+  "0": dayHoursSchema, // Sunday
+  "1": dayHoursSchema, // Monday
+  "2": dayHoursSchema, // Tuesday
+  "3": dayHoursSchema, // Wednesday
+  "4": dayHoursSchema, // Thursday
+  "5": dayHoursSchema, // Friday
+  "6": dayHoursSchema  // Saturday
 })
 
-export const businessSettingUpdateSchema = z.object({
-  value: z.string().min(1).optional(),
-  description: z.string().max(500).optional()
+export const businessSettingsSchema = z.object({
+  opening_hours: openingHoursSchema,
+  max_advance_booking_days: z.number().int().min(1).max(365),
+  buffer_time_minutes: z.number().int().min(0).max(120),
+  business_name: z.string().min(1).max(200),
+  business_address: z.string().min(1).max(500),
+  business_phone: phoneSchema,
+  business_email: emailSchema
+})
+
+export const emailSettingsSchema = z.object({
+  smtp_host: z.string().min(1).max(200),
+  smtp_port: z.number().int().min(1).max(65535),
+  smtp_username: z.string().max(200),
+  smtp_password: z.string().max(200),
+  smtp_from_email: emailSchema,
+  smtp_from_name: z.string().min(1).max(200),
+  smtp_use_tls: z.boolean()
+})
+
+// Settings value schema - union of all possible setting types
+export const settingValueSchema = z.union([
+  openingHoursSchema,
+  z.number(),
+  z.string(),
+  z.boolean(),
+  dayHoursSchema,
+  z.record(z.unknown()),
+  z.array(z.unknown())
+])
+
+export const settingCreateSchema = z.object({
+  key: z.string().min(1, 'Key is required').max(100),
+  value: settingValueSchema, // Properly typed instead of z.any()
+  description: z.string().max(500).optional(),
+  category: z.string().max(50).optional().default('general'),
+  is_public: z.boolean().optional().default(false),
+  updated_by: uuidSchema.optional()
+})
+
+export const settingUpdateSchema = z.object({
+  value: settingValueSchema.optional(),
+  description: z.string().max(500).optional(),
+  category: z.string().max(50).optional(),
+  is_public: z.boolean().optional(),
+  updated_by: uuidSchema.optional()
+})
+
+export const smtpTestSchema = z.object({
+  to_email: emailSchema,
+  subject: z.string().min(1).max(200).optional().default('SMTP Test Email'),
+  message: z.string().max(1000).optional().default('This is a test email from your Schnittwerk salon system.')
 })
 
 // Media file schemas
@@ -276,15 +347,6 @@ export const mediaUploadSchema = z.object({
 // Legacy schema compatibility (deprecated)
 export const mediaFileCreateSchema = mediaCreateSchema
 export const mediaFileUpdateSchema = mediaUpdateSchema
-
-// Query parameter schemas
-export const paginationSchema = z.object({
-  page: z.coerce.number().positive().optional().default(1),
-  limit: z.coerce.number().positive().max(100).optional().default(20),
-  search: z.string().optional(),
-  sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('asc')
-})
 
 export const appointmentFiltersSchema = paginationSchema.extend({
   staffId: uuidSchema.optional(),
@@ -433,9 +495,9 @@ export const schemas = {
     create: staffTimeoffCreateSchema,
     update: staffTimeoffUpdateSchema
   },
-  businessSetting: {
-    create: businessSettingCreateSchema,
-    update: businessSettingUpdateSchema
+  setting: {
+    create: settingCreateSchema,
+    update: settingUpdateSchema
   },
   media: {
     create: mediaCreateSchema,

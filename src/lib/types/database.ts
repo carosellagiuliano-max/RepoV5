@@ -223,24 +223,33 @@ export interface Database {
           updated_at?: string
         }
       }
-      business_settings: {
+      settings: {
         Row: {
           id: string
           key: string
-          value: string
+          value: SettingValue // JSONB field - properly typed
           description: string | null
+          category: string
+          is_public: boolean
+          updated_by: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           key: string
-          value: string
+          value: SettingValue
           description?: string | null
+          category?: string
+          is_public?: boolean
+          updated_by?: string | null
         }
         Update: {
-          value?: string
+          value?: SettingValue
           description?: string | null
+          category?: string
+          is_public?: boolean
+          updated_by?: string | null
           updated_at?: string
         }
       }
@@ -387,9 +396,79 @@ export type StaffTimeoff = Database['public']['Tables']['staff_timeoff']['Row']
 export type StaffTimeoffInsert = Database['public']['Tables']['staff_timeoff']['Insert']
 export type StaffTimeoffUpdate = Database['public']['Tables']['staff_timeoff']['Update']
 
-export type BusinessSetting = Database['public']['Tables']['business_settings']['Row']
-export type BusinessSettingInsert = Database['public']['Tables']['business_settings']['Insert']
-export type BusinessSettingUpdate = Database['public']['Tables']['business_settings']['Update']
+export type Setting = Database['public']['Tables']['settings']['Row']
+export type SettingInsert = Database['public']['Tables']['settings']['Insert']
+export type SettingUpdate = Database['public']['Tables']['settings']['Update']
+
+// Business-specific setting types
+export interface DayHours {
+  is_open: boolean
+  start_time: string  // HH:MM format
+  end_time: string    // HH:MM format
+}
+
+export interface OpeningHours {
+  [key: string]: DayHours  // "0" to "6" for Sunday to Saturday
+}
+
+export interface BusinessSettings {
+  opening_hours: OpeningHours
+  max_advance_booking_days: number
+  buffer_time_minutes: number
+  business_name: string
+  business_address: string
+  business_phone: string
+  business_email: string
+}
+
+export interface EmailSettings {
+  smtp_host: string
+  smtp_port: number
+  smtp_username: string
+  smtp_password: string
+  smtp_from_email: string
+  smtp_from_name: string
+  smtp_use_tls: boolean
+}
+
+export interface SettingsState {
+  business: BusinessSettings
+  email: EmailSettings
+  loading: boolean
+  error: string | null
+}
+
+// Union type for all possible setting values
+export type SettingValue = 
+  | OpeningHours
+  | number
+  | string
+  | boolean
+  | DayHours
+  | Record<string, unknown>
+  | unknown[]
+
+// Typed settings by category
+export type BusinessSettingKeys = keyof BusinessSettings
+export type EmailSettingKeys = keyof EmailSettings
+
+// Setting value mapping for type safety
+export interface SettingValueMap {
+  'opening_hours': OpeningHours
+  'max_advance_booking_days': number
+  'buffer_time_minutes': number
+  'business_name': string
+  'business_address': string
+  'business_phone': string
+  'business_email': string
+  'smtp_host': string
+  'smtp_port': number
+  'smtp_username': string
+  'smtp_password': string
+  'smtp_from_email': string
+  'smtp_from_name': string
+  'smtp_use_tls': boolean
+}
 
 export type MediaFile = Database['public']['Tables']['media_files']['Row']
 export type MediaFileInsert = Database['public']['Tables']['media_files']['Insert']
