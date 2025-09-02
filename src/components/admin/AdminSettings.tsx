@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,18 +24,15 @@ import {
   Edit3,
   Upload,
   Eye,
-  EyeOff
+  EyeOff,
+  Mail,
+  TestTube
 } from 'lucide-react';
+import { useBusinessSettings, useEmailSettings, useUpdateBusinessSettings, useUpdateEmailSettings, useSmtpTest } from '@/hooks/use-settings';
+import { BusinessSettings, EmailSettings, DayHours } from '@/lib/types/database';
+import { toast } from 'sonner';
 
-const businessHours = [
-  { day: 'Montag', open: '09:00', close: '18:00', isOpen: true },
-  { day: 'Dienstag', open: '09:00', close: '18:00', isOpen: true },
-  { day: 'Mittwoch', open: '09:00', close: '18:00', isOpen: true },
-  { day: 'Donnerstag', open: '09:00', close: '19:00', isOpen: true },
-  { day: 'Freitag', open: '09:00', close: '19:00', isOpen: true },
-  { day: 'Samstag', open: '08:00', close: '16:00', isOpen: true },
-  { day: 'Sonntag', open: '10:00', close: '14:00', isOpen: false }
-];
+const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 
 const servicesList = [
   { id: 1, name: 'Schnitt + Föhnen', price: 65, duration: 60, category: 'Standard', active: true },
@@ -47,46 +44,78 @@ const servicesList = [
 ];
 
 export function AdminSettings() {
-  const [adminData, setAdminData] = useState({
-    name: 'Vanessa Coiffure',
-    email: 'admin@vanessacoiffure.ch',
-    phone: '+41 79 123 45 67',
-    address: 'Musterstrasse 123, 8000 Zürich',
-    businessName: 'Vanessa Coiffure Salon',
-    website: 'www.vanessacoiffure.ch',
-    description: 'Professioneller Coiffure-Salon mit 15 Jahren Erfahrung',
-    avatar: null
-  });
+  // Load real settings data
+  const { settings: businessSettings, isLoading: businessLoading } = useBusinessSettings()
+  const { settings: emailSettings, isLoading: emailLoading } = useEmailSettings()
+  
+  // Mutations for updating settings
+  const updateBusinessSettings = useUpdateBusinessSettings()
+  const updateEmailSettings = useUpdateEmailSettings()
+  const smtpTest = useSmtpTest()
 
-  const [businessSettings, setBusinessSettings] = useState({
-    allowOnlineBooking: true,
-    enableWaitingList: true,
-    autoConfirmBookings: false,
-    sendEmailNotifications: true,
-    sendSmsNotifications: true,
-    requireDeposit: false,
-    cancellationDeadline: 24,
-    maxAdvanceBooking: 60
-  });
+  // Local state for form data
+  const [localBusinessSettings, setLocalBusinessSettings] = useState<Partial<BusinessSettings>>({})
+  const [localEmailSettings, setLocalEmailSettings] = useState<Partial<EmailSettings>>({})
+  const [smtpTestEmail, setSmtpTestEmail] = useState('')
 
-  const [hours, setHours] = useState(businessHours);
+  // Initialize local state when settings load
+  useEffect(() => {
+    if (businessSettings) {
+      setLocalBusinessSettings(businessSettings)
+    }
+  }, [businessSettings])
+
+  useEffect(() => {
+    if (emailSettings) {
+      setLocalEmailSettings(emailSettings)
+    }
+  }, [emailSettings])
   const [services, setServices] = useState(servicesList);
   const [newService, setNewService] = useState({ name: '', price: '', duration: '', category: 'Standard' });
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSaveAdminData = () => {
-    console.log('Saving admin data:', adminData);
-    // Here you would save to database
+  // Handle saving business settings
+  const handleSaveBusinessSettings = () => {
+    if (!localBusinessSettings) return
+    updateBusinessSettings.mutate(localBusinessSettings)
   };
 
-  const handleSaveBusinessSettings = () => {
-    console.log('Saving business settings:', businessSettings);
-    // Here you would save to database
+  // Handle saving email settings
+  const handleSaveEmailSettings = () => {
+    if (!localEmailSettings) return
+    updateEmailSettings.mutate(localEmailSettings)
+  };
+
+  // Handle SMTP test
+  const handleSmtpTest = () => {
+    if (!smtpTestEmail) {
+      toast.error('Please enter an email address for testing')
+      return
+    }
+    smtpTest.mutate({ 
+      to_email: smtpTestEmail,
+      subject: 'SMTP Test from Schnittwerk',
+      message: 'This is a test email to verify your SMTP configuration is working correctly.'
+    })
+  };
+
+  // Handle opening hours updates
+  const updateOpeningHours = (day: number, hours: DayHours) => {
+    if (!localBusinessSettings.opening_hours) return
+    
+    const updatedHours = {
+      ...localBusinessSettings.opening_hours,
+      [day.toString()]: hours
+    }
+    
+    setLocalBusinessSettings({
+      ...localBusinessSettings,
+      opening_hours: updatedHours
+    })
   };
 
   const handleSaveHours = () => {
-    console.log('Saving hours:', hours);
-    // Here you would save to database
+    handleSaveBusinessSettings()
   };
 
   const handleAddService = () => {
@@ -126,12 +155,8 @@ export function AdminSettings() {
         </div>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs defaultValue="business" className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile" className="gap-2">
-            <User className="w-4 h-4" />
-            Profil
-          </TabsTrigger>
           <TabsTrigger value="business" className="gap-2">
             <Building className="w-4 h-4" />
             Geschäft
@@ -139,6 +164,10 @@ export function AdminSettings() {
           <TabsTrigger value="hours" className="gap-2">
             <Clock className="w-4 h-4" />
             Öffnungszeiten
+          </TabsTrigger>
+          <TabsTrigger value="email" className="gap-2">
+            <Mail className="w-4 h-4" />
+            E-Mail
           </TabsTrigger>
           <TabsTrigger value="services" className="gap-2">
             <Scissors className="w-4 h-4" />
@@ -150,129 +179,6 @@ export function AdminSettings() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Personal Profile Settings */}
-        <TabsContent value="profile" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Persönliche Daten
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-primary" />
-                  </div>
-                  <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0">
-                    <Upload className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">Profilbild</h3>
-                  <p className="text-sm text-muted-foreground">Laden Sie ein Profilbild hoch (max. 2MB)</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="adminName">Vollständiger Name</Label>
-                  <Input
-                    id="adminName"
-                    value={adminData.name}
-                    onChange={(e) => setAdminData({...adminData, name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="adminEmail">E-Mail Adresse</Label>
-                  <Input
-                    id="adminEmail"
-                    type="email"
-                    value={adminData.email}
-                    onChange={(e) => setAdminData({...adminData, email: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="adminPhone">Telefonnummer</Label>
-                  <Input
-                    id="adminPhone"
-                    value={adminData.phone}
-                    onChange={(e) => setAdminData({...adminData, phone: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="adminWebsite">Website</Label>
-                  <Input
-                    id="adminWebsite"
-                    value={adminData.website}
-                    onChange={(e) => setAdminData({...adminData, website: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="adminAddress">Adresse</Label>
-                <Input
-                  id="adminAddress"
-                  value={adminData.address}
-                  onChange={(e) => setAdminData({...adminData, address: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="adminDescription">Beschreibung</Label>
-                <Textarea
-                  id="adminDescription"
-                  value={adminData.description}
-                  onChange={(e) => setAdminData({...adminData, description: e.target.value})}
-                  rows={3}
-                />
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="font-semibold">Sicherheit</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Aktuelles Passwort</Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Aktuelles Passwort eingeben"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">Neues Passwort</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      placeholder="Neues Passwort eingeben"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Button onClick={handleSaveAdminData} className="gap-2">
-                <Save className="w-4 h-4" />
-                Profil speichern
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         {/* Business Settings */}
         <TabsContent value="business" className="space-y-6">
           <Card>
@@ -283,112 +189,107 @@ export function AdminSettings() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="businessName">Geschäftsname</Label>
-                  <Input
-                    id="businessName"
-                    value={adminData.businessName}
-                    onChange={(e) => setAdminData({...adminData, businessName: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cancellationDeadline">Stornierungsfrist (Stunden)</Label>
-                  <Input
-                    id="cancellationDeadline"
-                    type="number"
-                    value={businessSettings.cancellationDeadline}
-                    onChange={(e) => setBusinessSettings({...businessSettings, cancellationDeadline: parseInt(e.target.value)})}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="font-semibold">Buchungseinstellungen</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="allowOnlineBooking">Online-Buchung aktivieren</Label>
-                      <p className="text-sm text-muted-foreground">Kunden können online Termine buchen</p>
+              {businessLoading ? (
+                <div className="text-center py-4">Lädt Geschäftseinstellungen...</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="businessName">Geschäftsname</Label>
+                      <Input
+                        id="businessName"
+                        value={localBusinessSettings.business_name || ''}
+                        onChange={(e) => setLocalBusinessSettings({
+                          ...localBusinessSettings,
+                          business_name: e.target.value
+                        })}
+                      />
                     </div>
-                    <Switch
-                      id="allowOnlineBooking"
-                      checked={businessSettings.allowOnlineBooking}
-                      onCheckedChange={(checked) => setBusinessSettings({...businessSettings, allowOnlineBooking: checked})}
+                    <div className="space-y-2">
+                      <Label htmlFor="businessPhone">Telefonnummer</Label>
+                      <Input
+                        id="businessPhone"
+                        value={localBusinessSettings.business_phone || ''}
+                        onChange={(e) => setLocalBusinessSettings({
+                          ...localBusinessSettings,
+                          business_phone: e.target.value
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="businessEmail">E-Mail Adresse</Label>
+                    <Input
+                      id="businessEmail"
+                      type="email"
+                      value={localBusinessSettings.business_email || ''}
+                      onChange={(e) => setLocalBusinessSettings({
+                        ...localBusinessSettings,
+                        business_email: e.target.value
+                      })}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="enableWaitingList">Warteschlange aktivieren</Label>
-                      <p className="text-sm text-muted-foreground">Kunden können sich in die Warteschlange eintragen</p>
-                    </div>
-                    <Switch
-                      id="enableWaitingList"
-                      checked={businessSettings.enableWaitingList}
-                      onCheckedChange={(checked) => setBusinessSettings({...businessSettings, enableWaitingList: checked})}
+                  <div className="space-y-2">
+                    <Label htmlFor="businessAddress">Adresse</Label>
+                    <Input
+                      id="businessAddress"
+                      value={localBusinessSettings.business_address || ''}
+                      onChange={(e) => setLocalBusinessSettings({
+                        ...localBusinessSettings,
+                        business_address: e.target.value
+                      })}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="autoConfirmBookings">Termine automatisch bestätigen</Label>
-                      <p className="text-sm text-muted-foreground">Neue Buchungen werden automatisch bestätigt</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="maxAdvanceBooking">Maximale Vorlaufzeit (Tage)</Label>
+                      <Input
+                        id="maxAdvanceBooking"
+                        type="number"
+                        min="1"
+                        max="365"
+                        value={localBusinessSettings.max_advance_booking_days || 30}
+                        onChange={(e) => setLocalBusinessSettings({
+                          ...localBusinessSettings,
+                          max_advance_booking_days: parseInt(e.target.value) || 30
+                        })}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Wie viele Tage im Voraus können Kunden Termine buchen?
+                      </p>
                     </div>
-                    <Switch
-                      id="autoConfirmBookings"
-                      checked={businessSettings.autoConfirmBookings}
-                      onCheckedChange={(checked) => setBusinessSettings({...businessSettings, autoConfirmBookings: checked})}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="bufferTime">Pufferzeit (Minuten)</Label>
+                      <Input
+                        id="bufferTime"
+                        type="number"
+                        min="0"
+                        max="120"
+                        value={localBusinessSettings.buffer_time_minutes || 15}
+                        onChange={(e) => setLocalBusinessSettings({
+                          ...localBusinessSettings,
+                          buffer_time_minutes: parseInt(e.target.value) || 15
+                        })}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Pufferzeit zwischen Terminen für Vorbereitung und Reinigung
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="requireDeposit">Anzahlung erforderlich</Label>
-                      <p className="text-sm text-muted-foreground">Kunden müssen eine Anzahlung leisten</p>
-                    </div>
-                    <Switch
-                      id="requireDeposit"
-                      checked={businessSettings.requireDeposit}
-                      onCheckedChange={(checked) => setBusinessSettings({...businessSettings, requireDeposit: checked})}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="font-semibold">Benachrichtigungen</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="sendEmailNotifications">E-Mail Benachrichtigungen</Label>
-                      <p className="text-sm text-muted-foreground">Senden Sie E-Mails für Terminbestätigungen</p>
-                    </div>
-                    <Switch
-                      id="sendEmailNotifications"
-                      checked={businessSettings.sendEmailNotifications}
-                      onCheckedChange={(checked) => setBusinessSettings({...businessSettings, sendEmailNotifications: checked})}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="sendSmsNotifications">SMS Benachrichtigungen</Label>
-                      <p className="text-sm text-muted-foreground">Senden Sie SMS für Terminerinnerungen</p>
-                    </div>
-                    <Switch
-                      id="sendSmsNotifications"
-                      checked={businessSettings.sendSmsNotifications}
-                      onCheckedChange={(checked) => setBusinessSettings({...businessSettings, sendSmsNotifications: checked})}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Button onClick={handleSaveBusinessSettings} className="gap-2">
-                <Save className="w-4 h-4" />
-                Einstellungen speichern
-              </Button>
+                  <Button 
+                    onClick={handleSaveBusinessSettings} 
+                    className="gap-2"
+                    disabled={updateBusinessSettings.isPending}
+                  >
+                    <Save className="w-4 h-4" />
+                    {updateBusinessSettings.isPending ? 'Speichert...' : 'Einstellungen speichern'}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -403,61 +304,244 @@ export function AdminSettings() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {hours.map((day, index) => (
-                <div key={day.day} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 font-medium">{day.day}</div>
-                    <Switch
-                      checked={day.isOpen}
-                      onCheckedChange={(checked) => {
-                        const newHours = [...hours];
-                        newHours[index] = { ...day, isOpen: checked };
-                        setHours(newHours);
-                      }}
-                    />
-                  </div>
-                  
-                  {day.isOpen && (
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Label>Von:</Label>
-                        <Input
-                          type="time"
-                          value={day.open}
-                          onChange={(e) => {
-                            const newHours = [...hours];
-                            newHours[index] = { ...day, open: e.target.value };
-                            setHours(newHours);
-                          }}
-                          className="w-32"
-                        />
+              {businessLoading ? (
+                <div className="text-center py-4">Lädt Öffnungszeiten...</div>
+              ) : (
+                <>
+                  {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
+                    const dayData = localBusinessSettings.opening_hours?.[dayIndex.toString()]
+                    const dayName = dayNames[dayIndex]
+                    
+                    return (
+                      <div key={dayIndex} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-4">
+                          <div className="w-20 font-medium">{dayName}</div>
+                          <Switch
+                            checked={dayData?.is_open || false}
+                            onCheckedChange={(checked) => {
+                              const newHours = {
+                                is_open: checked,
+                                start_time: dayData?.start_time || '09:00',
+                                end_time: dayData?.end_time || '18:00'
+                              }
+                              updateOpeningHours(dayIndex, newHours)
+                            }}
+                          />
+                        </div>
+                        
+                        {dayData?.is_open && (
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <Label>Von:</Label>
+                              <Input
+                                type="time"
+                                value={dayData.start_time}
+                                onChange={(e) => {
+                                  const newHours = {
+                                    ...dayData,
+                                    start_time: e.target.value
+                                  }
+                                  updateOpeningHours(dayIndex, newHours)
+                                }}
+                                className="w-32"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Label>Bis:</Label>
+                              <Input
+                                type="time"
+                                value={dayData.end_time}
+                                onChange={(e) => {
+                                  const newHours = {
+                                    ...dayData,
+                                    end_time: e.target.value
+                                  }
+                                  updateOpeningHours(dayIndex, newHours)
+                                }}
+                                className="w-32"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!dayData?.is_open && (
+                          <Badge variant="secondary">Geschlossen</Badge>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Label>Bis:</Label>
+                    )
+                  })}
+                  
+                  <Button 
+                    onClick={handleSaveHours} 
+                    className="gap-2"
+                    disabled={updateBusinessSettings.isPending}
+                  >
+                    <Save className="w-4 h-4" />
+                    {updateBusinessSettings.isPending ? 'Speichert...' : 'Öffnungszeiten speichern'}
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Email Settings */}
+        <TabsContent value="email" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                E-Mail Konfiguration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {emailLoading ? (
+                <div className="text-center py-4">Lädt E-Mail Einstellungen...</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpHost">SMTP Server</Label>
+                      <Input
+                        id="smtpHost"
+                        placeholder="smtp.gmail.com"
+                        value={localEmailSettings.smtp_host || ''}
+                        onChange={(e) => setLocalEmailSettings({
+                          ...localEmailSettings,
+                          smtp_host: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpPort">SMTP Port</Label>
+                      <Input
+                        id="smtpPort"
+                        type="number"
+                        placeholder="587"
+                        value={localEmailSettings.smtp_port || ''}
+                        onChange={(e) => setLocalEmailSettings({
+                          ...localEmailSettings,
+                          smtp_port: parseInt(e.target.value) || 587
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpUsername">Benutzername</Label>
+                      <Input
+                        id="smtpUsername"
+                        type="email"
+                        value={localEmailSettings.smtp_username || ''}
+                        onChange={(e) => setLocalEmailSettings({
+                          ...localEmailSettings,
+                          smtp_username: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpPassword">Passwort</Label>
+                      <div className="relative">
                         <Input
-                          type="time"
-                          value={day.close}
-                          onChange={(e) => {
-                            const newHours = [...hours];
-                            newHours[index] = { ...day, close: e.target.value };
-                            setHours(newHours);
-                          }}
-                          className="w-32"
+                          id="smtpPassword"
+                          type={showPassword ? "text" : "password"}
+                          value={localEmailSettings.smtp_password || ''}
+                          onChange={(e) => setLocalEmailSettings({
+                            ...localEmailSettings,
+                            smtp_password: e.target.value
+                          })}
                         />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
                       </div>
                     </div>
-                  )}
-                  
-                  {!day.isOpen && (
-                    <Badge variant="secondary">Geschlossen</Badge>
-                  )}
-                </div>
-              ))}
-              
-              <Button onClick={handleSaveHours} className="gap-2">
-                <Save className="w-4 h-4" />
-                Öffnungszeiten speichern
-              </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpFromEmail">Absender E-Mail</Label>
+                      <Input
+                        id="smtpFromEmail"
+                        type="email"
+                        value={localEmailSettings.smtp_from_email || ''}
+                        onChange={(e) => setLocalEmailSettings({
+                          ...localEmailSettings,
+                          smtp_from_email: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpFromName">Absender Name</Label>
+                      <Input
+                        id="smtpFromName"
+                        value={localEmailSettings.smtp_from_name || ''}
+                        onChange={(e) => setLocalEmailSettings({
+                          ...localEmailSettings,
+                          smtp_from_name: e.target.value
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="smtpUseTls">TLS Verschlüsselung verwenden</Label>
+                      <p className="text-sm text-muted-foreground">Empfohlen für die meisten SMTP-Server</p>
+                    </div>
+                    <Switch
+                      id="smtpUseTls"
+                      checked={localEmailSettings.smtp_use_tls || true}
+                      onCheckedChange={(checked) => setLocalEmailSettings({
+                        ...localEmailSettings,
+                        smtp_use_tls: checked
+                      })}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h3 className="font-semibold">SMTP Test</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Senden Sie eine Test-E-Mail, um Ihre SMTP-Konfiguration zu überprüfen.
+                    </p>
+                    <div className="flex gap-4">
+                      <Input
+                        placeholder="test@example.com"
+                        type="email"
+                        value={smtpTestEmail}
+                        onChange={(e) => setSmtpTestEmail(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={handleSmtpTest}
+                        disabled={smtpTest.isPending || !smtpTestEmail}
+                        className="gap-2"
+                      >
+                        <TestTube className="w-4 h-4" />
+                        {smtpTest.isPending ? 'Sendet...' : 'Test senden'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={handleSaveEmailSettings} 
+                    className="gap-2"
+                    disabled={updateEmailSettings.isPending}
+                  >
+                    <Save className="w-4 h-4" />
+                    {updateEmailSettings.isPending ? 'Speichert...' : 'E-Mail Einstellungen speichern'}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
