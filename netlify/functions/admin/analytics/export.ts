@@ -65,23 +65,26 @@ async function handleCSVExport(event: HandlerEvent, supabase: SupabaseClient, lo
   let filename: string
 
   switch (query.type) {
-    case 'appointments':
+    case 'appointments': {
       const result = await generateAppointmentsCSV(supabase, startDate, endDate, query.staffId, query.serviceId)
       csvContent = result.csv
       filename = `appointments_${startDate}_${endDate}.csv`
       break
+    }
 
-    case 'staff-utilization':
+    case 'staff-utilization': {
       const staffResult = await generateStaffUtilizationCSV(supabase, startDate, endDate, query.staffId)
       csvContent = staffResult.csv
       filename = `staff_utilization_${startDate}_${endDate}.csv`
       break
+    }
 
-    case 'services-revenue':
+    case 'services-revenue': {
       const servicesResult = await generateServicesRevenueCSV(supabase, startDate, endDate, query.serviceId)
       csvContent = servicesResult.csv
       filename = `services_revenue_${startDate}_${endDate}.csv`
       break
+    }
 
     default:
       return createErrorResponse({
@@ -179,6 +182,23 @@ async function generateAppointmentsCSV(
   return { csv: csvContent }
 }
 
+interface StaffStatistics {
+  name: string
+  totalAppointments: number
+  completedAppointments: number
+  cancelledAppointments: number
+  totalRevenue: number
+  totalWorkingMinutes: number
+}
+
+interface ServiceStatistics {
+  name: string
+  category: string
+  bookingCount: number
+  totalRevenue: number
+  averagePrice: number
+}
+
 async function generateStaffUtilizationCSV(
   supabase: SupabaseClient, 
   startDate: string, 
@@ -232,7 +252,7 @@ async function generateStaffUtilizationCSV(
     }
 
     return acc
-  }, {} as Record<string, any>) || {}
+  }, {} as Record<string, StaffStatistics>) || {}
 
   // CSV Headers
   const headers = [
@@ -246,7 +266,7 @@ async function generateStaffUtilizationCSV(
   ]
 
   // CSV Rows
-  const rows = Object.values(staffStats).map((staff: any) => {
+  const rows = Object.values(staffStats).map((staff) => {
     const utilizationRate = staff.totalAppointments > 0 
       ? ((staff.completedAppointments / staff.totalAppointments) * 100).toFixed(1)
       : '0.0'
@@ -317,10 +337,10 @@ async function generateServicesRevenueCSV(
     acc[serviceKey].totalRevenue += price
 
     return acc
-  }, {} as Record<string, any>) || {}
+  }, {} as Record<string, ServiceStatistics>) || {}
 
   // Calculate average prices
-  Object.values(serviceStats).forEach((service: any) => {
+  Object.values(serviceStats).forEach((service) => {
     service.averagePrice = service.bookingCount > 0 
       ? service.totalRevenue / service.bookingCount 
       : 0
@@ -337,8 +357,8 @@ async function generateServicesRevenueCSV(
 
   // CSV Rows - sorted by revenue
   const rows = Object.values(serviceStats)
-    .sort((a: any, b: any) => b.totalRevenue - a.totalRevenue)
-    .map((service: any) => [
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .map((service) => [
       service.name,
       service.category,
       service.bookingCount,

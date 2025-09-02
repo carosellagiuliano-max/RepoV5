@@ -21,10 +21,10 @@ vi.mock('sonner', () => ({
 
 // Mock recharts components to avoid canvas issues in tests
 vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="chart-container">{children}</div>,
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
-  BarChart: ({ children }: any) => <div data-testid="bar-chart">{children}</div>,
-  PieChart: ({ children }: any) => <div data-testid="pie-chart">{children}</div>,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="chart-container">{children}</div>,
+  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
+  BarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="bar-chart">{children}</div>,
+  PieChart: ({ children }: { children: React.ReactNode }) => <div data-testid="pie-chart">{children}</div>,
   XAxis: () => <div data-testid="x-axis" />,
   YAxis: () => <div data-testid="y-axis" />,
   CartesianGrid: () => <div data-testid="grid" />,
@@ -249,9 +249,9 @@ describe('Analytics', () => {
         download: '',
         click: vi.fn()
       }
-      const createElement = vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any)
-      const appendChild = vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as any)
-      const removeChild = vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as any)
+      const createElement = vi.spyOn(document, 'createElement').mockReturnValue(mockLink as HTMLAnchorElement)
+      const appendChild = vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as HTMLAnchorElement)
+      const removeChild = vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as HTMLAnchorElement)
 
       renderWithProviders(<AnalyticsDashboard />)
 

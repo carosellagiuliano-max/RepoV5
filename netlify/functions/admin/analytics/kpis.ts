@@ -116,6 +116,22 @@ async function handleGetKPIs(event: HandlerEvent, supabase: SupabaseClient, logg
   const bookingRate = totalAppointments > 0 ? (completedAppointments.length / totalAppointments) * 100 : 0
   const cancellationRate = totalAppointments > 0 ? (cancelledAppointments.length / totalAppointments) * 100 : 0
 
+interface StaffUtilizationData {
+  staffId: string
+  name: string
+  totalAppointments: number
+  completedAppointments: number
+  totalRevenue: number
+  totalDuration: number
+}
+
+interface ServiceData {
+  serviceId: string
+  name: string
+  bookingCount: number
+  revenue: number
+}
+
   // Staff utilization
   const staffStats = appointments?.reduce((acc, apt) => {
     const staffId = apt.staff_id
@@ -145,9 +161,9 @@ async function handleGetKPIs(event: HandlerEvent, supabase: SupabaseClient, logg
     }
 
     return acc
-  }, {} as Record<string, any>) || {}
+  }, {} as Record<string, StaffUtilizationData>) || {}
 
-  const staffUtilization = Object.values(staffStats).map((staff: any) => ({
+  const staffUtilization = Object.values(staffStats).map((staff) => ({
     staffId: staff.staffId,
     name: staff.name,
     utilization: staff.totalAppointments > 0 ? (staff.completedAppointments / staff.totalAppointments) * 100 : 0,
@@ -175,14 +191,21 @@ async function handleGetKPIs(event: HandlerEvent, supabase: SupabaseClient, logg
     }
 
     return acc
-  }, {} as Record<string, any>) || {}
+  }, {} as Record<string, ServiceData>) || {}
 
   const popularServices = Object.values(serviceStats)
-    .sort((a: any, b: any) => b.bookingCount - a.bookingCount)
+    .sort((a, b) => b.bookingCount - a.bookingCount)
     .slice(0, 10)
 
+interface DailyStat {
+  date: string
+  appointments: number
+  revenue: number
+  newCustomers: number
+}
+
   // Daily stats for the period
-  const dailyStats: any[] = []
+  const dailyStats: DailyStat[] = []
   const startDateObj = new Date(startDate)
   const endDateObj = new Date(endDate)
   
