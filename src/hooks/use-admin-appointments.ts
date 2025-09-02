@@ -160,10 +160,19 @@ export function useAdminAppointments(filters: AppointmentFilters = {}) {
         method: 'POST',
         body: JSON.stringify(conflictData),
       })
+      // Runtime validation of response structure
+      const hasConflicts = typeof response?.hasConflicts === 'boolean'
+        ? response.hasConflicts
+        : (Array.isArray(response?.conflicts) && response.conflicts.length > 0);
+      const conflicts = Array.isArray(response?.conflicts) ? response.conflicts : [];
+      const suggestions = Array.isArray(response?.suggestions) ? response.suggestions : [];
+      if (typeof hasConflicts !== 'boolean' || !Array.isArray(conflicts) || !Array.isArray(suggestions)) {
+        throw new Error('Unexpected response format from /appointments/check-conflicts');
+      }
       return {
-        hasConflicts: response.hasConflicts ?? Array.isArray(response.conflicts) && response.conflicts.length > 0,
-        conflicts: response.conflicts ?? [],
-        suggestions: response.suggestions ?? [],
+        hasConflicts,
+        conflicts,
+        suggestions,
       }
     },
   })
