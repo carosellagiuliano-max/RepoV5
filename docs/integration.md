@@ -576,3 +576,182 @@ For technical issues:
 3. Check Supabase dashboard for database errors
 4. Review Netlify function logs for server-side issues
 5. Consult this documentation for configuration
+
+## SEO & PWA Setup 🆕
+
+### SEO Features
+The application includes comprehensive SEO optimizations:
+
+**Meta Tags & Open Graph:**
+- Enhanced HTML meta tags in `index.html`
+- Open Graph tags for social media sharing
+- Twitter Card support
+- Canonical URLs and proper SEO structure
+
+**Schema.org JSON-LD:**
+- HairSalon structured data with business information
+- Address, opening hours, contact information
+- Service catalog and reviews
+- Local business optimization for St. Gallen
+
+**Search Engine Optimization:**
+- `robots.txt` with proper crawling directives
+- `sitemap.xml` with all important pages
+- SEO-friendly URLs and navigation structure
+- Proper heading hierarchy and content structure
+
+### PWA (Progressive Web App) Features
+The application is fully PWA-compliant with offline support:
+
+**Manifest Configuration:**
+- `manifest.webmanifest` with complete app metadata
+- App icons in multiple sizes (72x72 to 512x512)
+- Install shortcuts for quick actions
+- Standalone display mode for app-like experience
+
+**Service Worker:**
+- Comprehensive caching strategy (`/sw.js`)
+- Offline support for critical pages
+- Background sync for appointment data
+- Cache-first for static assets, network-first for dynamic data
+- Automatic updates with user prompts
+
+**Caching Strategy:**
+- Static assets: Cache-first strategy
+- API calls: Network-first with offline fallback
+- Appointment data: Fresh data prioritized
+- Images and fonts: Long-term caching
+
+### Security Headers
+Netlify `_headers` configuration includes:
+
+**Content Security Policy (CSP):**
+- Strict script and style source policies
+- Prevention of XSS attacks
+- Secure font and image loading
+
+**Additional Security:**
+- HSTS (HTTP Strict Transport Security)
+- X-Frame-Options, X-Content-Type-Options
+- Referrer-Policy and Permissions-Policy
+- Protection against clickjacking and MIME sniffing
+
+### PWA Environment Variables
+Required environment variables for PWA features:
+```bash
+# PWA Configuration (already in .env.example)
+VITE_PWA_NAME=Schnittwerk Your Style
+VITE_PWA_SHORT_NAME=Schnittwerk
+VITE_PWA_DESCRIPTION=Professioneller Friseursalon - Online Terminbuchung
+
+# Site Configuration
+VITE_SITE_URL=https://your-domain.netlify.app
+VITE_BUSINESS_NAME=Schnittwerk Your Style
+VITE_BUSINESS_ADDRESS=Kornhausstrasse 3, 9000 St. Gallen
+VITE_BUSINESS_PHONE=+41 71 123 45 67
+VITE_BUSINESS_EMAIL=info@schnittwerk-your-style.ch
+```
+
+### PWA Installation & Usage
+
+**Browser Support:**
+- Chrome/Edge: Full PWA support with install prompts
+- Firefox: Basic PWA support
+- Safari: Limited PWA support with Add to Home Screen
+
+**Installation Process:**
+1. Visit site in supported browser
+2. Look for "Install App" prompt or browser menu option
+3. App installs to device home screen/start menu
+4. Runs in standalone mode like native app
+
+**Offline Functionality:**
+- View cached appointment lists
+- Browse services and gallery
+- Access contact information
+- Create appointments (synced when online)
+
+### PWA Development Usage
+
+**Service Worker Registration:**
+```typescript
+import { initializePWA } from './lib/pwa';
+
+// Automatically registers service worker
+await initializePWA();
+```
+
+**PWA Status Check:**
+```typescript
+import { getPWAStatus } from './lib/pwa';
+
+const status = getPWAStatus();
+console.log('PWA installed:', status.isInstalled);
+console.log('Can install:', status.isInstallable);
+```
+
+**Install Prompt:**
+```typescript
+import { pwaInstallManager } from './lib/pwa';
+
+if (pwaInstallManager.canInstall()) {
+  const installed = await pwaInstallManager.promptInstall();
+}
+```
+
+**Network Status:**
+```typescript
+import { networkStatus } from './lib/pwa';
+
+const unsubscribe = networkStatus.addListener((isOnline) => {
+  console.log('Network status:', isOnline ? 'online' : 'offline');
+});
+```
+
+**Cache Management:**
+```typescript
+import { cacheManager } from './lib/pwa';
+
+const size = await cacheManager.getCacheSize();
+console.log('Cache size:', cacheManager.formatBytes(size));
+
+await cacheManager.clearAppCache(); // Clear all caches
+```
+
+### Lighthouse PWA Score
+The application targets a perfect Lighthouse PWA score:
+- ✅ Installable (manifest.webmanifest)
+- ✅ PWA-optimized (service worker, offline support)
+- ✅ Fast and reliable (caching strategy)
+- ✅ Engaging (shortcuts, theming)
+
+### Testing PWA Features
+
+**Local Testing:**
+1. Run `npm run build && npm run preview`
+2. Open Chrome DevTools > Application > Service Workers
+3. Check PWA installability and manifest
+4. Test offline functionality by disabling network
+
+**Production Testing:**
+1. Deploy to Netlify
+2. Run Lighthouse PWA audit
+3. Test installation on different devices
+4. Verify offline functionality
+
+### Maintenance
+
+**Updating Service Worker:**
+- Increment version in `public/sw.js`
+- Test changes thoroughly before deployment
+- Monitor browser console for SW errors
+
+**Cache Management:**
+- Service worker automatically manages cache updates
+- Users receive prompts for app updates
+- Cache size should be monitored in production
+
+**SEO Maintenance:**
+- Update `sitemap.xml` when adding new pages
+- Keep Schema.org data current with business changes
+- Monitor search console for SEO performance
