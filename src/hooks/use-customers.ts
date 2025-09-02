@@ -144,7 +144,14 @@ export function useCustomers(filters: CustomerFilters = {}) {
 
   useEffect(() => {
     fetchCustomers()
-  }, [user, JSON.stringify(filters)])
+  }, [user]) // Remove complex JSON.stringify dependency to avoid re-renders
+
+  // Separate useEffect for filters to manually trigger refetch
+  useEffect(() => {
+    if (user) {
+      fetchCustomers()
+    }
+  }, [filters, user])
 
   const refetch = () => {
     fetchCustomers()
@@ -200,7 +207,7 @@ export function useCustomer(customerId: string | null) {
   }
 
   useEffect(() => {
-    if (customerId) {
+    if (customerId && user) {
       fetchCustomer(customerId)
     } else {
       setCustomer(null)
@@ -384,7 +391,7 @@ export function useCustomerActions() {
     }
   }
 
-  const exportCustomerData = async (id: string): Promise<any | null> => {
+  const exportCustomerData = async (id: string): Promise<Record<string, unknown> | null> => {
     if (!user) {
       toast({
         title: 'Fehler',
@@ -436,7 +443,7 @@ export function useCustomerActions() {
     }
   }
 
-  const getCustomerAuditLog = async (id: string): Promise<any[] | null> => {
+  const getCustomerAuditLog = async (id: string): Promise<Record<string, unknown>[] | null> => {
     if (!user) {
       toast({
         title: 'Fehler',
@@ -485,4 +492,3 @@ export function useCustomerActions() {
 // Legacy exports for backward compatibility
 export { useCustomers as useCustomersCompat }
 export type { Customer }
-}

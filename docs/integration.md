@@ -49,6 +49,42 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - `phone` (TEXT)
 - `role` (enum: admin, customer, staff)
 
+#### Customers 🆕
+- `id` (UUID, primary key)
+- `customer_number` (TEXT, unique, auto-generated)
+- `profile_id` (UUID, references profiles.id)
+- `date_of_birth` (DATE)
+- `address_street` (TEXT)
+- `address_city` (TEXT)
+- `address_postal_code` (TEXT)
+- `emergency_contact_name` (TEXT)
+- `emergency_contact_phone` (TEXT)
+- `notes` (TEXT)
+- **GDPR Compliance Fields:**
+  - `gdpr_consent_given` (BOOLEAN)
+  - `gdpr_consent_date` (TIMESTAMPTZ)
+  - `gdpr_data_exported_at` (TIMESTAMPTZ)
+  - `gdpr_deletion_requested_at` (TIMESTAMPTZ)
+- **Soft Delete Fields:**
+  - `is_deleted` (BOOLEAN, default: false)
+  - `deleted_at` (TIMESTAMPTZ)
+  - `deleted_by` (UUID, references profiles.id)
+  - `deletion_reason` (TEXT)
+- `created_at` (TIMESTAMPTZ)
+- `updated_at` (TIMESTAMPTZ)
+
+#### Customer Audit Log 🆕
+- `id` (UUID, primary key)
+- `customer_id` (UUID, references customers.id)
+- `action` (TEXT: 'created', 'updated', 'soft_deleted', 'gdpr_export', 'restored')
+- `performed_by` (UUID, references profiles.id)
+- `data_before` (JSONB, previous state)
+- `data_after` (JSONB, new state)
+- `reason` (TEXT, optional reason)
+- `ip_address` (INET, for security tracking)
+- `user_agent` (TEXT, for security tracking)
+- `created_at` (TIMESTAMPTZ)
+
 #### Customers
 - `id` (UUID, primary key)
 - `profile_id` (UUID, references profiles)
@@ -129,6 +165,17 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - `staff_with_services` - Staff members with their offered services
 
 ## API Endpoints (Netlify Functions)
+
+### Customer Management API 🆕
+- `GET /.netlify/functions/admin/customers` - List customers (admin only)
+  - Query params: `page`, `limit`, `search`, `sortBy`, `sortOrder`, `isDeleted`, `hasGdprConsent`, `city`, `postalCode`
+- `GET /.netlify/functions/admin/customers/{id}` - Get customer details (admin only)
+- `POST /.netlify/functions/admin/customers` - Create customer (admin only)
+- `PUT /.netlify/functions/admin/customers/{id}` - Update customer (admin only)
+- `DELETE /.netlify/functions/admin/customers/{id}` - Soft delete customer (admin only)
+- `PATCH /.netlify/functions/admin/customers/{id}/restore` - Restore deleted customer (admin only)
+- `GET /.netlify/functions/admin/customers/{id}/export` - Export customer data (GDPR compliance)
+- `GET /.netlify/functions/admin/customers/{id}/audit-log` - Get customer audit history (admin only)
 
 ### Services API
 - `GET /.netlify/functions/services` - List services
@@ -266,9 +313,56 @@ Sample customer user:
 5. Netlify Functions are automatically deployed from `netlify/functions/`
 
 ### Database Migrations
-- Run SQL files against production Supabase project
-- Use Supabase CLI for migrations in production environments
+
+Execute the following SQL migration files in order using Supabase SQL Editor:
+
+1. **Initial Schema** (if not already deployed):
+   - `docs/db/01_initial_schema.sql` - Core tables and relationships
+   - `docs/db/02_rls_policies.sql` - Row Level Security policies
+   - `docs/db/03_functions_views.sql` - Database functions and views
+   - `docs/db/04_sample_data.sql` - Sample data for development
+   - `docs/db/05_schema_updates.sql` - Schema updates and improvements
+   - `docs/db/06_enhanced_functions.sql` - Enhanced database functions
+
+2. **Customer Management & GDPR** 🆕:
+   - `docs/db/07_customer_management_gdpr.sql` - Customer audit log and GDPR compliance
+   - `docs/db/08_customer_rls_policies.sql` - Customer data access policies
+
+**Migration Order:**
+```bash
+# Connect to your Supabase project and run in SQL Editor:
+\i docs/db/07_customer_management_gdpr.sql
+\i docs/db/08_customer_rls_policies.sql
+```
+
+**Post-Migration Verification:**
+```sql
+-- Verify tables exist
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name IN ('customers', 'customer_audit_log');
+
+-- Verify RLS policies
+SELECT schemaname, tablename, policyname 
+FROM pg_policies 
+WHERE tablename IN ('customers', 'customer_audit_log');
+
+-- Test audit trigger
+INSERT INTO customers (profile_id, customer_number) 
+VALUES ('test-profile-id', 'C2024TEST') 
+RETURNING id;
+```
+
+**Environment Variables for Production:**
+Ensure these are set in Netlify:
+- `VITE_GDPR_RETENTION_DAYS=2555` (7 years)
+- `VITE_CUSTOMER_NUMBER_PREFIX=C`
+- `VITE_AUDIT_LOG_RETENTION_DAYS=3650` (10 years)
+
+**Backup Recommendations:**
 - Always backup before running migrations
+- Use Supabase CLI for automated migrations in production
+- Test migrations on staging environment first
 
 ## Security Features
 
