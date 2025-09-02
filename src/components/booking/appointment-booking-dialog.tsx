@@ -41,44 +41,83 @@ interface AppointmentBookingDialogProps {
   onBookingSuccess?: () => void
 }
 
-  // Generate available time slots based on business hours for selected date
-  const getAvailableTimeSlots = () => {
-    if (!selectedDate || !businessSettings?.opening_hours) {
-      return timeSlots // fallback to default slots
-    }
-    
-    const dayOfWeek = selectedDate.getDay()
-    const dayHours = businessSettings.opening_hours[dayOfWeek.toString()]
-    
-    if (!dayHours?.is_open) {
-      return [] // No slots if closed
-    }
-    
-    const startTime = dayHours.start_time
-    const endTime = dayHours.end_time
-    
-    // Generate 30-minute slots between opening and closing
-    const slots: string[] = []
-    const [startHour, startMin] = startTime.split(':').map(Number)
-    const [endHour, endMin] = endTime.split(':').map(Number)
-    
-    let currentHour = startHour
-    let currentMin = startMin
-    
-    while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
-      const timeSlot = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`
-      slots.push(timeSlot)
-      
-      // Add 30 minutes
-      currentMin += 30
-      if (currentMin >= 60) {
-        currentMin = 0
-        currentHour += 1
-      }
-    }
-    
-    return slots
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Generate available time slots based on business hours for selected date
+const getAvailableTimeSlots = () => {
+  if (!selectedDate || !businessSettings?.opening_hours) {
+    return timeSlots // fallback to default slots
   }
+  
+  const dayOfWeek = selectedDate.getDay()
+  const dayHours = businessSettings.opening_hours[dayOfWeek.toString()]
+  
+  if (!dayHours?.is_open) {
+    return [] // No slots if closed
+  }
+  
+  const startTime = dayHours.start_time
+  const endTime = dayHours.end_time
+  
+  // Generate 30-minute slots between opening and closing
+  const slots: string[] = []
+  const [startHour, startMin] = startTime.split(':').map(Number)
+  const [endHour, endMin] = endTime.split(':').map(Number)
+  
+  let currentHour = startHour
+  let currentMin = startMin
+  
+  while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+    const timeSlot = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`
+    slots.push(timeSlot)
+    
+    // Add 30 minutes
+    currentMin += 30
+    if (currentMin >= 60) {
+      currentMin = 0
+      currentHour += 1
+    }
+  }
+  
+  return slots
+}
 
 const hairdressers = [
   {
