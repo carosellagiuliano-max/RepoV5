@@ -18,36 +18,11 @@ import { useServices } from '@/hooks/use-services'
 import { useStaff } from '@/hooks/use-staff'
 import { useCustomers } from '@/hooks/use-customers'
 import { Service } from '@/lib/types/database'
-import { AppointmentCreate, ConflictCheck } from '@/hooks/use-admin-appointments'
+import { AppointmentCreate, ConflictCheck, ConflictDetails, ConflictSuggestion, ConflictCheckResponse } from '@/hooks/use-admin-appointments'
 import { format, addMinutes, parseISO } from 'date-fns'
 import { de } from 'date-fns/locale'
 
 // Type definitions for props and data structures
-interface ConflictDetails {
-  type: string
-  message: string
-  conflictingAppointment?: {
-    id: string
-    start_time: string
-    end_time: string
-    customer_name: string
-    service_name: string
-  }
-}
-
-interface ConflictSuggestion {
-  startTime: string
-  endTime: string
-  staffId: string
-}
-
-interface ConflictCheckResponse {
-  hasConflicts: boolean
-  conflicts: ConflictDetails[]
-  availability: boolean
-  suggestions: ConflictSuggestion[]
-}
-
 interface AppointmentCreateDialogProps {
   onClose: () => void
   onSave: (appointmentData: AppointmentCreate) => Promise<void>
