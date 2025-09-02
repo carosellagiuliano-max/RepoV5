@@ -25,8 +25,11 @@ export const handler: Handler = withAuthAndRateLimit(
 
     try {
       // Handle different HTTP methods and paths
-      const pathSegments = event.path.split('/').filter(Boolean)
-      const customerId = pathSegments[pathSegments.length - 1]
+      // Robustly extract customerId: find "customers" and take the next segment
+      const customersIdx = pathSegments.indexOf('customers')
+      const customerId = (customersIdx !== -1 && pathSegments.length > customersIdx + 1)
+        ? pathSegments[customersIdx + 1]
+        : undefined
 
       switch (event.httpMethod) {
         case 'GET':
