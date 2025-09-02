@@ -229,6 +229,9 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - `useAvailability()` - Availability checking
 - `useAppointments()` - Appointment management
 - `useCustomers()` - Customer management
+- `useMedia()` - Media file management 🆕
+- `useMediaUpload()` - File upload operations 🆕
+- `useSignedUrls()` - Signed URL generation 🆕
 
 ### Component Structure
 ```
@@ -328,11 +331,17 @@ Execute the following SQL migration files in order using Supabase SQL Editor:
    - `docs/db/07_customer_management_gdpr.sql` - Customer audit log and GDPR compliance
    - `docs/db/08_customer_rls_policies.sql` - Customer data access policies
 
+3. **Media Management** 🆕:
+   - `docs/db/09_media_management.sql` - Media storage table and metadata
+   - `docs/db/10_media_rls_policies.sql` - Media access policies
+
 **Migration Order:**
 ```bash
 # Connect to your Supabase project and run in SQL Editor:
 \i docs/db/07_customer_management_gdpr.sql
 \i docs/db/08_customer_rls_policies.sql
+\i docs/db/09_media_management.sql
+\i docs/db/10_media_rls_policies.sql
 ```
 
 **Post-Migration Verification:**
@@ -340,12 +349,12 @@ Execute the following SQL migration files in order using Supabase SQL Editor:
 -- Verify tables exist
 SELECT table_name FROM information_schema.tables 
 WHERE table_schema = 'public' 
-AND table_name IN ('customers', 'customer_audit_log');
+AND table_name IN ('customers', 'customer_audit_log', 'media');
 
 -- Verify RLS policies
 SELECT schemaname, tablename, policyname 
 FROM pg_policies 
-WHERE tablename IN ('customers', 'customer_audit_log');
+WHERE tablename IN ('customers', 'customer_audit_log', 'media');
 
 -- Test audit trigger
 INSERT INTO customers (profile_id, customer_number) 
@@ -353,11 +362,44 @@ VALUES ('test-profile-id', 'C2024TEST')
 RETURNING id;
 ```
 
+### Supabase Storage Setup
+
+**1. Create Storage Bucket:**
+```sql
+-- Run in Supabase SQL Editor
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('salon-media', 'salon-media', false);
+```
+
+**2. Configure Storage Policies:**
+In Supabase Dashboard > Storage > salon-media > Policies:
+
+**Policy 1: Admin Upload**
+- Name: "Admin can upload"
+- Operation: INSERT
+- Target roles: authenticated
+- Policy: `(EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin' AND profiles.is_active = true))`
+
+**Policy 2: Admin Delete**
+- Name: "Admin can delete"  
+- Operation: DELETE
+- Target roles: authenticated
+- Policy: `(EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin' AND profiles.is_active = true))`
+
+**Policy 3: Read Access**
+- Name: "Anyone can read"
+- Operation: SELECT
+- Target roles: authenticated, anon
+- Policy: `true`
+
 **Environment Variables for Production:**
 Ensure these are set in Netlify:
 - `VITE_GDPR_RETENTION_DAYS=2555` (7 years)
 - `VITE_CUSTOMER_NUMBER_PREFIX=C`
 - `VITE_AUDIT_LOG_RETENTION_DAYS=3650` (10 years)
+- `VITE_MAX_FILE_SIZE_MB=10` (Media upload limit)
+- `VITE_STORAGE_BUCKET_NAME=salon-media`
+- `SUPABASE_STORAGE_BUCKET=salon-media`
 
 **Backup Recommendations:**
 - Always backup before running migrations
@@ -472,6 +514,58 @@ Response: {
       duration_minutes: 60
     }
   ]
+}
+```
+
+#### Media Management APIs 🆕
+
+##### Get Media List
+```javascript
+GET /.netlify/functions/admin/media?page=1&limit=20&category=gallery
+Headers: { Authorization: "Bearer <admin_token>" }
+Response: {
+  success: true,
+  data: {
+    media: [...],
+    pagination: { page: 1, limit: 20, total: 50, totalPages: 3 }
+  }
+}
+```
+
+##### Upload Media
+```javascript
+// Step 1: Get signed upload URL
+GET /.netlify/functions/admin/media/upload?filename=image.jpg&mimeType=image/jpeg
+Headers: { Authorization: "Bearer <admin_token>" }
+
+// Step 2: Upload to storage
+PUT <signed_url>
+Body: <file_binary_data>
+
+// Step 3: Complete upload
+POST /.netlify/functions/admin/media/upload
+Headers: { Authorization: "Bearer <admin_token>" }
+Body: {
+  filePath: "uploads/2024/1/uuid.jpg",
+  originalFilename: "image.jpg",
+  fileSize: 1024000,
+  mimeType: "image/jpeg",
+  title: "Sample Image",
+  category: "gallery"
+}
+```
+
+##### Get Signed URL
+```javascript
+GET /.netlify/functions/admin/media/signed-url/{media_id}?expiresIn=3600
+Headers: { Authorization: "Bearer <admin_token>" }
+Response: {
+  success: true,
+  data: {
+    media: {...},
+    signedUrl: "https://...",
+    expiresAt: "2024-01-15T12:00:00Z"
+  }
 }
 ```
 

@@ -244,17 +244,22 @@ export interface Database {
           updated_at?: string
         }
       }
-      media_files: {
+      media: {
         Row: {
           id: string
           filename: string
-          original_name: string
+          original_filename: string
           file_path: string
           file_size: number
           mime_type: string
-          category: string | null
+          storage_bucket: string
+          title: string | null
+          description: string | null
           tags: string[] | null
-          uploaded_by: string
+          category: string | null
+          uploaded_by: string | null
+          uploaded_at: string
+          is_active: boolean
           is_public: boolean
           created_at: string
           updated_at: string
@@ -262,20 +267,28 @@ export interface Database {
         Insert: {
           id?: string
           filename: string
-          original_name: string
+          original_filename: string
           file_path: string
           file_size: number
           mime_type: string
-          category?: string | null
+          storage_bucket?: string
+          title?: string | null
+          description?: string | null
           tags?: string[] | null
-          uploaded_by: string
+          category?: string | null
+          uploaded_by?: string | null
+          uploaded_at?: string
+          is_active?: boolean
           is_public?: boolean
         }
         Update: {
           filename?: string
-          original_name?: string
-          category?: string | null
+          original_filename?: string
+          title?: string | null
+          description?: string | null
           tags?: string[] | null
+          category?: string | null
+          is_active?: boolean
           is_public?: boolean
           updated_at?: string
         }
@@ -438,7 +451,22 @@ export interface ServiceFilters extends PaginationParams {
   staffId?: string
 }
 
-// Business logic types
+export interface MediaFilters extends PaginationParams {
+  category?: string
+  tags?: string[]
+  isPublic?: boolean
+  isActive?: boolean
+  mimeType?: string
+}
+
+export type Media = Database['public']['Tables']['media']['Row']
+export type MediaInsert = Database['public']['Tables']['media']['Insert']
+export type MediaUpdate = Database['public']['Tables']['media']['Update']
+
+// Legacy compatibility
+export type MediaFile = Media
+export type MediaFileInsert = MediaInsert
+export type MediaFileUpdate = MediaUpdate
 export interface TimeSlot {
   start: string
   end: string
