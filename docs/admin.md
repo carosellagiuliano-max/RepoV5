@@ -687,6 +687,114 @@ The system automatically prevents:
 - Authentication failures
 - Database query performance
 
+## Notification Management (`/netlify/functions/admin/notifications/*`) 🆕
+
+### Overview
+The notification system provides automated email and SMS notifications for appointment reminders, cancellations, and daily staff schedules. All notification management is admin-only.
+
+### Notification Settings (`/admin/notifications/settings`)
+
+#### GET - List Notification Settings
+```
+GET /admin/notifications/settings?category=email&isActive=true
+```
+
+**Query Parameters:**
+- `category` (string): Filter by category (email, sms, timing, delivery, general)
+- `isActive` (boolean): Filter by active status
+- `search` (string): Search in key or description
+- `sortBy` (string): Sort field (key, category, created_at)
+- `sortOrder` (asc|desc): Sort direction
+
+#### Default Settings
+The system comes with these pre-configured settings:
+- `reminder_email_enabled`: true/false
+- `reminder_sms_enabled`: true/false
+- `reminder_hours_before`: 24 (hours)
+- `cancellation_email_enabled`: true/false
+- `daily_schedule_email_enabled`: true/false
+- `daily_schedule_time`: "08:00" (HH:MM format)
+- `max_retry_attempts`: 3
+- `retry_delay_minutes`: 15
+
+### Notification Templates (`/admin/notifications/templates`)
+
+Templates support mustache-like syntax with variables:
+- `{{customer_name}}`, `{{appointment_date}}`, `{{appointment_time}}`
+- `{{service_name}}`, `{{staff_name}}`, `{{business_name}}`
+- `{{#condition}}content{{/condition}}` for conditionals
+
+**Template Types:**
+- **Email**: Requires subject and content
+- **SMS**: Content only (160 character limit recommended)
+
+**Channels:**
+- `reminder`: 24-hour appointment reminders
+- `cancellation`: Appointment cancellation confirmations
+- `rescheduling`: Appointment rescheduling confirmations  
+- `daily_schedule`: Daily staff schedule emails
+
+### Notification Queue (`/admin/notifications/queue`)
+
+View and manage notification delivery:
+
+**Statuses:**
+- `pending`: Scheduled for delivery
+- `processing`: Currently being sent
+- `sent`: Successfully delivered
+- `failed`: Delivery failed (will retry)
+- `cancelled`: Manually cancelled
+
+**Features:**
+- Manual retry for failed notifications
+- Audit trail of all delivery attempts
+- Filter by type, status, recipient, etc.
+- Correlation IDs for tracking related notifications
+
+### Scheduled Functions
+Three cron jobs handle notification processing:
+
+1. **Notification Processor** (every 5 minutes)
+   - Processes queued notifications
+   - Sends via SMTP (email) or Twilio (SMS)
+   - Handles retries with exponential backoff
+
+2. **Reminder Notifications** (every hour)
+   - Scans for appointments 24 hours in advance
+   - Creates reminder notifications based on settings
+   - Prevents duplicate reminders
+
+3. **Daily Staff Schedules** (daily at 8 AM)
+   - Sends daily schedule emails to staff
+   - Lists all confirmed appointments for the day
+   - Includes customer contact information
+
+### Configuration Requirements
+
+**Email (SMTP):**
+- `VITE_SMTP_HOST`, `VITE_SMTP_PORT`
+- `VITE_SMTP_USER`, `VITE_SMTP_PASSWORD`
+- `VITE_SMTP_FROM_EMAIL`, `VITE_SMTP_FROM_NAME`
+
+**SMS (Twilio - Optional):**
+- `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN`
+- `TWILIO_PHONE_NUMBER` or `TWILIO_MESSAGING_SERVICE_SID`
+
+### Error Handling
+- Failed notifications retry up to 3 times
+- Exponential backoff: 5, 10, 20 minute delays
+- All attempts logged in audit trail
+- SMS gracefully disabled if not configured
+- Admin can manually retry or cancel notifications
+
+### Business Rules
+- Only admins can manage notifications and settings
+- Default templates cannot be deleted (only deactivated)
+- Templates in use cannot be deleted
+- Sent notifications cannot be modified
+- Staff/customers can view their own notifications (read-only)
+
 ## Future Enhancements
 
 ### Planned Features
@@ -701,3 +809,6 @@ The system automatically prevents:
 - Video transcoding for web playback 🆕
 - Media CDN integration 🆕
 - Media search by AI-generated tags 🆕
+- Advanced notification scheduling 🆕
+- Notification templates with rich formatting 🆕
+- Notification analytics and delivery reports 🆕

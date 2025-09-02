@@ -28,7 +28,7 @@ interface EmailResult {
   success: boolean
   messageId?: string
   error?: string
-  details?: any
+  details?: Record<string, unknown>
 }
 
 export class EmailService {

@@ -189,7 +189,7 @@ export const handler: Handler = async (event, context) => {
   }
 }
 
-async function getNotificationSetting(supabase: any, key: string, defaultValue: string): Promise<string> {
+async function getNotificationSetting(supabase: ReturnType<typeof createAdminClient>, key: string, defaultValue: string): Promise<string> {
   const { data } = await supabase
     .from('notification_settings')
     .select('value')
@@ -200,7 +200,7 @@ async function getNotificationSetting(supabase: any, key: string, defaultValue: 
   return data?.value || defaultValue
 }
 
-async function checkExistingDailyNotification(supabase: any, staffId: string, dayStart: string, dayEnd: string): Promise<boolean> {
+async function checkExistingDailyNotification(supabase: ReturnType<typeof createAdminClient>, staffId: string, dayStart: string, dayEnd: string): Promise<boolean> {
   const { data } = await supabase
     .from('notification_queue')
     .select('id')
@@ -214,7 +214,7 @@ async function checkExistingDailyNotification(supabase: any, staffId: string, da
 }
 
 async function sendDailyScheduleEmail(
-  supabase: any, 
+  supabase: ReturnType<typeof createAdminClient>, 
   staff: StaffMember, 
   appointments: AppointmentDetails[], 
   date: Date
@@ -268,7 +268,7 @@ async function sendDailyScheduleEmail(
   console.log(`📧 Daily schedule email queued for ${staff.profiles.email} (${appointments.length} appointments)`)
 }
 
-async function getTemplate(supabase: any, type: string, channel: string) {
+async function getTemplate(supabase: ReturnType<typeof createAdminClient>, type: string, channel: string) {
   const { data } = await supabase
     .from('notification_templates')
     .select('*')

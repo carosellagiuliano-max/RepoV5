@@ -4,7 +4,7 @@
  */
 
 interface TemplateVariables {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface BusinessInfo {
@@ -133,13 +133,15 @@ export class TemplateRenderer {
     }
   }
 
-  private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => {
-      return current && current[key] !== undefined ? current[key] : undefined
+  private getNestedValue(obj: unknown, path: string): unknown {
+    return path.split('.').reduce((current: unknown, key: string) => {
+      return current && typeof current === 'object' && current !== null && key in current 
+        ? (current as Record<string, unknown>)[key] 
+        : undefined
     }, obj)
   }
 
-  private isTruthy(value: any): boolean {
+  private isTruthy(value: unknown): boolean {
     if (Array.isArray(value)) {
       return value.length > 0
     }

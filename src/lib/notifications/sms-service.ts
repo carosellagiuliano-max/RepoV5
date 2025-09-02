@@ -22,7 +22,7 @@ interface SMSResult {
   success: boolean
   messageId?: string
   error?: string
-  details?: any
+  details?: Record<string, unknown>
 }
 
 export class SMSService {
@@ -62,7 +62,7 @@ export class SMSService {
 
       const client = this.getClient()
       
-      const messageOptions: any = {
+      const messageOptions: Record<string, string> = {
         body: smsData.message,
         to: smsData.to
       }

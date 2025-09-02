@@ -38,6 +38,15 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ```
 
+### SMS Configuration (Optional)
+For SMS notifications via Twilio:
+```bash
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=+1234567890
+TWILIO_MESSAGING_SERVICE_SID=your_messaging_service_sid
+```
+
 ## Database Schema
 
 ### Core Tables
@@ -196,6 +205,28 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - `POST /.netlify/functions/booking-create` - Create appointment
 - `POST /.netlify/functions/booking-cancel` - Cancel appointment
 
+### Notification Management API 🆕
+- `GET /.netlify/functions/admin/notifications/settings` - List notification settings (admin only)
+- `GET /.netlify/functions/admin/notifications/settings/{key}` - Get specific setting (admin only)
+- `POST /.netlify/functions/admin/notifications/settings` - Create setting (admin only)
+- `PUT /.netlify/functions/admin/notifications/settings/{key}` - Update setting (admin only)
+- `DELETE /.netlify/functions/admin/notifications/settings/{key}` - Delete setting (admin only)
+
+- `GET /.netlify/functions/admin/notifications/templates` - List notification templates (admin only)
+- `GET /.netlify/functions/admin/notifications/templates/{id}` - Get template (admin only)
+- `POST /.netlify/functions/admin/notifications/templates` - Create template (admin only)
+- `PUT /.netlify/functions/admin/notifications/templates/{id}` - Update template (admin only)
+- `DELETE /.netlify/functions/admin/notifications/templates/{id}` - Delete template (admin only)
+
+- `GET /.netlify/functions/admin/notifications/queue` - List queued notifications (admin only)
+- `GET /.netlify/functions/admin/notifications/queue/{id}` - Get notification details (admin only)
+- `POST /.netlify/functions/admin/notifications/queue` - Create notification (admin only)
+- `PUT /.netlify/functions/admin/notifications/queue/{id}` - Update notification (admin only)
+- `DELETE /.netlify/functions/admin/notifications/queue/{id}` - Delete notification (admin only)
+- `POST /.netlify/functions/admin/notifications/queue/{id}/retry` - Retry failed notification (admin only)
+- `POST /.netlify/functions/admin/notifications/queue/{id}/cancel` - Cancel notification (admin only)
+- `GET /.netlify/functions/admin/notifications/queue/{id}/audit-log` - Get audit log (admin only)
+
 ## Authentication & Authorization
 
 ### User Roles
@@ -232,6 +263,9 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - `useMedia()` - Media file management 🆕
 - `useMediaUpload()` - File upload operations 🆕
 - `useSignedUrls()` - Signed URL generation 🆕
+- `useNotifications()` - Notification management 🆕
+- `useNotificationSettings()` - Notification settings management 🆕
+- `useNotificationTemplates()` - Notification template management 🆕
 
 ### Component Structure
 ```
@@ -335,6 +369,10 @@ Execute the following SQL migration files in order using Supabase SQL Editor:
    - `docs/db/09_media_management.sql` - Media storage table and metadata
    - `docs/db/10_media_rls_policies.sql` - Media access policies
 
+4. **Notification System** 🆕:
+   - `docs/db/11_notification_system.sql` - Notification tables and default templates
+   - `docs/db/12_notification_rls_policies.sql` - Notification access policies
+
 **Migration Order:**
 ```bash
 # Connect to your Supabase project and run in SQL Editor:
@@ -342,6 +380,8 @@ Execute the following SQL migration files in order using Supabase SQL Editor:
 \i docs/db/08_customer_rls_policies.sql
 \i docs/db/09_media_management.sql
 \i docs/db/10_media_rls_policies.sql
+\i docs/db/11_notification_system.sql
+\i docs/db/12_notification_rls_policies.sql
 ```
 
 **Post-Migration Verification:**
@@ -349,17 +389,16 @@ Execute the following SQL migration files in order using Supabase SQL Editor:
 -- Verify tables exist
 SELECT table_name FROM information_schema.tables 
 WHERE table_schema = 'public' 
-AND table_name IN ('customers', 'customer_audit_log', 'media');
+AND table_name IN ('customers', 'customer_audit_log', 'media', 'notification_queue', 'notification_settings', 'notification_templates', 'notification_audit_log');
 
 -- Verify RLS policies
 SELECT schemaname, tablename, policyname 
 FROM pg_policies 
-WHERE tablename IN ('customers', 'customer_audit_log', 'media');
+WHERE tablename IN ('customers', 'customer_audit_log', 'media', 'notification_queue', 'notification_settings', 'notification_templates', 'notification_audit_log');
 
--- Test audit trigger
-INSERT INTO customers (profile_id, customer_number) 
-VALUES ('test-profile-id', 'C2024TEST') 
-RETURNING id;
+-- Test notification functions
+SELECT get_notification_setting('reminder_email_enabled');
+SELECT get_active_template('email', 'reminder');
 ```
 
 ### Supabase Storage Setup
@@ -392,16 +431,44 @@ In Supabase Dashboard > Storage > salon-media > Policies:
 - Target roles: authenticated, anon
 - Policy: `true`
 
+## Scheduled Functions (Cron Jobs) 🆕
+
+The notification system includes three scheduled functions that need to be configured in Netlify:
+
+### Notification Processing (Every 5 minutes)
+```
+Function: scheduled-notification-processor
+Schedule: 0,5,10,15,20,25,30,35,40,45,50,55 * * * *
+```
+Processes queued notifications and sends them via email/SMS.
+
+### Reminder Notifications (Every hour)
+```
+Function: scheduled-reminder-notifications  
+Schedule: 0 * * * *
+```
+Sends 24-hour appointment reminders based on notification settings.
+
+### Daily Staff Schedules (Daily at 8 AM)
+```
+Function: scheduled-daily-staff-notifications
+Schedule: 0 8 * * *
+```
+Sends daily schedule emails to staff members.
+
+### Netlify Configuration
+1. Go to Netlify Dashboard > Site > Functions
+2. Under "Scheduled Functions", add the above schedules
+3. Ensure environment variables are configured for SMTP and optionally Twilio
+4. Test functions manually first before enabling schedules
+
 **Environment Variables for Production:**
 Ensure these are set in Netlify:
-- `VITE_GDPR_RETENTION_DAYS=2555` (7 years)
-- `VITE_CUSTOMER_NUMBER_PREFIX=C`
-- `VITE_AUDIT_LOG_RETENTION_DAYS=3650` (10 years)
-- `VITE_MAX_FILE_SIZE_MB=10` (Media upload limit)
-- `VITE_STORAGE_BUCKET_NAME=salon-media`
-- `SUPABASE_STORAGE_BUCKET=salon-media`
+- `VITE_SMTP_HOST`, `VITE_SMTP_PORT`, `VITE_SMTP_USER`, `VITE_SMTP_PASSWORD`
+- `VITE_SMTP_FROM_EMAIL`, `VITE_SMTP_FROM_NAME`
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` (optional for SMS)
 
-**Backup Recommendations:**
+## Backup Recommendations
 - Always backup before running migrations
 - Use Supabase CLI for automated migrations in production
 - Test migrations on staging environment first

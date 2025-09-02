@@ -1,7 +1,7 @@
 /**
  * Scheduled Reminder Notifications
  * Cron job that runs every hour to send 24-hour appointment reminders
- * Schedule: 0 */1 * * * (every hour)
+ * Schedule: 0 * * * * (every hour)
  */
 
 import { Handler } from '@netlify/functions'
@@ -177,7 +177,7 @@ function calculateReminderWindow(hoursBeforeMinutes: number) {
   return { start, end }
 }
 
-async function getNotificationSetting(supabase: any, key: string, defaultValue: string): Promise<string> {
+async function getNotificationSetting(supabase: ReturnType<typeof createAdminClient>, key: string, defaultValue: string): Promise<string> {
   const { data } = await supabase
     .from('notification_settings')
     .select('value')
@@ -188,7 +188,7 @@ async function getNotificationSetting(supabase: any, key: string, defaultValue: 
   return data?.value || defaultValue
 }
 
-async function checkExistingReminder(supabase: any, appointmentId: string): Promise<boolean> {
+async function checkExistingReminder(supabase: ReturnType<typeof createAdminClient>, appointmentId: string): Promise<boolean> {
   const { data } = await supabase
     .from('notification_queue')
     .select('id')
@@ -199,7 +199,7 @@ async function checkExistingReminder(supabase: any, appointmentId: string): Prom
   return data && data.length > 0
 }
 
-async function sendEmailReminder(supabase: any, appointment: AppointmentDetails, correlationId: string) {
+async function sendEmailReminder(supabase: ReturnType<typeof createAdminClient>, appointment: AppointmentDetails, correlationId: string) {
   // Get email template
   const template = await getTemplate(supabase, 'email', 'reminder')
   if (!template) {
@@ -238,7 +238,7 @@ async function sendEmailReminder(supabase: any, appointment: AppointmentDetails,
   console.log(`📧 Email reminder queued for ${appointment.customer.profiles.email}`)
 }
 
-async function sendSMSReminder(supabase: any, appointment: AppointmentDetails, correlationId: string) {
+async function sendSMSReminder(supabase: ReturnType<typeof createAdminClient>, appointment: AppointmentDetails, correlationId: string) {
   // Get SMS template
   const template = await getTemplate(supabase, 'sms', 'reminder')
   if (!template) {
@@ -275,7 +275,7 @@ async function sendSMSReminder(supabase: any, appointment: AppointmentDetails, c
   console.log(`📱 SMS reminder queued for ${appointment.customer.profiles.phone}`)
 }
 
-async function getTemplate(supabase: any, type: string, channel: string) {
+async function getTemplate(supabase: ReturnType<typeof createAdminClient>, type: string, channel: string) {
   const { data } = await supabase
     .from('notification_templates')
     .select('*')

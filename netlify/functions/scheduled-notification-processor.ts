@@ -1,7 +1,7 @@
 /**
  * Notification Processor
  * Processes queued notifications and sends them via email/SMS
- * Schedule: */5 * * * * (every 5 minutes)
+ * Schedule: 0,5,10,15,20,25,30,35,40,45,50,55 * * * * (every 5 minutes)
  */
 
 import { Handler } from '@netlify/functions'
@@ -106,7 +106,7 @@ export const handler: Handler = async (event, context) => {
   }
 }
 
-async function processEmailNotification(supabase: any, notification: QueuedNotification) {
+async function processEmailNotification(supabase: ReturnType<typeof createAdminClient>, notification: QueuedNotification) {
   if (!notification.recipient_email) {
     throw new Error('No recipient email provided')
   }
@@ -135,7 +135,7 @@ async function processEmailNotification(supabase: any, notification: QueuedNotif
   }
 }
 
-async function processSMSNotification(supabase: any, notification: QueuedNotification) {
+async function processSMSNotification(supabase: ReturnType<typeof createAdminClient>, notification: QueuedNotification) {
   if (!notification.recipient_phone) {
     throw new Error('No recipient phone provided')
   }
@@ -169,7 +169,7 @@ async function processSMSNotification(supabase: any, notification: QueuedNotific
   }
 }
 
-async function updateNotificationStatus(supabase: any, notificationId: string, status: string) {
+async function updateNotificationStatus(supabase: ReturnType<typeof createAdminClient>, notificationId: string, status: string) {
   const { error } = await supabase
     .from('notification_queue')
     .update({ status })
@@ -180,7 +180,7 @@ async function updateNotificationStatus(supabase: any, notificationId: string, s
   }
 }
 
-async function handleNotificationFailure(supabase: any, notification: QueuedNotification, error: any) {
+async function handleNotificationFailure(supabase: ReturnType<typeof createAdminClient>, notification: QueuedNotification, error: unknown) {
   const errorMessage = error instanceof Error ? error.message : 'Unknown error'
   const canRetry = notification.retry_count < notification.max_retries
 
