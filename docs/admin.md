@@ -681,6 +681,108 @@ The system automatically prevents:
 }
 ```
 
+### Analytics & Reporting (`/netlify/functions/admin/analytics`) 🆕
+
+#### GET - Analytics Metrics
+```
+GET /admin/analytics/metrics?startDate=2024-01-01&endDate=2024-01-31&period=month
+```
+
+**Query Parameters:**
+- `startDate` (date): Start date in YYYY-MM-DD format (default: 30 days ago)
+- `endDate` (date): End date in YYYY-MM-DD format (default: today)
+- `staffId` (uuid): Filter by specific staff member (optional)
+- `serviceId` (uuid): Filter by specific service (optional)
+- `period` (enum): Aggregation period - day, week, month (default: month)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "period": {
+      "startDate": "2024-01-01",
+      "endDate": "2024-01-31",
+      "period": "month"
+    },
+    "overview": {
+      "totalAppointments": 150,
+      "completedAppointments": 135,
+      "cancelledAppointments": 15,
+      "totalRevenue": 8750.00,
+      "averageTicket": 64.81,
+      "uniqueCustomers": 95,
+      "averageDuration": 45.5,
+      "appointmentsGrowth": "12.5",
+      "revenueGrowth": "8.3",
+      "customersGrowth": "15.2"
+    },
+    "staffPerformance": [
+      {
+        "staff_id": "uuid",
+        "staff_name": "Anna Müller",
+        "total_appointments": 75,
+        "completed_appointments": 70,
+        "total_revenue": 4200.00,
+        "average_ticket": 60.00,
+        "utilization_rate": 85.5
+      }
+    ],
+    "servicePopularity": [
+      {
+        "service_id": "uuid",
+        "service_name": "Damenhaarschnitt",
+        "service_category": "Schneiden",
+        "total_bookings": 45,
+        "completed_bookings": 42,
+        "total_revenue": 2100.00,
+        "average_price": 50.00,
+        "bookings_last_30_days": 15
+      }
+    ],
+    "chartData": [
+      {
+        "date": "2024-01-01",
+        "appointments": 8,
+        "revenue": 520.00,
+        "completed": 7,
+        "cancelled": 1
+      }
+    ],
+    "revenueData": [
+      {
+        "date": "2024-01-01",
+        "daily_revenue": 520.00,
+        "total_appointments": 8,
+        "unique_customers": 6
+      }
+    ]
+  }
+}
+```
+
+#### GET - Export Analytics Data
+```
+GET /admin/analytics/export?type=appointments&startDate=2024-01-01&endDate=2024-01-31&format=csv
+```
+
+**Query Parameters:**
+- `type` (enum): Export type - appointments, staff, services, revenue
+- `startDate` (date): Start date in YYYY-MM-DD format (default: 30 days ago)
+- `endDate` (date): End date in YYYY-MM-DD format (default: today)
+- `staffId` (uuid): Filter by specific staff member (optional)
+- `serviceId` (uuid): Filter by specific service (optional)
+- `format` (enum): Export format - csv (default: csv)
+
+**Response:**
+Returns CSV file with appropriate content-type headers for download.
+
+**Export Types:**
+- `appointments`: Date, staff, service, category, status, price, duration
+- `staff`: Staff name, total appointments, completed, revenue, average ticket, utilization
+- `services`: Service name, category, bookings, revenue, popularity trends
+- `revenue`: Daily revenue, appointments, customers, growth metrics
+
 ### Key Metrics
 - API response times
 - Error rates by endpoint
@@ -693,11 +795,16 @@ The system automatically prevents:
 - Email notifications for appointments
 - SMS reminders
 - Customer loyalty program
-- Advanced analytics dashboard
 - Mobile app API
 - Multi-location support
 - Online payment integration
 - Image optimization and thumbnails 🆕
 - Video transcoding for web playback 🆕
 - Media CDN integration 🆕
+
+### Recently Added Features ✅
+- **Analytics & Reporting System**: Comprehensive KPI dashboard with metrics, charts, and CSV export functionality
+- **Advanced Performance Metrics**: Staff utilization tracking, service popularity analysis, revenue trends
+- **Flexible Filtering**: Date range, staff, and service-specific analytics with growth comparisons
+- **Export Capabilities**: CSV download for appointments, staff performance, services, and revenue data
 - Media search by AI-generated tags 🆕
