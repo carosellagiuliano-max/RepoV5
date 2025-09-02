@@ -293,6 +293,91 @@ export interface Database {
           updated_at?: string
         }
       }
+      calendar_tokens: {
+        Row: {
+          id: string
+          staff_id: string
+          token_hash: string
+          feed_type: 'ical' | 'google'
+          is_active: boolean
+          expires_at: string | null
+          last_accessed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          staff_id: string
+          token_hash: string
+          feed_type: 'ical' | 'google'
+          is_active?: boolean
+          expires_at?: string | null
+        }
+        Update: {
+          is_active?: boolean
+          expires_at?: string | null
+          last_accessed_at?: string | null
+          updated_at?: string
+        }
+      }
+      google_calendar_mappings: {
+        Row: {
+          id: string
+          staff_id: string
+          google_calendar_id: string
+          google_access_token: string
+          google_refresh_token: string | null
+          token_expires_at: string | null
+          sync_enabled: boolean
+          last_sync_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          staff_id: string
+          google_calendar_id: string
+          google_access_token: string
+          google_refresh_token?: string | null
+          token_expires_at?: string | null
+          sync_enabled?: boolean
+        }
+        Update: {
+          google_access_token?: string
+          google_refresh_token?: string | null
+          token_expires_at?: string | null
+          sync_enabled?: boolean
+          last_sync_at?: string | null
+          updated_at?: string
+        }
+      }
+      calendar_access_logs: {
+        Row: {
+          id: string
+          token_id: string | null
+          staff_id: string
+          access_type: 'feed_access' | 'sync' | 'token_created' | 'token_deleted'
+          ip_address: string | null
+          user_agent: string | null
+          success: boolean
+          error_message: string | null
+          accessed_at: string
+        }
+        Insert: {
+          id?: string
+          token_id?: string | null
+          staff_id: string
+          access_type: 'feed_access' | 'sync' | 'token_created' | 'token_deleted'
+          ip_address?: string | null
+          user_agent?: string | null
+          success?: boolean
+          error_message?: string | null
+        }
+        Update: {
+          success?: boolean
+          error_message?: string | null
+        }
+      }
     }
     Views: {
       staff_with_profiles: {
@@ -333,6 +418,24 @@ export interface Database {
           status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
           notes: string | null
           created_at: string
+        }
+      }
+      calendar_tokens_with_staff: {
+        Row: {
+          id: string
+          staff_id: string
+          token_hash: string
+          feed_type: 'ical' | 'google'
+          is_active: boolean
+          expires_at: string | null
+          last_accessed_at: string | null
+          created_at: string
+          updated_at: string
+          profile_id: string
+          first_name: string
+          last_name: string
+          email: string
+          staff_is_active: boolean
         }
       }
     }
@@ -395,9 +498,22 @@ export type MediaFile = Database['public']['Tables']['media_files']['Row']
 export type MediaFileInsert = Database['public']['Tables']['media_files']['Insert']
 export type MediaFileUpdate = Database['public']['Tables']['media_files']['Update']
 
+export type CalendarToken = Database['public']['Tables']['calendar_tokens']['Row']
+export type CalendarTokenInsert = Database['public']['Tables']['calendar_tokens']['Insert']
+export type CalendarTokenUpdate = Database['public']['Tables']['calendar_tokens']['Update']
+
+export type GoogleCalendarMapping = Database['public']['Tables']['google_calendar_mappings']['Row']
+export type GoogleCalendarMappingInsert = Database['public']['Tables']['google_calendar_mappings']['Insert']
+export type GoogleCalendarMappingUpdate = Database['public']['Tables']['google_calendar_mappings']['Update']
+
+export type CalendarAccessLog = Database['public']['Tables']['calendar_access_logs']['Row']
+export type CalendarAccessLogInsert = Database['public']['Tables']['calendar_access_logs']['Insert']
+export type CalendarAccessLogUpdate = Database['public']['Tables']['calendar_access_logs']['Update']
+
 // View types
 export type StaffWithProfile = Database['public']['Views']['staff_with_profiles']['Row']
 export type AppointmentWithDetails = Database['public']['Views']['appointments_with_details']['Row']
+export type CalendarTokenWithStaff = Database['public']['Views']['calendar_tokens_with_staff']['Row']
 
 // Utility types
 export type UserRole = 'admin' | 'staff' | 'customer'
