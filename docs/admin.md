@@ -39,6 +39,203 @@ GET /admin/customers?page=1&limit=20&isDeleted=false&search=maria&hasGdprConsent
 - `registeredAfter` (date): Filter customers registered after date
 - `registeredBefore` (date): Filter customers registered before date
 
+### Media Management (`/netlify/functions/admin/media`) 🆕
+
+#### GET - List Media Files
+```
+GET /admin/media?page=1&limit=20&category=gallery&isActive=true
+```
+
+**Query Parameters:**
+- `page` (number): Page number (default: 1)
+- `limit` (number): Items per page (default: 20, max: 100)
+- `search` (string): Search in title, filename, description
+- `category` (string): Filter by category (before_after, team, salon, products, gallery, other)
+- `tags` (array): Filter by tags
+- `isPublic` (boolean): Filter by public status
+- `isActive` (boolean): Filter by active status (default: true)
+- `mimeType` (string): Filter by MIME type prefix (e.g., "image/", "video/")
+- `sortBy` (string): Sort field (created_at, title, filename, file_size)
+- `sortOrder` (asc|desc): Sort direction (default: desc)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "media": [
+      {
+        "id": "uuid",
+        "filename": "uuid.jpg",
+        "original_filename": "salon_photo.jpg",
+        "file_path": "uploads/2024/1/uuid.jpg",
+        "file_size": 1024000,
+        "mime_type": "image/jpeg",
+        "storage_bucket": "salon-media",
+        "title": "Salon Interior",
+        "description": "Beautiful salon interior photo",
+        "category": "salon",
+        "tags": ["interior", "modern", "clean"],
+        "uploaded_by": "admin_uuid",
+        "uploaded_at": "2024-01-15T10:00:00Z",
+        "is_active": true,
+        "is_public": false,
+        "created_at": "2024-01-15T10:00:00Z",
+        "updated_at": "2024-01-15T10:00:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 45,
+      "totalPages": 3
+    }
+  }
+}
+```
+
+#### POST - Create Media Record
+```
+POST /admin/media
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "filename": "uuid.jpg",
+  "original_filename": "photo.jpg",
+  "file_path": "uploads/2024/1/uuid.jpg",
+  "file_size": 1024000,
+  "mime_type": "image/jpeg",
+  "storage_bucket": "salon-media",
+  "title": "Photo Title",
+  "description": "Photo description",
+  "category": "gallery",
+  "tags": ["tag1", "tag2"],
+  "is_public": false
+}
+```
+
+#### PUT - Update Media Metadata
+```
+PUT /admin/media/{id}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "category": "salon",
+  "tags": ["updated", "tags"],
+  "is_public": true,
+  "is_active": true
+}
+```
+
+#### DELETE - Delete Media
+```
+DELETE /admin/media/{id}
+```
+
+**Note:** This deletes both the database record and the file from Supabase Storage.
+
+### Media Upload (`/netlify/functions/admin/media/upload`) 🆕
+
+#### GET - Get Signed Upload URL
+```
+GET /admin/media/upload?filename=photo.jpg&mimeType=image/jpeg
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "uploadUrl": "https://supabase-storage-signed-url...",
+    "filePath": "uploads/2024/1/uuid.jpg",
+    "uniqueFilename": "uuid.jpg"
+  }
+}
+```
+
+#### POST - Complete Upload
+```
+POST /admin/media/upload
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "filePath": "uploads/2024/1/uuid.jpg",
+  "originalFilename": "photo.jpg",
+  "fileSize": 1024000,
+  "mimeType": "image/jpeg",
+  "title": "Photo Title",
+  "description": "Photo description",
+  "category": "gallery",
+  "tags": ["tag1", "tag2"],
+  "is_public": false
+}
+```
+
+### Media Signed URLs (`/netlify/functions/admin/media/signed-url`) 🆕
+
+#### GET - Get Single Signed URL
+```
+GET /admin/media/signed-url/{id}?expiresIn=3600
+```
+
+**Query Parameters:**
+- `expiresIn` (number): URL expiry in seconds (default: 3600 = 1 hour)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "media": {...},
+    "signedUrl": "https://supabase-storage-signed-url...",
+    "expiresAt": "2024-01-15T12:00:00Z"
+  }
+}
+```
+
+#### POST - Get Batch Signed URLs
+```
+POST /admin/media/signed-url
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "mediaIds": ["uuid1", "uuid2", "uuid3"],
+  "expiresIn": 3600
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "media": {...},
+        "signedUrl": "https://...",
+        "expiresAt": "2024-01-15T12:00:00Z"
+      }
+    ],
+    "failed": [],
+    "expiresIn": 3600
+  }
+}
+```
+
 **Response:**
 ```json
 {
@@ -401,6 +598,10 @@ The system automatically prevents:
 - Cannot book appointments in the past
 - Staff must be active to receive bookings
 - Services must be active to be bookable
+- Media files are only accessible via signed URLs 🆕
+- Only admin users can upload/delete media files 🆕
+- File size limited to 10MB by default 🆕
+- Supported file types: JPEG, PNG, WebP, GIF, MP4, WebM, MOV 🆕
 
 ## Error Handling
 
@@ -413,6 +614,11 @@ The system automatically prevents:
 - `HAS_FUTURE_APPOINTMENTS`: Cannot delete with future bookings
 - `INSUFFICIENT_PERMISSIONS`: User lacks required role
 - `RATE_LIMIT_EXCEEDED`: Too many requests
+- `MEDIA_NOT_FOUND`: Media file doesn't exist 🆕
+- `FILE_TOO_LARGE`: Upload exceeds size limit 🆕
+- `INVALID_FILE_TYPE`: File type not allowed 🆕
+- `FILE_NOT_FOUND`: File not found in storage 🆕
+- `UPLOAD_FAILED`: File upload to storage failed 🆕
 
 ### Error Response Format
 ```json
@@ -491,3 +697,7 @@ The system automatically prevents:
 - Mobile app API
 - Multi-location support
 - Online payment integration
+- Image optimization and thumbnails 🆕
+- Video transcoding for web playback 🆕
+- Media CDN integration 🆕
+- Media search by AI-generated tags 🆕

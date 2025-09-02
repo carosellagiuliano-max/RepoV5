@@ -229,25 +229,53 @@ export const businessSettingUpdateSchema = z.object({
 })
 
 // Media file schemas
-export const mediaFileCreateSchema = z.object({
-  filename: z.string().min(1, 'Filename is required'),
-  original_name: z.string().min(1, 'Original name is required'),
-  file_path: z.string().min(1, 'File path is required'),
+export const mediaCreateSchema = z.object({
+  filename: z.string().min(1, 'Filename is required').max(255),
+  original_filename: z.string().min(1, 'Original filename is required').max(255),
+  file_path: z.string().min(1, 'File path is required').max(1000),
   file_size: z.number().positive('File size must be positive'),
   mime_type: z.string().min(1, 'MIME type is required'),
+  storage_bucket: z.string().min(1).default('salon-media'),
+  title: z.string().max(200).optional(),
+  description: z.string().max(1000).optional(),
   category: z.string().max(50).optional(),
-  tags: z.array(z.string()).optional(),
-  uploaded_by: uuidSchema,
+  tags: z.array(z.string().max(50)).optional(),
   is_public: z.boolean().optional().default(false)
 })
 
-export const mediaFileUpdateSchema = z.object({
-  filename: z.string().min(1).optional(),
-  original_name: z.string().min(1).optional(),
+export const mediaUpdateSchema = z.object({
+  title: z.string().max(200).optional(),
+  description: z.string().max(1000).optional(),
   category: z.string().max(50).optional(),
-  tags: z.array(z.string()).optional(),
-  is_public: z.boolean().optional()
+  tags: z.array(z.string().max(50)).optional(),
+  is_public: z.boolean().optional(),
+  is_active: z.boolean().optional()
 })
+
+export const mediaFiltersSchema = z.object({
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  is_public: z.boolean().optional(),
+  is_active: z.boolean().optional().default(true),
+  mime_type: z.string().optional(),
+  search: z.string().max(100).optional(),
+  sortBy: z.enum(['created_at', 'title', 'filename', 'file_size']).optional().default('created_at'),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  page: z.number().positive().optional().default(1),
+  limit: z.number().positive().max(100).optional().default(20)
+})
+
+export const mediaUploadSchema = z.object({
+  title: z.string().max(200).optional(),
+  description: z.string().max(1000).optional(),
+  category: z.string().max(50).optional(),
+  tags: z.array(z.string().max(50)).optional(),
+  is_public: z.boolean().optional().default(false)
+})
+
+// Legacy schema compatibility (deprecated)
+export const mediaFileCreateSchema = mediaCreateSchema
+export const mediaFileUpdateSchema = mediaUpdateSchema
 
 // Query parameter schemas
 export const paginationSchema = z.object({
@@ -409,6 +437,11 @@ export const schemas = {
     create: businessSettingCreateSchema,
     update: businessSettingUpdateSchema
   },
+  media: {
+    create: mediaCreateSchema,
+    update: mediaUpdateSchema,
+    upload: mediaUploadSchema
+  },
   mediaFile: {
     create: mediaFileCreateSchema,
     update: mediaFileUpdateSchema
@@ -420,6 +453,7 @@ export const schemas = {
   staffFilters: staffFiltersSchema,
   serviceFilters: serviceFiltersSchema,
   customerFilters: customerFiltersSchema,
+  mediaFilters: mediaFiltersSchema,
   
   // Auth schemas
   login: loginSchema,
