@@ -5,6 +5,7 @@
 
 import { Handler, HandlerEvent } from '@netlify/functions'
 import { createAdminClient, createLogger, generateCorrelationId, withAuthAndRateLimit } from '../../../src/lib/auth/netlify-auth'
+import { Appointment } from '../../../src/lib/types/database'
 import { z } from 'zod'
 
 // Validation schemas
@@ -24,6 +25,17 @@ const CancelSchema = z.object({
 type SupabaseClient = ReturnType<typeof createAdminClient>
 type Logger = ReturnType<typeof createLogger>
 
+// Extended appointment with customer details
+interface AppointmentWithCustomer extends Appointment {
+  customers: {
+    id: string
+    profile_id: string
+    full_name: string
+    email: string
+    phone?: string
+  }
+}
+
 const headers = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Idempotency-Key',
@@ -39,7 +51,7 @@ async function canRescheduleAppointment(
   appointmentId: string,
   userId: string,
   userRole: string
-): Promise<{ canReschedule: boolean; reason?: string; appointment?: any }> {
+): Promise<{ canReschedule: boolean; reason?: string; appointment?: AppointmentWithCustomer }> {
   try {
     // Get appointment details
     const { data: appointment, error: appointmentError } = await supabase
@@ -119,7 +131,7 @@ async function canCancelAppointment(
   appointmentId: string,
   userId: string,
   userRole: string
-): Promise<{ canCancel: boolean; reason?: string; appointment?: any }> {
+): Promise<{ canCancel: boolean; reason?: string; appointment?: AppointmentWithCustomer }> {
   try {
     // Get appointment details
     const { data: appointment, error: appointmentError } = await supabase

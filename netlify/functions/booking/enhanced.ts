@@ -28,6 +28,26 @@ const BookingQuerySchema = z.object({
   include_unavailable: z.string().transform(val => val === 'true').optional()
 })
 
+// Type definitions for booking data
+interface AvailableStaffMember {
+  staff_id: string
+  staff_name: string
+  staff_email: string
+  available_duration_minutes: number
+}
+
+interface TimeSlot {
+  start_time: string
+  end_time: string
+  available: boolean
+  reason?: string
+}
+
+interface StaffWithSlots {
+  staff: AvailableStaffMember
+  slots: TimeSlot[]
+}
+
 type SupabaseClient = ReturnType<typeof createAdminClient>
 type Logger = ReturnType<typeof createLogger>
 
@@ -118,7 +138,7 @@ async function getAvailableSlots(
 
       // Get slots for each available staff member
       const staffWithSlots = await Promise.all(
-        (availableStaff || []).map(async (staff: any) => {
+        (availableStaff || []).map(async (staff: AvailableStaffMember) => {
           const { data: slots, error: slotsError } = await supabase
             .rpc('rpc_get_available_slots_enhanced', {
               p_staff_id: staff.staff_id,

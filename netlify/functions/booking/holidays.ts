@@ -28,6 +28,21 @@ const QueryHolidaysSchema = z.object({
   include_recurring: z.string().transform(val => val === 'true').optional().default(true)
 })
 
+// Type definitions
+interface Holiday {
+  id: string
+  name: string
+  date: string
+  is_recurring: boolean
+  recurring_month?: number | null
+  recurring_day?: number | null
+  type: 'public_holiday' | 'blackout_date' | 'maintenance'
+  description?: string | null
+  affects_all_staff: boolean
+  created_at: string
+  updated_at: string
+}
+
 type SupabaseClient = ReturnType<typeof createAdminClient>
 type Logger = ReturnType<typeof createLogger>
 
@@ -94,7 +109,7 @@ async function getHolidays(
     }
 
     // If we have date range and include_recurring is true, calculate recurring holidays
-    let recurringHolidays: any[] = []
+    const recurringHolidays: Holiday[] = []
     if (include_recurring && start_date && end_date) {
       const { data: recurringData, error: recurringError } = await supabase
         .from('holidays')

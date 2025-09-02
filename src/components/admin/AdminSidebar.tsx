@@ -1,20 +1,26 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Users, TrendingUp, Scissors, Settings, UserX, Image } from 'lucide-react';
+import { Calendar, Users, TrendingUp, Scissors, Settings, UserX, Image, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AdminSidebarProps {
-  activeView: 'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings';
-  onViewChange: (view: 'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings') => void;
+  activeView: 'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings';
+  onViewChange: (view: 'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings') => void;
 }
 
 export function AdminSidebar({ activeView, onViewChange }: AdminSidebarProps) {
   const menuItems = [
     {
+      id: 'calendar-pro' as const,
+      label: 'Terminkalender Pro',
+      icon: CalendarDays,
+      description: 'Professionelle Terminverwaltung'
+    },
+    {
       id: 'calendar' as const,
       label: 'Terminkalender',
       icon: Calendar,
-      description: 'Termine verwalten'
+      description: 'Einfache Terminansicht'
     },
     {
       id: 'customers' as const,
