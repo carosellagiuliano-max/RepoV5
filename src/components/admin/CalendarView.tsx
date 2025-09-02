@@ -137,7 +137,7 @@ export function CalendarView() {
   const [isCompactView, setIsCompactView] = useState(false);
   const [activeTab, setActiveTab] = useState('calendar');
   const [showNeonNotification, setShowNeonNotification] = useState(false);
-  const [neonNotificationData, setNeonNotificationData] = useState<any>(null);
+  const [neonNotificationData, setNeonNotificationData] = useState<Customer | null>(null);
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const currentDate = new Date(selectedDate);
@@ -392,7 +392,7 @@ export function CalendarView() {
                       key={value}
                       variant={viewType === value ? "default" : "ghost"}
                       size="sm"
-                      onClick={() => setViewType(value as any)}
+                      onClick={() => setViewType(value as 'day' | 'week' | 'month' | 'year')}
                       className="gap-2"
                     >
                       <Icon className="w-4 h-4" />

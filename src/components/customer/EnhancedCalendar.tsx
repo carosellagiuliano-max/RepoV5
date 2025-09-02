@@ -487,7 +487,7 @@ const EnhancedCalendar = () => {
                       key={value}
                       variant={viewType === value ? "default" : "ghost"}
                       size="sm"
-                      onClick={() => setViewType(value as any)}
+                      onClick={() => setViewType(value as 'day' | 'week' | 'month' | 'year')}
                       className="gap-2"
                     >
                       <Icon className="w-4 h-4" />

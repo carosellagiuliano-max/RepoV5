@@ -34,12 +34,13 @@ import {
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { AppointmentBookingDialog } from '@/components/booking/appointment-booking-dialog';
+import { Appointment } from '@/lib/supabase';
 
 interface AppointmentDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  appointment: any;
-  onReschedule: (appointment: any) => void;
+  appointment: Appointment;
+  onReschedule: (appointment: Appointment) => void;
 }
 
 const AppointmentDetailsDialog = ({ isOpen, onClose, appointment, onReschedule }: AppointmentDetailsDialogProps) => {

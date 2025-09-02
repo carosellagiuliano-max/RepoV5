@@ -40,9 +40,11 @@ const mockAppointments = [
   }
 ];
 
+import { Appointment } from '@/lib/supabase';
+
 interface CustomerCalendarViewProps {
-  onAppointmentDetails: (appointment: any) => void;
-  onReschedule: (appointment: any) => void;
+  onAppointmentDetails: (appointment: Appointment) => void;
+  onReschedule: (appointment: Appointment) => void;
 }
 
 export function CustomerCalendarView({ onAppointmentDetails, onReschedule }: CustomerCalendarViewProps) {
@@ -74,12 +76,13 @@ export function CustomerCalendarView({ onAppointmentDetails, onReschedule }: Cus
     switch (viewType) {
       case 'day':
         return date.toLocaleDateString('de-CH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      case 'week':
+      case 'week': {
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay() + 1);
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
         return `${weekStart.toLocaleDateString('de-CH', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('de-CH', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      }
       case 'month':
         return date.toLocaleDateString('de-CH', { year: 'numeric', month: 'long' });
       case 'year':
@@ -183,7 +186,7 @@ export function CustomerCalendarView({ onAppointmentDetails, onReschedule }: Cus
                   key={value}
                   variant={viewType === value ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setViewType(value as any)}
+                  onClick={() => setViewType(value as 'day' | 'week' | 'month' | 'year')}
                   className="gap-2"
                 >
                   <Icon className="w-4 h-4" />

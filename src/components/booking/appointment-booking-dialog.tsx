@@ -73,7 +73,7 @@ export function AppointmentBookingDialog({
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<'gender' | 'haircut' | 'booking' | 'additional'>('gender')
   const [selectedGender, setSelectedGender] = useState<'women' | 'men' | null>(null)
-  const [selectedHaircut, setSelectedHaircut] = useState<any>(null)
+  const [selectedHaircut, setSelectedHaircut] = useState<unknown>(null)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>()
   const [selectedHairdresser, setSelectedHairdresser] = useState<string>()
@@ -81,7 +81,7 @@ export function AppointmentBookingDialog({
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [showHaircutDialog, setShowHaircutDialog] = useState(false)
   const [showAdditionalDialog, setShowAdditionalDialog] = useState(false)
-  const [selectedAdditionalServices, setSelectedAdditionalServices] = useState<any[]>([])
+  const [selectedAdditionalServices, setSelectedAdditionalServices] = useState<unknown[]>([])
   const [loading, setLoading] = useState(false)
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -95,7 +95,7 @@ export function AppointmentBookingDialog({
     setShowHaircutDialog(true)
   }
 
-  const handleHaircutSelect = (haircutId: string, haircutData: any) => {
+  const handleHaircutSelect = (haircutId: string, haircutData: unknown) => {
     setSelectedHaircut(haircutData)
     setShowHaircutDialog(false)
     setStep('booking')
@@ -120,7 +120,7 @@ export function AppointmentBookingDialog({
     setShowAdditionalDialog(true)
   }
 
-  const handleAdditionalServicesConfirm = async (additionalServices: any[]) => {
+  const handleAdditionalServicesConfirm = async (additionalServices: unknown[]) => {
     if (!user) {
       toast({
         title: 'Anmeldung erforderlich',

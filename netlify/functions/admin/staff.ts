@@ -97,6 +97,8 @@ async function handleGetStaff(event: HandlerEvent, supabase: SupabaseClient, log
   }
 
   // Get staff services for each staff member
+  let staffWithServices = staff || []
+  
   if (staff && staff.length > 0) {
     const staffIds = staff.map((s) => s.id)
     const { data: staffServices } = await supabase
@@ -116,12 +118,13 @@ async function handleGetStaff(event: HandlerEvent, supabase: SupabaseClient, log
       .eq('is_active', true)
 
     // Attach services to each staff member
-    const staffWithServices = staff.map((staffMember) => ({
+    staffWithServices = staff.map((staffMember) => ({
       ...staffMember,
       services: staffServices
         ?.filter((ss) => ss.staff_id === staffMember.id)
         .map((ss) => ss.services) || []
     }))
+  }
   
   const totalPages = count ? Math.ceil(count / query.limit) : 0
 
