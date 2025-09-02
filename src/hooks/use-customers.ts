@@ -1,278 +1,488 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase, Customer } from '@/lib/supabase'
+/**
+ * Custom hooks for customer management API calls with GDPR compliance
+ */
+
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
+import { useToast } from '@/hooks/use-toast'
 
-// Hook to fetch customers (admin can see all, customers see only their own)
-export const useCustomers = () => {
-  const { user, isAdmin } = useAuth()
-
-  return useQuery({
-    queryKey: ['customers', user?.id, isAdmin],
-    queryFn: async () => {
-      if (!user) throw new Error('User not authenticated')
-
-      let query = supabase
-        .from('customers')
-        .select(`
-          *,
-          profiles (
-            id,
-            email,
-            full_name,
-            phone,
-            role
-          )
-        `)
-
-      // If not admin, only show own customer record
-      if (!isAdmin) {
-        query = query.eq('profile_id', user.id)
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false })
-
-      if (error) throw error
-      return data as Customer[]
-    },
-    enabled: !!user,
-  })
+interface Customer {
+  id: string;
+  customer_number: string;
+  profile_id: string;
+  date_of_birth?: string;
+  address_street?: string;
+  address_city?: string;
+  address_postal_code?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  notes?: string;
+  gdpr_consent_given: boolean;
+  gdpr_consent_date?: string;
+  is_deleted: boolean;
+  deleted_at?: string;
+  deleted_by?: string;
+  deletion_reason?: string;
+  created_at: string;
+  updated_at: string;
+  profiles: {
+    id: string;
+    email: string;
+    full_name: string;
+    phone?: string;
+    role: string;
+    created_at: string;
+    updated_at: string;
+  };
+  stats?: {
+    total_appointments: number;
+    upcoming_appointments: number;
+    completed_appointments: number;
+    cancelled_appointments: number;
+    total_spent: number;
+    last_appointment_date?: string;
+  };
 }
 
-// Hook to get current user's customer profile
-export const useCurrentCustomer = () => {
+interface CustomerFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  isDeleted?: boolean;
+  hasGdprConsent?: boolean;
+  city?: string;
+  postalCode?: string;
+  registeredAfter?: string;
+  registeredBefore?: string;
+}
+
+interface CustomerCreateData {
+  email: string;
+  full_name: string;
+  phone?: string;
+  customer_number?: string;
+  date_of_birth?: string;
+  address_street?: string;
+  address_city?: string;
+  address_postal_code?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  notes?: string;
+  gdpr_consent_given?: boolean;
+}
+
+interface CustomerUpdateData {
+  full_name?: string;
+  phone?: string;
+  date_of_birth?: string;
+  address_street?: string;
+  address_city?: string;
+  address_postal_code?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  notes?: string;
+  gdpr_consent_given?: boolean;
+}
+
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export function useCustomers(filters: CustomerFilters = {}) {
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
+  const { toast } = useToast()
 
-  return useQuery({
-    queryKey: ['customer', 'current', user?.id],
-    queryFn: async () => {
-      if (!user) throw new Error('User not authenticated')
+  const fetchCustomers = async () => {
+    if (!user) return
 
-      const { data, error } = await supabase
-        .from('customers')
-        .select(`
-          *,
-          profiles (
-            id,
-            email,
-            full_name,
-            phone,
-            role
-          )
-        `)
-        .eq('profile_id', user.id)
-        .single()
+    setLoading(true)
+    setError(null)
 
-      if (error) {
-        // If no customer record exists, return null instead of throwing
-        if (error.code === 'PGRST116') {
-          return null
+    try {
+      const queryParams = new URLSearchParams()
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, value.toString())
         }
-        throw error
+      })
+
+      const response = await fetch(`/.netlify/functions/admin/customers?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch customers: ${response.statusText}`)
       }
-      return data as Customer
-    },
-    enabled: !!user,
-  })
+
+      const data = await response.json()
+      setCustomers(data.customers || [])
+      setPagination(data.pagination || null)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch customers'
+      setError(errorMessage)
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchCustomers()
+  }, [user, JSON.stringify(filters)])
+
+  const refetch = () => {
+    fetchCustomers()
+  }
+
+  return {
+    customers,
+    pagination,
+    loading,
+    error,
+    refetch,
+  }
 }
 
-// Hook to create a customer profile
-export const useCreateCustomer = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (customerData: {
-      profile_id?: string
-      customer_number?: string
-      date_of_birth?: string
-      address_street?: string
-      address_city?: string
-      address_postal_code?: string
-      emergency_contact_name?: string
-      emergency_contact_phone?: string
-      notes?: string
-    }) => {
-      const { data, error } = await supabase
-        .from('customers')
-        .insert(customerData)
-        .select(`
-          *,
-          profiles (
-            id,
-            email,
-            full_name,
-            phone,
-            role
-          )
-        `)
-        .single()
-
-      if (error) throw error
-      return data as Customer
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] })
-      queryClient.invalidateQueries({ queryKey: ['customer'] })
-    },
-  })
-}
-
-// Hook to update customer profile
-export const useUpdateCustomer = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ 
-      id, 
-      ...updateData 
-    }: { 
-      id: string 
-    } & Partial<{
-      customer_number: string
-      date_of_birth: string
-      address_street: string
-      address_city: string
-      address_postal_code: string
-      emergency_contact_name: string
-      emergency_contact_phone: string
-      notes: string
-    }>) => {
-      const { data, error } = await supabase
-        .from('customers')
-        .update(updateData)
-        .eq('id', id)
-        .select(`
-          *,
-          profiles (
-            id,
-            email,
-            full_name,
-            phone,
-            role
-          )
-        `)
-        .single()
-
-      if (error) throw error
-      return data as Customer
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] })
-      queryClient.invalidateQueries({ queryKey: ['customer'] })
-    },
-  })
-}
-
-// Hook to create customer from existing user profile
-export const useCreateCustomerFromProfile = () => {
-  const queryClient = useQueryClient()
+export function useCustomer(customerId: string | null) {
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
+  const { toast } = useToast()
 
-  return useMutation({
-    mutationFn: async (additionalData?: {
-      date_of_birth?: string
-      address_street?: string
-      address_city?: string
-      address_postal_code?: string
-      emergency_contact_name?: string
-      emergency_contact_phone?: string
-      notes?: string
-    }) => {
-      if (!user) throw new Error('User not authenticated')
+  const fetchCustomer = async (id: string) => {
+    if (!user || !id) return
 
-      // Generate customer number
-      const customerNumber = `C${Date.now().toString().slice(-6)}`
+    setLoading(true)
+    setError(null)
 
-      const customerData = {
-        profile_id: user.id,
-        customer_number: customerNumber,
-        ...additionalData
+    try {
+      const response = await fetch(`/.netlify/functions/admin/customers/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch customer: ${response.statusText}`)
       }
 
-      const { data, error } = await supabase
-        .from('customers')
-        .insert(customerData)
-        .select(`
-          *,
-          profiles (
-            id,
-            email,
-            full_name,
-            phone,
-            role
-          )
-        `)
-        .single()
+      const data = await response.json()
+      setCustomer(data)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch customer'
+      setError(errorMessage)
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
-      if (error) throw error
-      return data as Customer
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] })
-      queryClient.invalidateQueries({ queryKey: ['customer'] })
-    },
-  })
+  useEffect(() => {
+    if (customerId) {
+      fetchCustomer(customerId)
+    } else {
+      setCustomer(null)
+    }
+  }, [customerId, user])
+
+  return {
+    customer,
+    loading,
+    error,
+    refetch: () => customerId && fetchCustomer(customerId),
+  }
 }
 
-// Hook to update user profile information
-export const useUpdateProfile = () => {
-  const queryClient = useQueryClient()
+export function useCustomerActions() {
+  const { user } = useAuth()
+  const { toast } = useToast()
 
-  return useMutation({
-    mutationFn: async ({ 
-      id, 
-      ...updateData 
-    }: { 
-      id: string 
-    } & Partial<{
-      full_name: string
-      phone: string
-    }>) => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single()
+  const createCustomer = async (data: CustomerCreateData): Promise<Customer | null> => {
+    if (!user) {
+      toast({
+        title: 'Fehler',
+        description: 'Sie müssen angemeldet sein',
+        variant: 'destructive',
+      })
+      return null
+    }
 
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] })
-      queryClient.invalidateQueries({ queryKey: ['customer'] })
-    },
-  })
+    try {
+      const response = await fetch('/.netlify/functions/admin/customers', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to create customer')
+      }
+
+      const customer = await response.json()
+      toast({
+        title: 'Erfolg',
+        description: 'Kunde wurde erfolgreich erstellt',
+      })
+      return customer
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create customer'
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+      return null
+    }
+  }
+
+  const updateCustomer = async (id: string, data: CustomerUpdateData): Promise<Customer | null> => {
+    if (!user) {
+      toast({
+        title: 'Fehler',
+        description: 'Sie müssen angemeldet sein',
+        variant: 'destructive',
+      })
+      return null
+    }
+
+    try {
+      const response = await fetch(`/.netlify/functions/admin/customers/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to update customer')
+      }
+
+      const customer = await response.json()
+      toast({
+        title: 'Erfolg',
+        description: 'Kunde wurde erfolgreich aktualisiert',
+      })
+      return customer
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update customer'
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+      return null
+    }
+  }
+
+  const softDeleteCustomer = async (id: string, reason?: string): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: 'Fehler',
+        description: 'Sie müssen angemeldet sein',
+        variant: 'destructive',
+      })
+      return false
+    }
+
+    try {
+      const response = await fetch(`/.netlify/functions/admin/customers/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to delete customer')
+      }
+
+      toast({
+        title: 'Erfolg',
+        description: 'Kunde wurde erfolgreich gelöscht',
+      })
+      return true
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete customer'
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+      return false
+    }
+  }
+
+  const restoreCustomer = async (id: string): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: 'Fehler',
+        description: 'Sie müssen angemeldet sein',
+        variant: 'destructive',
+      })
+      return false
+    }
+
+    try {
+      const response = await fetch(`/.netlify/functions/admin/customers/${id}/restore`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to restore customer')
+      }
+
+      toast({
+        title: 'Erfolg',
+        description: 'Kunde wurde erfolgreich wiederhergestellt',
+      })
+      return true
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to restore customer'
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+      return false
+    }
+  }
+
+  const exportCustomerData = async (id: string): Promise<any | null> => {
+    if (!user) {
+      toast({
+        title: 'Fehler',
+        description: 'Sie müssen angemeldet sein',
+        variant: 'destructive',
+      })
+      return null
+    }
+
+    try {
+      const response = await fetch(`/.netlify/functions/admin/customers/${id}/export`, {
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to export customer data')
+      }
+
+      const exportData = await response.json()
+      
+      // Create and download JSON file
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `customer-export-${id}-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      
+      toast({
+        title: 'Erfolg',
+        description: 'Kundendaten wurden erfolgreich exportiert',
+      })
+      return exportData
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to export customer data'
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+      return null
+    }
+  }
+
+  const getCustomerAuditLog = async (id: string): Promise<any[] | null> => {
+    if (!user) {
+      toast({
+        title: 'Fehler',
+        description: 'Sie müssen angemeldet sein',
+        variant: 'destructive',
+      })
+      return null
+    }
+
+    try {
+      const response = await fetch(`/.netlify/functions/admin/customers/${id}/audit-log`, {
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to fetch audit log')
+      }
+
+      const data = await response.json()
+      return data.auditLog || []
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch audit log'
+      toast({
+        title: 'Fehler',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+      return null
+    }
+  }
+
+  return {
+    createCustomer,
+    updateCustomer,
+    softDeleteCustomer,
+    restoreCustomer,
+    exportCustomerData,
+    getCustomerAuditLog,
+  }
 }
 
-// Hook to search customers (admin only)
-export const useSearchCustomers = (searchTerm: string) => {
-  const { isAdmin } = useAuth()
-
-  return useQuery({
-    queryKey: ['customers', 'search', searchTerm],
-    queryFn: async () => {
-      if (!isAdmin) throw new Error('Insufficient permissions')
-      if (!searchTerm || searchTerm.length < 2) return []
-
-      const { data, error } = await supabase
-        .from('customers')
-        .select(`
-          *,
-          profiles (
-            id,
-            email,
-            full_name,
-            phone,
-            role
-          )
-        `)
-        .or(`customer_number.ilike.%${searchTerm}%,profiles.full_name.ilike.%${searchTerm}%,profiles.email.ilike.%${searchTerm}%,profiles.phone.ilike.%${searchTerm}%`)
-        .order('created_at', { ascending: false })
-        .limit(50)
-
-      if (error) throw error
-      return data as Customer[]
-    },
-    enabled: !!searchTerm && searchTerm.length >= 2 && isAdmin,
-  })
+// Legacy exports for backward compatibility
+export { useCustomers as useCustomersCompat }
+export type { Customer }
 }

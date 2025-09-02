@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Table,
   TableBody,
@@ -18,22 +19,60 @@ import {
   Plus, 
   Calendar, 
   Euro, 
-  Star,
-  Crown,
-  Gem,
-  Award,
   UserPlus,
-  Filter,
   SortAsc,
   SortDesc,
   Phone,
   Mail,
-  Baby,
   User,
-  Users
+  Users,
+  Trash2,
+  RotateCcw,
+  Eye,
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 import { CustomerDetailModal } from './CustomerDetailModal';
 import { AddCustomerModal } from './AddCustomerModal';
+
+// Types for customer data
+interface Customer {
+  id: string;
+  customer_number: string;
+  profile_id: string;
+  date_of_birth?: string;
+  address_street?: string;
+  address_city?: string;
+  address_postal_code?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  notes?: string;
+  gdpr_consent_given: boolean;
+  gdpr_consent_date?: string;
+  is_deleted: boolean;
+  deleted_at?: string;
+  deleted_by?: string;
+  deletion_reason?: string;
+  created_at: string;
+  updated_at: string;
+  profiles: {
+    id: string;
+    email: string;
+    full_name: string;
+    phone?: string;
+    role: string;
+    created_at: string;
+    updated_at: string;
+  };
+  stats?: {
+    total_appointments: number;
+    upcoming_appointments: number;
+    completed_appointments: number;
+    cancelled_appointments: number;
+    total_spent: number;
+    last_appointment_date?: string;
+  };
+}
 
 const customerStatusConfig = {
   neu: { 

@@ -59,6 +59,54 @@ export const staffUpdateSchema = z.object({
   is_active: z.boolean().optional()
 })
 
+// Customer schemas
+export const customerCreateSchema = z.object({
+  profile_id: uuidSchema.optional(), // Will be set if creating with existing profile
+  email: emailSchema,
+  full_name: z.string().min(1, 'Full name is required').max(100),
+  phone: phoneSchema.optional(),
+  customer_number: z.string().optional(), // Auto-generated if not provided
+  date_of_birth: dateSchema.optional(),
+  address_street: z.string().max(200).optional(),
+  address_city: z.string().max(100).optional(),
+  address_postal_code: z.string().max(20).optional(),
+  emergency_contact_name: z.string().max(100).optional(),
+  emergency_contact_phone: phoneSchema.optional(),
+  notes: z.string().max(1000).optional(),
+  gdpr_consent_given: z.boolean().optional().default(false),
+  gdpr_consent_date: datetimeSchema.optional()
+})
+
+export const customerUpdateSchema = z.object({
+  full_name: z.string().min(1).max(100).optional(),
+  phone: phoneSchema.optional(),
+  date_of_birth: dateSchema.optional(),
+  address_street: z.string().max(200).optional(),
+  address_city: z.string().max(100).optional(),
+  address_postal_code: z.string().max(20).optional(),
+  emergency_contact_name: z.string().max(100).optional(),
+  emergency_contact_phone: phoneSchema.optional(),
+  notes: z.string().max(1000).optional(),
+  gdpr_consent_given: z.boolean().optional()
+})
+
+export const customerSoftDeleteSchema = z.object({
+  reason: z.string().max(500).optional()
+})
+
+export const customerGdprExportSchema = z.object({
+  customer_id: uuidSchema
+})
+
+export const customerFiltersSchema = paginationSchema.extend({
+  isDeleted: z.coerce.boolean().optional().default(false),
+  hasGdprConsent: z.coerce.boolean().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
+  registeredAfter: dateSchema.optional(),
+  registeredBefore: dateSchema.optional()
+})
+
 // Service schemas
 export const serviceCreateSchema = z.object({
   name: z.string().min(1, 'Service name is required').max(100),
@@ -335,6 +383,12 @@ export const schemas = {
     create: staffCreateSchema,
     update: staffUpdateSchema
   },
+  customer: {
+    create: customerCreateSchema,
+    update: customerUpdateSchema,
+    softDelete: customerSoftDeleteSchema,
+    gdprExport: customerGdprExportSchema
+  },
   service: {
     create: serviceCreateSchema,
     update: serviceUpdateSchema
@@ -365,6 +419,7 @@ export const schemas = {
   appointmentFilters: appointmentFiltersSchema,
   staffFilters: staffFiltersSchema,
   serviceFilters: serviceFiltersSchema,
+  customerFilters: customerFiltersSchema,
   
   // Auth schemas
   login: loginSchema,
