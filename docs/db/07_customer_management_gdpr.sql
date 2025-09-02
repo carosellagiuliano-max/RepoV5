@@ -60,7 +60,15 @@ BEGIN
   END IF;
 
   -- Get current user (this should be set by the application)
-  user_id := current_setting('app.current_user_id', true)::UUID;
+  BEGIN
+    user_id := current_setting('app.current_user_id', true);
+    IF user_id IS NOT NULL THEN
+      user_id := user_id::UUID;
+    END IF;
+  EXCEPTION WHEN invalid_text_representation THEN
+    -- If the setting is not a valid UUID, set user_id to NULL
+    user_id := NULL;
+  END;
   
   -- Insert audit record
   INSERT INTO customer_audit_log (
