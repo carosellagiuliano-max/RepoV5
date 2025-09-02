@@ -141,12 +141,15 @@ async function handleGetCustomers(event: HandlerEvent, supabase: SupabaseClient,
   }
 
   if (query.search) {
-    dbQuery = dbQuery.or(`
-      customer_number.ilike.%${query.search}%,
-      profiles.full_name.ilike.%${query.search}%,
-      profiles.email.ilike.%${query.search}%,
-      profiles.phone.ilike.%${query.search}%
-    `)
+    const searchTerm = `%${query.search}%`;
+    dbQuery = dbQuery.or(
+      [
+        `customer_number.ilike.${searchTerm}`,
+        `profiles.full_name.ilike.${searchTerm}`,
+        `profiles.email.ilike.${searchTerm}`,
+        `profiles.phone.ilike.${searchTerm}`
+      ].join(',')
+    );
   }
 
   // Apply sorting
