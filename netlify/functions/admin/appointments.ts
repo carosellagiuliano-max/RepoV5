@@ -3,9 +3,14 @@
  * Handles CRUD operations for appointments with conflict checking
  */
 
-import { Handler } from '@netlify/functions'
-import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient } from '../../src/lib/auth/netlify-auth'
+import { Handler, HandlerEvent } from '@netlify/functions'
+import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient, AuthenticatedContext } from '../../src/lib/auth/netlify-auth'
 import { validateBody, validateQuery, schemas } from '../../src/lib/validation/schemas'
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '../../src/lib/types/database'
+
+type SupabaseClient = ReturnType<typeof createAdminClient>
+type Logger = ReturnType<typeof createLogger>
 
 export const handler: Handler = withAuthAndRateLimit(
   async (event, context) => {
@@ -53,7 +58,7 @@ export const handler: Handler = withAuthAndRateLimit(
   { maxRequests: 100, windowMs: 60 * 1000 }
 )
 
-async function handleGetAppointments(event: any, supabase: any, logger: any) {
+async function handleGetAppointments(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const query = validateQuery(schemas.appointmentFilters, event.queryStringParameters || {})
   
   let dbQuery = supabase
@@ -121,7 +126,7 @@ async function handleGetAppointments(event: any, supabase: any, logger: any) {
   })
 }
 
-async function handleCreateAppointment(event: any, supabase: any, logger: any, adminUserId: string) {
+async function handleCreateAppointment(event: HandlerEvent, supabase: SupabaseClient, logger: Logger, adminUserId: string) {
   const body = JSON.parse(event.body || '{}')
   
   const appointmentData = validateBody(schemas.appointment.create, {
@@ -199,7 +204,7 @@ async function handleCreateAppointment(event: any, supabase: any, logger: any, a
   return createSuccessResponse(completeAppointment, 201)
 }
 
-async function handleUpdateAppointment(event: any, supabase: any, logger: any) {
+async function handleUpdateAppointment(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const appointmentId = event.path.split('/').pop()
   if (!appointmentId) {
     return createErrorResponse({
@@ -227,7 +232,7 @@ async function handleUpdateAppointment(event: any, supabase: any, logger: any) {
   }
 
   // Validate updates
-  const updates: any = {}
+  const updates: Record<string, unknown> = {}
   if (body.staff_id !== undefined) updates.staff_id = body.staff_id
   if (body.service_id !== undefined) updates.service_id = body.service_id
   if (body.start_time !== undefined) updates.start_time = body.start_time
@@ -322,7 +327,7 @@ async function handleUpdateAppointment(event: any, supabase: any, logger: any) {
   return createSuccessResponse(updatedAppointment)
 }
 
-async function handleDeleteAppointment(event: any, supabase: any, logger: any) {
+async function handleDeleteAppointment(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const appointmentId = event.path.split('/').pop()
   if (!appointmentId) {
     return createErrorResponse({

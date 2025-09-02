@@ -3,9 +3,14 @@
  * Handles CRUD operations for services
  */
 
-import { Handler } from '@netlify/functions'
-import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient } from '../../src/lib/auth/netlify-auth'
+import { Handler, HandlerEvent } from '@netlify/functions'
+import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient, AuthenticatedContext } from '../../src/lib/auth/netlify-auth'
 import { validateBody, validateQuery, schemas } from '../../src/lib/validation/schemas'
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '../../src/lib/types/database'
+
+type SupabaseClient = ReturnType<typeof createAdminClient>
+type Logger = ReturnType<typeof createLogger>
 
 export const handler: Handler = withAuthAndRateLimit(
   async (event, context) => {
@@ -53,7 +58,7 @@ export const handler: Handler = withAuthAndRateLimit(
   { maxRequests: 50, windowMs: 60 * 1000 }
 )
 
-async function handleGetServices(event: any, supabase: any, logger: any) {
+async function handleGetServices(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const query = validateQuery(schemas.serviceFilters, event.queryStringParameters || {})
   
   let dbQuery = supabase
@@ -109,11 +114,17 @@ async function handleGetServices(event: any, supabase: any, logger: any) {
   }
 
   // Transform the data to include assigned staff
-  const transformedServices = services?.map((service: any) => ({
+  const transformedServices = services?.map((service: Database['public']['Tables']['services']['Row'] & {
+    staff_services?: Array<{
+      staff: Database['public']['Tables']['staff']['Row'] & {
+        profiles: Database['public']['Tables']['profiles']['Row']
+      }
+    }>
+  }) => ({
     ...service,
     assigned_staff: service.staff_services
-      ?.filter((ss: any) => ss.staff?.is_active && ss.staff?.profiles?.is_active)
-      .map((ss: any) => ({
+      ?.filter((ss) => ss.staff?.is_active && ss.staff?.profiles?.is_active)
+      .map((ss) => ({
         id: ss.staff.id,
         name: `${ss.staff.profiles.first_name} ${ss.staff.profiles.last_name}`.trim()
       })) || []
@@ -134,7 +145,7 @@ async function handleGetServices(event: any, supabase: any, logger: any) {
   })
 }
 
-async function handleCreateService(event: any, supabase: any, logger: any) {
+async function handleCreateService(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const body = JSON.parse(event.body || '{}')
   
   const serviceData = validateBody(schemas.service.create, {
@@ -180,7 +191,7 @@ async function handleCreateService(event: any, supabase: any, logger: any) {
   return createSuccessResponse(service, 201)
 }
 
-async function handleUpdateService(event: any, supabase: any, logger: any) {
+async function handleUpdateService(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const serviceId = event.path.split('/').pop()
   if (!serviceId) {
     return createErrorResponse({
@@ -193,7 +204,7 @@ async function handleUpdateService(event: any, supabase: any, logger: any) {
   const body = JSON.parse(event.body || '{}')
 
   // Validate updates
-  const updates: any = {}
+  const updates: Record<string, unknown> = {}
   if (body.name !== undefined) updates.name = body.name
   if (body.description !== undefined) updates.description = body.description
   if (body.duration_minutes !== undefined) updates.duration_minutes = body.duration_minutes
@@ -263,7 +274,7 @@ async function handleUpdateService(event: any, supabase: any, logger: any) {
   return createSuccessResponse(updatedService)
 }
 
-async function handleDeleteService(event: any, supabase: any, logger: any) {
+async function handleDeleteService(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const serviceId = event.path.split('/').pop()
   if (!serviceId) {
     return createErrorResponse({

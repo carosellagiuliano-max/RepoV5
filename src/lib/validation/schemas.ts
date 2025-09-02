@@ -8,7 +8,7 @@ import { z } from 'zod'
 // Base schemas
 export const uuidSchema = z.string().uuid('Invalid UUID format')
 export const emailSchema = z.string().email('Invalid email format')
-export const phoneSchema = z.string().regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number')
+export const phoneSchema = z.string().regex(/^\+?[\d\s\-()]+$/, 'Invalid phone number')
 export const timeSchema = z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)')
 export const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
 export const datetimeSchema = z.string().datetime('Invalid datetime format')

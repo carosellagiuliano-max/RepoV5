@@ -23,6 +23,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth-context';
 import { useAppointments } from '@/hooks/use-appointments';
+import { Appointment } from '@/lib/supabase';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
@@ -44,7 +45,7 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const { appointments, loading: appointmentsLoading, cancelAppointment, refreshAppointments } = useAppointments();
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
   const [showRescheduleConfirm, setShowRescheduleConfirm] = useState(false);
@@ -88,7 +89,7 @@ const CustomerDashboard = () => {
   const nextAppointment = upcomingAppointments[0];
 
   // Format appointment for display
-  const formatAppointment = (appointment: any) => ({
+  const formatAppointment = (appointment: Appointment) => ({
     id: appointment.id,
     date: format(new Date(appointment.starts_at), 'dd.MM.yyyy', { locale: de }),
     time: format(new Date(appointment.starts_at), 'HH:mm', { locale: de }),
@@ -99,12 +100,12 @@ const CustomerDashboard = () => {
     status: appointment.status
   });
 
-  const handleAppointmentDetails = (appointment: any) => {
+  const handleAppointmentDetails = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowAppointmentDetails(true);
   };
 
-  const handleReschedule = (appointment: any) => {
+  const handleReschedule = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowRescheduleConfirm(true);
   };

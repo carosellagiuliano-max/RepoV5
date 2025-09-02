@@ -90,10 +90,11 @@ const EnhancedCalendar = () => {
     switch (viewType) {
       case 'day':
         return format(currentDate, 'PPPP', { locale: de });
-      case 'week':
+      case 'week': {
         const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
         const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
         return `${format(weekStart, 'dd.MM')} - ${format(weekEnd, 'dd.MM.yyyy')}`;
+      }
       case 'month':
         return format(currentDate, 'MMMM yyyy', { locale: de });
       case 'year':

@@ -3,9 +3,14 @@
  * Handles CRUD operations for staff members
  */
 
-import { Handler } from '@netlify/functions'
-import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient } from '../../src/lib/auth/netlify-auth'
+import { Handler, HandlerEvent } from '@netlify/functions'
+import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient, AuthenticatedContext } from '../../src/lib/auth/netlify-auth'
 import { validateBody, validateQuery, schemas } from '../../src/lib/validation/schemas'
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '../../src/lib/types/database'
+
+type SupabaseClient = ReturnType<typeof createAdminClient>
+type Logger = ReturnType<typeof createLogger>
 import { StaffWithProfile, StaffInsert, StaffUpdate, ProfileInsert, ProfileUpdate } from '../../src/lib/types/database'
 
 export const handler: Handler = withAuthAndRateLimit(
@@ -54,7 +59,7 @@ export const handler: Handler = withAuthAndRateLimit(
   { maxRequests: 50, windowMs: 60 * 1000 }
 )
 
-async function handleGetStaff(event: any, supabase: any, logger: any) {
+async function handleGetStaff(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const query = validateQuery(schemas.staffFilters, event.queryStringParameters || {})
   
   let dbQuery = supabase
@@ -93,7 +98,7 @@ async function handleGetStaff(event: any, supabase: any, logger: any) {
 
   // Get staff services for each staff member
   if (staff && staff.length > 0) {
-    const staffIds = staff.map((s: any) => s.id)
+    const staffIds = staff.map((s) => s.id)
     const { data: staffServices } = await supabase
       .from('staff_services')
       .select(`
@@ -111,19 +116,19 @@ async function handleGetStaff(event: any, supabase: any, logger: any) {
       .eq('is_active', true)
 
     // Attach services to each staff member
-    staff.forEach((staffMember: any) => {
-      staffMember.services = staffServices
-        ?.filter((ss: any) => ss.staff_id === staffMember.id)
-        .map((ss: any) => ss.services) || []
-    })
-  }
-
+    const staffWithServices = staff.map((staffMember) => ({
+      ...staffMember,
+      services: staffServices
+        ?.filter((ss) => ss.staff_id === staffMember.id)
+        .map((ss) => ss.services) || []
+    }))
+  
   const totalPages = count ? Math.ceil(count / query.limit) : 0
 
-  logger.info('Staff fetched successfully', { count: staff?.length })
+  logger.info('Staff fetched successfully', { count: staffWithServices?.length })
 
   return createSuccessResponse({
-    staff,
+    staff: staffWithServices,
     pagination: {
       page: query.page,
       limit: query.limit,
@@ -133,7 +138,7 @@ async function handleGetStaff(event: any, supabase: any, logger: any) {
   })
 }
 
-async function handleCreateStaff(event: any, supabase: any, logger: any, adminUserId: string) {
+async function handleCreateStaff(event: HandlerEvent, supabase: SupabaseClient, logger: Logger, adminUserId: string) {
   const body = JSON.parse(event.body || '{}')
   
   // Validate the request body
@@ -240,7 +245,7 @@ async function handleCreateStaff(event: any, supabase: any, logger: any, adminUs
   return createSuccessResponse(completeStaff, 201)
 }
 
-async function handleUpdateStaff(event: any, supabase: any, logger: any) {
+async function handleUpdateStaff(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const staffId = event.path.split('/').pop()
   if (!staffId) {
     return createErrorResponse({
@@ -268,7 +273,7 @@ async function handleUpdateStaff(event: any, supabase: any, logger: any) {
   }
 
   // Validate updates
-  const profileUpdates: any = {}
+  const profileUpdates: Record<string, unknown> = {}
   if (body.email) profileUpdates.email = body.email
   if (body.first_name !== undefined) profileUpdates.first_name = body.first_name
   if (body.last_name !== undefined) profileUpdates.last_name = body.last_name
@@ -276,7 +281,7 @@ async function handleUpdateStaff(event: any, supabase: any, logger: any) {
   if (body.avatar_url !== undefined) profileUpdates.avatar_url = body.avatar_url
   if (body.is_active !== undefined) profileUpdates.is_active = body.is_active
 
-  const staffUpdates: any = {}
+  const staffUpdates: Record<string, unknown> = {}
   if (body.specialties !== undefined) staffUpdates.specialties = body.specialties
   if (body.bio !== undefined) staffUpdates.bio = body.bio
   if (body.hire_date !== undefined) staffUpdates.hire_date = body.hire_date
@@ -352,7 +357,7 @@ async function handleUpdateStaff(event: any, supabase: any, logger: any) {
   return createSuccessResponse(updatedStaff)
 }
 
-async function handleDeleteStaff(event: any, supabase: any, logger: any) {
+async function handleDeleteStaff(event: HandlerEvent, supabase: SupabaseClient, logger: Logger) {
   const staffId = event.path.split('/').pop()
   if (!staffId) {
     return createErrorResponse({

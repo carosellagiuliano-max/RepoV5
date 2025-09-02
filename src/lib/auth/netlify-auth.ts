@@ -3,7 +3,7 @@
  * Handles JWT validation, role-based access control, and Supabase integration
  */
 
-import { Context, Handler } from '@netlify/functions'
+import { Context, Handler, HandlerEvent } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
 import { Database, UserRole } from '../types/database'
 
@@ -170,7 +170,7 @@ export const isStaffOrAdmin = (user: AuthenticatedUser): boolean => {
 
 // HOF to create authenticated handlers
 export const withAuth = (
-  handler: (event: any, context: AuthenticatedContext) => Promise<any>,
+  handler: (event: HandlerEvent, context: AuthenticatedContext) => Promise<Response>,
   options: {
     requiredRoles?: UserRole[]
     requireAdmin?: boolean
@@ -277,7 +277,7 @@ export const checkRateLimit = (
 }
 
 // Get rate limit key for a request
-export const getRateLimitKey = (event: any, user?: AuthenticatedUser): string => {
+export const getRateLimitKey = (event: HandlerEvent, user?: AuthenticatedUser): string => {
   const ip = event.headers['x-forwarded-for'] || event.headers['x-real-ip'] || 'unknown'
   const userId = user?.id || 'anonymous'
   return `${ip}:${userId}`
@@ -311,7 +311,7 @@ export const withRateLimit = (
 
 // Combine auth and rate limiting
 export const withAuthAndRateLimit = (
-  handler: (event: any, context: AuthenticatedContext) => Promise<any>,
+  handler: (event: HandlerEvent, context: AuthenticatedContext) => Promise<Response>,
   authOptions: Parameters<typeof withAuth>[1] = {},
   rateLimitOptions: Parameters<typeof withRateLimit>[1] = {}
 ): Handler => {

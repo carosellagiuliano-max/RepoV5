@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, User, Plus } from 'lucide-react';
 
+import { ProfileInsert } from '@/lib/types/database';
+
 interface AddCustomerModalProps {
   onClose: () => void;
-  onSave: (customerData: any) => void;
+  onSave: (customerData: Partial<ProfileInsert> & { name: string; phone: string }) => void;
 }
 
 export function AddCustomerModal({ onClose, onSave }: AddCustomerModalProps) {

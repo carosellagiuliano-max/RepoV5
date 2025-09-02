@@ -9,6 +9,14 @@ import { Calendar, Clock, User, Scissors, Search, Filter, Plus, ChevronLeft, Che
 import { AppointmentBookingDialog } from '@/components/booking/appointment-booking-dialog';
 import { AddCustomerModal } from './AddCustomerModal';
 
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  priority?: string;
+}
+
 const mockEmployees = [
   { id: 'all', name: 'Alle Mitarbeiter', color: 'bg-gray-100' },
   { id: 'vanessa', name: 'Vanessa (Inhaberin)', color: 'bg-pink-100' },
@@ -156,12 +164,13 @@ export function CalendarView() {
     switch (viewType) {
       case 'day':
         return date.toLocaleDateString('de-CH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      case 'week':
+      case 'week': {
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay() + 1);
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
         return `${weekStart.toLocaleDateString('de-CH', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('de-CH', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      }
       case 'month':
         return date.toLocaleDateString('de-CH', { year: 'numeric', month: 'long' });
       case 'year':
@@ -171,7 +180,7 @@ export function CalendarView() {
     }
   };
 
-  const handleContactCustomer = (customer: any, type: 'phone' | 'email') => {
+  const handleContactCustomer = (customer: Customer, type: 'phone' | 'email') => {
     if (type === 'phone') {
       window.open(`tel:${customer.phone}`);
     } else {
@@ -200,14 +209,14 @@ export function CalendarView() {
     }
   };
 
-  const simulateWaitingListNotification = (customer: any) => {
+  const simulateWaitingListNotification = (customer: Customer) => {
     setNeonNotificationData(customer);
     setShowNeonNotification(true);
     // Auto-hide after 10 seconds
     setTimeout(() => setShowNeonNotification(false), 10000);
   };
 
-  const bookFromWaitingList = (customer: any) => {
+  const bookFromWaitingList = (customer: Customer) => {
     // Show neon notification first
     simulateWaitingListNotification(customer);
     // Then open booking dialog with special color indication
