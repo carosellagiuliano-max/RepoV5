@@ -227,20 +227,27 @@ export interface Database {
         Row: {
           id: string
           key: string
-          value: string
+          value: any // JSONB type
           description: string | null
-          created_at: string
+          category: string
+          is_public: boolean
           updated_at: string
+          updated_by: string | null
+          created_at: string
         }
         Insert: {
           id?: string
           key: string
-          value: string
+          value: any
           description?: string | null
+          category?: string
+          is_public?: boolean
         }
         Update: {
-          value?: string
+          value?: any
           description?: string | null
+          category?: string
+          is_public?: boolean
           updated_at?: string
         }
       }
@@ -514,3 +521,43 @@ export interface KPIData {
     newCustomers: number
   }>
 }
+
+// Business Settings Types
+export interface BusinessSettings {
+  // Business Hours
+  business_hours: {
+    [key: string]: {
+      open: string
+      close: string
+      closed: boolean
+    }
+  }
+  // Booking Configuration
+  booking_window_days: number
+  buffer_time_minutes: number
+  min_advance_booking_hours: number
+  max_appointments_per_day: number
+  cancellation_hours: number
+  no_show_policy: string
+  // SMTP Configuration
+  smtp_host: string
+  smtp_port: number
+  smtp_user: string
+  smtp_password: string
+  smtp_from_email: string
+  smtp_from_name: string
+  smtp_use_tls: boolean
+  // Business Information
+  business_name: string
+  business_address: string
+  business_phone: string
+  business_email: string
+  // Notification Settings
+  email_notifications_enabled: boolean
+  sms_notifications_enabled: boolean
+  booking_confirmation_email: boolean
+  booking_reminder_email: boolean
+  reminder_hours_before: number
+}
+
+export type SettingsCategory = 'business_hours' | 'booking' | 'email' | 'business_info' | 'notifications' | 'general'

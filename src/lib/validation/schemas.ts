@@ -469,3 +469,111 @@ export const schemas = {
   apiError: apiErrorSchema,
   apiResponse: apiResponseSchema
 }
+
+// Business Settings Validation Schemas
+export const businessHoursSchema = z.object({
+  monday: z.object({
+    open: timeSchema,
+    close: timeSchema,
+    closed: z.boolean()
+  }),
+  tuesday: z.object({
+    open: timeSchema,
+    close: timeSchema,
+    closed: z.boolean()
+  }),
+  wednesday: z.object({
+    open: timeSchema,
+    close: timeSchema,
+    closed: z.boolean()
+  }),
+  thursday: z.object({
+    open: timeSchema,
+    close: timeSchema,
+    closed: z.boolean()
+  }),
+  friday: z.object({
+    open: timeSchema,
+    close: timeSchema,
+    closed: z.boolean()
+  }),
+  saturday: z.object({
+    open: timeSchema,
+    close: timeSchema,
+    closed: z.boolean()
+  }),
+  sunday: z.object({
+    open: timeSchema,
+    close: timeSchema,
+    closed: z.boolean()
+  })
+}).refine((data) => {
+  // Validate that open time is before close time for non-closed days
+  for (const [day, hours] of Object.entries(data)) {
+    if (!hours.closed) {
+      const openTime = new Date(`2000-01-01T${hours.open}:00`);
+      const closeTime = new Date(`2000-01-01T${hours.close}:00`);
+      if (openTime >= closeTime) {
+        return false;
+      }
+    }
+  }
+  return true;
+}, {
+  message: "Opening time must be before closing time for open days"
+})
+
+export const smtpConfigSchema = z.object({
+  smtp_host: z.string().min(1, 'SMTP host is required'),
+  smtp_port: z.number().int().min(1).max(65535, 'Invalid SMTP port'),
+  smtp_user: z.string().min(1, 'SMTP username is required'),
+  smtp_password: z.string().min(1, 'SMTP password is required'),
+  smtp_from_email: emailSchema,
+  smtp_from_name: z.string().min(1, 'From name is required'),
+  smtp_use_tls: z.boolean()
+})
+
+export const settingSchema = z.object({
+  key: z.string().min(1, 'Setting key is required'),
+  value: z.any(), // JSONB can be any type
+  description: z.string().optional(),
+  category: z.enum(['business_hours', 'booking', 'email', 'business_info', 'notifications', 'general']).optional(),
+  is_public: z.boolean().optional()
+})
+
+export const settingUpdateSchema = z.object({
+  value: z.any(),
+  description: z.string().optional(),
+  category: z.enum(['business_hours', 'booking', 'email', 'business_info', 'notifications', 'general']).optional(),
+  is_public: z.boolean().optional()
+})
+
+export const businessInfoSchema = z.object({
+  business_name: z.string().min(1, 'Business name is required'),
+  business_address: z.string().min(1, 'Business address is required'),
+  business_phone: phoneSchema,
+  business_email: emailSchema
+})
+
+export const bookingConfigSchema = z.object({
+  booking_window_days: z.number().int().min(1).max(365, 'Booking window must be between 1-365 days'),
+  buffer_time_minutes: z.number().int().min(0).max(120, 'Buffer time must be between 0-120 minutes'),
+  min_advance_booking_hours: z.number().int().min(0).max(168, 'Minimum advance booking must be between 0-168 hours'),
+  max_appointments_per_day: z.number().int().min(1).max(200, 'Max appointments per day must be between 1-200'),
+  cancellation_hours: z.number().int().min(0).max(168, 'Cancellation hours must be between 0-168'),
+  no_show_policy: z.string().min(1, 'No-show policy is required')
+})
+
+export const notificationConfigSchema = z.object({
+  email_notifications_enabled: z.boolean(),
+  sms_notifications_enabled: z.boolean(),
+  booking_confirmation_email: z.boolean(),
+  booking_reminder_email: z.boolean(),
+  reminder_hours_before: z.number().int().min(1).max(168, 'Reminder hours must be between 1-168')
+})
+
+export const smtpTestSchema = z.object({
+  to_email: emailSchema,
+  subject: z.string().min(1, 'Subject is required').max(200),
+  message: z.string().min(1, 'Message is required').max(1000)
+})
