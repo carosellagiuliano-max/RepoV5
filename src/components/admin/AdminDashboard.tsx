@@ -5,6 +5,8 @@ import { CustomerManagement } from './CustomerManagement';
 import { FinancialOverview } from './FinancialOverview';
 import { InactiveCustomers } from './InactiveCustomers';
 import { AdminSettings } from './AdminSettings';
+import { DuplicateDetection } from './DuplicateDetection';
+import { ImportExport } from './ImportExport';
 import { MediaManagement } from '../../admin/media/MediaManagement';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
@@ -14,7 +16,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ onLogout }: AdminDashboardProps) {
-  const [activeView, setActiveView] = useState<'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings'>('calendar');
+  const [activeView, setActiveView] = useState<'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings' | 'duplicates' | 'import-export'>('calendar');
 
   return (
     <div className="flex h-screen bg-background">
@@ -26,6 +28,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
           <h1 className="text-2xl font-bold">
             {activeView === 'calendar' && 'Terminkalender'}
             {activeView === 'customers' && 'Kundenverwaltung'}
+            {activeView === 'duplicates' && 'Dubletten-Erkennung'}
+            {activeView === 'import-export' && 'Import & Export'}
             {activeView === 'finances' && 'Finanzübersicht'}
             {activeView === 'inactive' && 'Inaktive Kunden'}
             {activeView === 'media' && 'Medienverwaltung'}
@@ -41,6 +45,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
         <main className="flex-1 p-6 overflow-auto">
           {activeView === 'calendar' && <CalendarView />}
           {activeView === 'customers' && <CustomerManagement />}
+          {activeView === 'duplicates' && <DuplicateDetection />}
+          {activeView === 'import-export' && <ImportExport />}
           {activeView === 'finances' && <FinancialOverview />}
           {activeView === 'inactive' && <InactiveCustomers />}
           {activeView === 'media' && <MediaManagement />}

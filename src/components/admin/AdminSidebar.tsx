@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Users, TrendingUp, Scissors, Settings, UserX, Image } from 'lucide-react';
+import { Calendar, Users, TrendingUp, Scissors, Settings, UserX, Image, GitMerge, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AdminSidebarProps {
-  activeView: 'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings';
-  onViewChange: (view: 'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings') => void;
+  activeView: 'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings' | 'duplicates' | 'import-export';
+  onViewChange: (view: 'calendar' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings' | 'duplicates' | 'import-export') => void;
 }
 
 export function AdminSidebar({ activeView, onViewChange }: AdminSidebarProps) {
@@ -21,6 +21,18 @@ export function AdminSidebar({ activeView, onViewChange }: AdminSidebarProps) {
       label: 'Kundenverwaltung',
       icon: Users,
       description: 'Kundenstamm'
+    },
+    {
+      id: 'duplicates' as const,
+      label: 'Dubletten-Erkennung',
+      icon: GitMerge,
+      description: 'Duplikate finden & zusammenführen'
+    },
+    {
+      id: 'import-export' as const,
+      label: 'Import & Export',
+      icon: Download,
+      description: 'CSV-Import/Export'
     },
     {
       id: 'finances' as const,
