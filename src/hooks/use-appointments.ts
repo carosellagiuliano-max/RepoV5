@@ -1,77 +1,258 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/auth-context'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { bookingHelpers, Appointment } from '@/lib/supabase'
+import { useAuth } from '@/contexts/auth-context'
 
+// Hook to fetch user's appointments (customers see their own, admins see all)
 export const useAppointments = () => {
-  const { user } = useAuth()
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { user, isAdmin } = useAuth()
 
-  const fetchAppointments = async () => {
-    if (!user) {
-      setAppointments([])
-      setLoading(false)
-      return
-    }
+  return useQuery({
+    queryKey: ['appointments', user?.id, isAdmin],
+    queryFn: async () => {
+      if (!user) throw new Error('User not authenticated')
+      
+      if (isAdmin) {
+        const { data, error } = await bookingHelpers.getAllAppointments()
+        if (error) throw error
+        return data
+      } else {
+        const { data, error } = await bookingHelpers.getUserAppointments(user.id)
+        if (error) throw error
+        return data
+      }
+    },
+    enabled: !!user,
+  })
+}
 
-    try {
-      setLoading(true)
-      setError(null)
+// Hook to create a new appointment
+export const useCreateAppointment = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (appointmentData: {
+      customer_id: string
+      staff_id: string
+      service_id: string
+      starts_at: string
+      ends_at: string
+      price: number
+      notes?: string
+    }) => {
+      const result = await bookingHelpers.createAppointment(appointmentData)
+      return result.appointment as Appointment
+    },
+    onSuccess: () => {
+      // Invalidate and refetch appointments
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      // Also invalidate availability to reflect the new booking
+      queryClient.invalidateQueries({ queryKey: ['availability'] })
+    },
+  })
+}
+
+// Hook to cancel an appointment
+export const useCancelAppointment = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ appointmentId, reason }: { appointmentId: string; reason?: string }) => {
+      const result = await bookingHelpers.cancelAppointment(appointmentId, reason)
+      return result.appointment as Appointment
+    },
+    onSuccess: () => {
+      // Invalidate and refetch appointments
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      // Also invalidate availability to reflect the cancellation
+      queryClient.invalidateQueries({ queryKey: ['availability'] })
+    },
+  })
+}
+
+// Hook to update appointment status (admin/staff only)
+export const useUpdateAppointmentStatus = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ 
+      appointmentId, 
+      status, 
+      notes 
+    }: { 
+      appointmentId: string
+      status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+      notes?: string 
+    }) => {
+      const { data, error } = await import('@/lib/supabase').then(({ supabase }) => 
+        supabase
+          .from('appointments')
+          .update({ 
+            status,
+            ...(notes && { internal_notes: notes })
+          })
+          .eq('id', appointmentId)
+          .select(`
+            *,
+            customers (
+              id,
+              profiles (full_name, email, phone)
+            ),
+            staff (
+              id,
+              full_name,
+              email,
+              phone
+            ),
+            services (
+              id,
+              name,
+              description,
+              category,
+              duration_minutes
+            )
+          `)
+          .single()
+      )
+
+      if (error) throw error
+      return data as Appointment
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availability'] })
+    },
+  })
+}
+
+// Hook to get appointments for a specific date range
+export const useAppointmentsByDateRange = (startDate: string, endDate: string) => {
+  const { user, isAdmin } = useAuth()
+
+  return useQuery({
+    queryKey: ['appointments', 'date-range', startDate, endDate, user?.id, isAdmin],
+    queryFn: async () => {
+      if (!user) throw new Error('User not authenticated')
       
-      const { data, error: fetchError } = await bookingHelpers.getUserAppointments(user.id)
+      const { supabase } = await import('@/lib/supabase')
       
-      if (fetchError) {
-        setError(fetchError.message)
-        return
+      let query = supabase
+        .from('appointments')
+        .select(`
+          *,
+          customers (
+            id,
+            profiles (full_name, email, phone)
+          ),
+          staff (
+            id,
+            full_name,
+            email,
+            phone
+          ),
+          services (
+            id,
+            name,
+            description,
+            category,
+            duration_minutes
+          )
+        `)
+        .gte('starts_at', startDate)
+        .lte('starts_at', endDate)
+        .order('starts_at', { ascending: true })
+
+      // If not admin, filter by customer
+      if (!isAdmin) {
+        // Get customer ID first
+        const { data: customer, error: customerError } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('profile_id', user.id)
+          .single()
+
+        if (customerError || !customer) {
+          return []
+        }
+
+        query = query.eq('customer_id', customer.id)
       }
 
-      setAppointments(data || [])
-    } catch (err) {
-      setError('Failed to fetch appointments')
-      console.error('Error fetching appointments:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+      const { data, error } = await query
+
+      if (error) throw error
+      return data as Appointment[]
+    },
+    enabled: !!user && !!startDate && !!endDate,
+  })
+}
+
+// Hook to get appointments for a specific staff member
+export const useStaffAppointments = (staffId: string, startDate?: string, endDate?: string) => {
+  return useQuery({
+    queryKey: ['appointments', 'staff', staffId, startDate, endDate],
+    queryFn: async () => {
+      const { supabase } = await import('@/lib/supabase')
+      
+      let query = supabase
+        .from('appointments')
+        .select(`
+          *,
+          customers (
+            id,
+            profiles (full_name, email, phone)
+          ),
+          services (
+            id,
+            name,
+            description,
+            category,
+            duration_minutes
+          )
+        `)
+        .eq('staff_id', staffId)
+        .order('starts_at', { ascending: true })
+
+      if (startDate) {
+        query = query.gte('starts_at', startDate)
+      }
+      if (endDate) {
+        query = query.lte('starts_at', endDate)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+      return data as Appointment[]
+    },
+    enabled: !!staffId,
+  })
+}
+
+// Legacy interface for backwards compatibility
+export const useLegacyAppointments = () => {
+  const { user } = useAuth()
+  const { data: appointments = [], isLoading: loading, error: queryError, refetch } = useAppointments()
+  const cancelMutation = useCancelAppointment()
 
   const cancelAppointment = async (appointmentId: string) => {
     if (!user) return { error: 'User not authenticated' }
 
     try {
-      const { data, error } = await bookingHelpers.cancelAppointment(appointmentId, user.id)
-      
-      if (error) {
-        return { error: error.message }
-      }
-
-      // Update local state
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.id === appointmentId 
-            ? { ...apt, status: 'cancelled' }
-            : apt
-        )
-      )
-
-      return { data }
-    } catch (err) {
-      return { error: 'Failed to cancel appointment' }
+      await cancelMutation.mutateAsync({ appointmentId })
+      return { data: true }
+    } catch (err: unknown) {
+      return { error: (err as Error).message || 'Failed to cancel appointment' }
     }
   }
 
   const refreshAppointments = () => {
-    fetchAppointments()
+    refetch()
   }
-
-  useEffect(() => {
-    fetchAppointments()
-  }, [user]) // Only depend on user, not fetchAppointments to avoid infinite loops
 
   return {
     appointments,
     loading,
-    error,
+    error: queryError?.message || null,
     cancelAppointment,
     refreshAppointments
   }

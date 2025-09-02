@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
+import { z } from 'zod'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -11,13 +12,23 @@ if (!supabaseUrl || !supabaseServiceKey) {
 // Use service role key for server-side operations
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+// Updated booking request schema to match new database structure
+const BookingSchema = z.object({
+  customer_id: z.string().uuid(),
+  staff_id: z.string().uuid(),
+  service_id: z.string().uuid(),
+  starts_at: z.string().datetime(),
+  ends_at: z.string().datetime(),
+  price: z.number().min(0),
+  notes: z.string().optional()
+})
+
 interface BookingRequest {
-  user_id: string
+  customer_id: string
+  staff_id: string
+  service_id: string
   starts_at: string
   ends_at: string
-  service_type: string
-  service_name: string
-  hairdresser_name: string
   price: number
   notes?: string
 }
@@ -90,44 +101,89 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
       }
     }
 
-    // Validate required fields
-    const requiredFields = ['starts_at', 'ends_at', 'service_type', 'service_name', 'hairdresser_name', 'price']
-    for (const field of requiredFields) {
-      if (!bookingData[field as keyof BookingRequest]) {
+    // Validate the booking data
+    const validation = BookingSchema.safeParse(bookingData)
+    if (!validation.success) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Validation failed',
+          details: validation.error.errors
+        }),
+      }
+    }
+
+    const validatedData = validation.data
+
+    // Check if the user has permission to create this booking
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile) {
+      return {
+        statusCode: 403,
+        headers,
+        body: JSON.stringify({ error: 'User profile not found' }),
+      }
+    }
+
+    // If user is a customer, they can only book for themselves
+    if (profile.role === 'customer') {
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('profile_id', user.id)
+        .single()
+
+      if (customerError || !customer) {
         return {
-          statusCode: 400,
+          statusCode: 403,
           headers,
-          body: JSON.stringify({ error: `Missing required field: ${field}` }),
+          body: JSON.stringify({ error: 'Customer profile not found' }),
+        }
+      }
+
+      if (validatedData.customer_id !== customer.id) {
+        return {
+          statusCode: 403,
+          headers,
+          body: JSON.stringify({ error: 'Cannot book for other customers' }),
         }
       }
     }
 
-    // Ensure user can only create bookings for themselves
-    bookingData.user_id = user.id
+    // Validate the appointment slot using our database function
+    const { data: validationResult, error: validationError } = await supabase
+      .rpc('rpc_validate_appointment_slot', {
+        p_staff_id: validatedData.staff_id,
+        p_service_id: validatedData.service_id,
+        p_starts_at: validatedData.starts_at,
+        p_ends_at: validatedData.ends_at,
+        p_buffer_minutes: 10,
+        p_exclude_appointment_id: null
+      })
 
-    // Check for duplicate bookings (same user, same time slot)
-    const { data: existingBookings, error: checkError } = await supabase
-      .from('appointments')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('starts_at', bookingData.starts_at)
-      .eq('ends_at', bookingData.ends_at)
-      .eq('status', 'confirmed')
-
-    if (checkError) {
-      console.error('Error checking existing bookings:', checkError)
+    if (validationError) {
+      console.error('Error validating appointment slot:', validationError)
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Failed to check existing bookings' }),
+        body: JSON.stringify({ error: 'Failed to validate appointment slot' }),
       }
     }
 
-    if (existingBookings && existingBookings.length > 0) {
+    if (!validationResult.is_valid) {
       return {
         statusCode: 409,
         headers,
-        body: JSON.stringify({ error: 'Booking already exists for this time slot' }),
+        body: JSON.stringify({ 
+          error: 'Appointment slot is not available',
+          details: validationResult.errors
+        }),
       }
     }
 
@@ -135,12 +191,29 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
     const { data, error } = await supabase
       .from('appointments')
       .insert({
-        ...bookingData,
-        status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        ...validatedData,
+        status: 'pending'
       })
-      .select()
+      .select(`
+        *,
+        customers (
+          id,
+          profiles (full_name, email, phone)
+        ),
+        staff (
+          id,
+          full_name,
+          email,
+          phone
+        ),
+        services (
+          id,
+          name,
+          description,
+          category,
+          duration_minutes
+        )
+      `)
       .single()
 
     if (error) {
