@@ -323,7 +323,7 @@ export const withAuthAndRateLimit = (
 
 // Correlation ID for request tracing
 export const generateCorrelationId = (): string => {
-  return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 }
 
 // Enhanced logging with correlation ID
