@@ -1,62 +1,47 @@
 /**
- * Analytics Hook
- * Custom hook for fetching and managing analytics data
+ * Enhanced Analytics Hook
+ * Custom hook for fetching and managing analytics data with realtime updates
  */
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
-
-interface AnalyticsFilters {
-  startDate: string
-  endDate: string
-  staffId: string
-  serviceId: string
-  period: 'day' | 'week' | 'month'
-}
-
-interface KPIData {
-  totalAppointments: number
-  totalRevenue: number
-  averageServiceTime: number
-  bookingRate: number
-  cancellationRate: number
-  staffUtilization: Array<{
-    staffId: string
-    name: string
-    utilization: number
-    totalAppointments: number
-    totalRevenue: number
-  }>
-  popularServices: Array<{
-    serviceId: string
-    name: string
-    bookingCount: number
-    revenue: number
-  }>
-  dailyStats: Array<{
-    date: string
-    appointments: number
-    revenue: number
-    newCustomers: number
-  }>
-  period: 'day' | 'week' | 'month'
-  dateRange: {
-    startDate: string
-    endDate: string
-  }
-}
+import { supabase } from '@/lib/supabase'
+import { 
+  AnalyticsFilters, 
+  KPIData, 
+  RealtimeConfig, 
+  RealtimeEvent,
+  AnalyticsPermissions 
+} from '@/lib/types/analytics'
 
 interface UseAnalyticsReturn {
   data: KPIData | null
   isLoading: boolean
   error: string | null
   refetch: () => Promise<void>
+  isRealTimeConnected: boolean
+  permissions: AnalyticsPermissions | null
 }
 
-export function useAnalytics(filters: AnalyticsFilters): UseAnalyticsReturn {
+const defaultRealtimeConfig: RealtimeConfig = {
+  enabled: true,
+  fallbackPollingInterval: 30000, // 30 seconds
+  maxReconnectAttempts: 5
+}
+
+export function useAnalytics(
+  filters: AnalyticsFilters, 
+  realtimeConfig: RealtimeConfig = defaultRealtimeConfig
+): UseAnalyticsReturn {
   const [data, setData] = useState<KPIData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isRealTimeConnected, setIsRealTimeConnected] = useState(false)
+  const [permissions, setPermissions] = useState<AnalyticsPermissions | null>(null)
+  
+  const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const reconnectAttemptsRef = useRef(0)
 
   const fetchAnalytics = useCallback(async () => {
     setIsLoading(true)
@@ -75,7 +60,8 @@ export function useAnalytics(filters: AnalyticsFilters): UseAnalyticsReturn {
         startDate: filters.startDate,
         endDate: filters.endDate,
         ...(filters.staffId && { staffId: filters.staffId }),
-        ...(filters.serviceId && { serviceId: filters.serviceId })
+        ...(filters.serviceId && { serviceId: filters.serviceId }),
+        ...(filters.comparisonPeriod && { comparisonPeriod: filters.comparisonPeriod })
       })
 
       const response = await fetch(`/.netlify/functions/admin/analytics/kpis?${queryParams}`, {
@@ -107,7 +93,16 @@ export function useAnalytics(filters: AnalyticsFilters): UseAnalyticsReturn {
         throw new Error(result.error?.message || 'Failed to fetch analytics data')
       }
 
-      setData(result.data)
+      setData({
+        ...result.data,
+        realTimeUpdate: true
+      })
+      
+      // Extract permissions from response
+      if (result.permissions) {
+        setPermissions(result.permissions)
+      }
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
       setError(errorMessage)
@@ -128,19 +123,134 @@ export function useAnalytics(filters: AnalyticsFilters): UseAnalyticsReturn {
     }
   }, [filters])
 
+  // Cleanup function
+  const cleanup = useCallback(() => {
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current)
+      realtimeChannelRef.current = null
+    }
+    
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+    
+    setIsRealTimeConnected(false)
+  }, [])
+
+  // Realtime subscription setup
+  const setupRealtimeSubscription = useCallback(() => {
+    if (!realtimeConfig.enabled) return
+
+    try {
+      // Clean up existing subscription
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current)
+      }
+
+      // Subscribe to appointments table changes
+      realtimeChannelRef.current = supabase
+        .channel('analytics_updates')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'appointments' 
+          }, 
+          (payload) => {
+            console.log('Realtime appointment update:', payload)
+            
+            // Debounce rapid updates
+            setTimeout(() => {
+              fetchAnalytics()
+            }, 1000)
+          }
+        )
+        .on('postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'customers'
+          },
+          (payload) => {
+            console.log('Realtime customer update:', payload)
+            setTimeout(() => {
+              fetchAnalytics()
+            }, 1000)
+          }
+        )
+        .subscribe((status) => {
+          console.log('Realtime subscription status:', status)
+          
+          if (status === 'SUBSCRIBED') {
+            setIsRealTimeConnected(true)
+            reconnectAttemptsRef.current = 0
+            toast.success('Live-Updates aktiviert')
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            setIsRealTimeConnected(false)
+            
+            // Attempt reconnection
+            if (reconnectAttemptsRef.current < realtimeConfig.maxReconnectAttempts) {
+              reconnectAttemptsRef.current += 1
+              console.log(`Attempting realtime reconnection ${reconnectAttemptsRef.current}/${realtimeConfig.maxReconnectAttempts}`)
+              
+              setTimeout(() => {
+                setupRealtimeSubscription()
+              }, 2000 * reconnectAttemptsRef.current) // Exponential backoff
+            } else {
+              console.log('Max reconnection attempts reached, falling back to polling')
+              setupPolling()
+            }
+          }
+        })
+      
+    } catch (error) {
+      console.error('Failed to setup realtime subscription:', error)
+      setupPolling()
+    }
+  }, [realtimeConfig, fetchAnalytics, setupPolling])
+
+  // Fallback polling mechanism
+  const setupPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+
+    pollingIntervalRef.current = setInterval(() => {
+      fetchAnalytics()
+    }, realtimeConfig.fallbackPollingInterval)
+    
+    console.log(`Analytics polling started with ${realtimeConfig.fallbackPollingInterval}ms interval`)
+  }, [fetchAnalytics, realtimeConfig.fallbackPollingInterval])
+
   const refetch = useCallback(async () => {
     await fetchAnalytics()
   }, [fetchAnalytics])
 
-  // Auto-fetch when filters change
+  // Setup on mount and filter changes
   useEffect(() => {
     fetchAnalytics()
-  }, [fetchAnalytics])
+    
+    if (realtimeConfig.enabled) {
+      setupRealtimeSubscription()
+    } else {
+      setupPolling()
+    }
+
+    return cleanup
+  }, [fetchAnalytics, setupRealtimeSubscription, setupPolling, cleanup, realtimeConfig.enabled])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return cleanup
+  }, [cleanup])
 
   return {
     data,
     isLoading,
     error,
-    refetch
+    refetch,
+    isRealTimeConnected,
+    permissions
   }
 }

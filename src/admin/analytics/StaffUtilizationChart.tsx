@@ -20,9 +20,10 @@ interface StaffUtilization {
 interface StaffUtilizationChartProps {
   data: StaffUtilization[]
   isLoading?: boolean
+  onStaffClick?: (staffId: string, staffName: string) => void
 }
 
-export function StaffUtilizationChart({ data, isLoading }: StaffUtilizationChartProps) {
+export function StaffUtilizationChart({ data, isLoading, onStaffClick }: StaffUtilizationChartProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-CH', {
       style: 'currency',
@@ -216,7 +217,7 @@ export function StaffUtilizationChart({ data, isLoading }: StaffUtilizationChart
                 <div className="text-2xl font-bold text-red-600">
                   {data.filter(s => s.utilization < 40).length}
                 </div>
-                <div className="text-sm text-muted-foreground">Niedrig ausgelastet (<40%)</div>
+                <div className="text-sm text-muted-foreground">Niedrig ausgelastet (&lt;40%)</div>
               </div>
             </div>
           </div>

@@ -6,7 +6,7 @@
 import { Handler, HandlerEvent } from '@netlify/functions'
 import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, createLogger, generateCorrelationId, createAdminClient, AuthenticatedContext } from '../../../../src/lib/auth/netlify-auth'
 import { validateQuery, schemas } from '../../../../src/lib/validation/schemas'
-import { addDays, format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
+import { addDays, format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subWeeks, subMonths, subYears } from 'date-fns'
 
 type SupabaseClient = ReturnType<typeof createAdminClient>
 type Logger = ReturnType<typeof createLogger>
@@ -234,6 +234,136 @@ interface DailyStat {
     })
   }
 
+  // Calculate comparison data if requested
+  let comparisonData = null
+  if (query.comparisonPeriod && query.comparisonPeriod !== 'none') {
+    let compStartDate: string
+    let compEndDate: string
+    
+    if (query.comparisonPeriod === 'previous_period') {
+      const startDateObj = new Date(startDate)
+      const endDateObj = new Date(endDate)
+      const periodLength = Math.ceil((endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24))
+      
+      compEndDate = format(subDays(startDateObj, 1), 'yyyy-MM-dd')
+      compStartDate = format(subDays(startDateObj, periodLength), 'yyyy-MM-dd')
+    } else { // previous_year
+      const startDateObj = new Date(startDate)
+      const endDateObj = new Date(endDate)
+      
+      compStartDate = format(subYears(startDateObj, 1), 'yyyy-MM-dd')
+      compEndDate = format(subYears(endDateObj, 1), 'yyyy-MM-dd')
+    }
+
+    // Fetch comparison period data
+    let compAppointmentsQuery = supabase
+      .from('appointments_with_details')
+      .select('*')
+      .gte('start_time', `${compStartDate}T00:00:00Z`)
+      .lte('start_time', `${compEndDate}T23:59:59Z`)
+
+    if (query.staffId) {
+      compAppointmentsQuery = compAppointmentsQuery.eq('staff_id', query.staffId)
+    }
+    if (query.serviceId) {
+      compAppointmentsQuery = compAppointmentsQuery.eq('service_id', query.serviceId)
+    }
+
+    const { data: compAppointments } = await compAppointmentsQuery
+
+    if (compAppointments) {
+      const compTotalAppointments = compAppointments.length
+      const compCompletedAppointments = compAppointments.filter(apt => apt.status === 'completed')
+      const compCancelledAppointments = compAppointments.filter(apt => apt.status === 'cancelled')
+      const compTotalRevenue = compCompletedAppointments.reduce((sum, apt) => sum + (apt.service_price_cents || 0), 0) / 100
+      const compBookingRate = compTotalAppointments > 0 ? (compCompletedAppointments.length / compTotalAppointments) * 100 : 0
+      const compCancellationRate = compTotalAppointments > 0 ? (compCancelledAppointments.length / compTotalAppointments) * 100 : 0
+
+      const createComparison = (current: number, previous: number) => {
+        const change = current - previous
+        const changePercentage = previous > 0 ? (change / previous) * 100 : 0
+        const trend = Math.abs(changePercentage) < 1 ? 'stable' : (changePercentage > 0 ? 'up' : 'down')
+        
+        return {
+          current,
+          previous,
+          change,
+          changePercentage,
+          trend
+        }
+      }
+
+      comparisonData = {
+        totalAppointments: createComparison(totalAppointments, compTotalAppointments),
+        totalRevenue: createComparison(totalRevenue, compTotalRevenue),
+        bookingRate: createComparison(bookingRate, compBookingRate),
+        cancellationRate: createComparison(cancellationRate, compCancellationRate)
+      }
+    }
+  }
+
+  // Calculate heatmap data (day of week vs hour)
+  const heatmapData: Array<{
+    dayOfWeek: number
+    hour: number
+    appointments: number
+    density: number
+    revenue?: number
+  }> = []
+
+  if (appointments) {
+    // Initialize heatmap grid
+    const heatmapGrid: Record<string, { appointments: number; revenue: number }> = {}
+    
+    for (let day = 0; day <= 6; day++) {
+      for (let hour = 0; hour <= 23; hour++) {
+        heatmapGrid[`${day}-${hour}`] = { appointments: 0, revenue: 0 }
+      }
+    }
+
+    // Populate grid with appointment data
+    appointments.forEach(apt => {
+      const aptDate = new Date(apt.start_time)
+      const dayOfWeek = aptDate.getDay()
+      const hour = aptDate.getHours()
+      const key = `${dayOfWeek}-${hour}`
+      
+      heatmapGrid[key].appointments += 1
+      if (apt.status === 'completed') {
+        heatmapGrid[key].revenue += (apt.service_price_cents || 0) / 100
+      }
+    })
+
+    // Find max appointments for density calculation
+    const maxAppointments = Math.max(...Object.values(heatmapGrid).map(cell => cell.appointments))
+
+    // Convert to array format
+    for (let day = 0; day <= 6; day++) {
+      for (let hour = 0; hour <= 23; hour++) {
+        const key = `${day}-${hour}`
+        const cell = heatmapGrid[key]
+        
+        heatmapData.push({
+          dayOfWeek: day,
+          hour,
+          appointments: cell.appointments,
+          density: maxAppointments > 0 ? cell.appointments / maxAppointments : 0,
+          revenue: cell.revenue
+        })
+      }
+    }
+  }
+
+  // Get user permissions
+  const userRole = context.user.role || 'staff'
+  const permissions = {
+    canViewAllStaff: userRole === 'admin',
+    canViewRevenue: userRole === 'admin' || userRole === 'staff',
+    canExportData: userRole === 'admin' || userRole === 'staff',
+    canManageReports: userRole === 'admin',
+    ownStaffId: userRole === 'staff' ? context.user.id : undefined
+  }
+
   const kpiData = {
     totalAppointments,
     totalRevenue,
@@ -247,7 +377,10 @@ interface DailyStat {
     dateRange: {
       startDate,
       endDate
-    }
+    },
+    ...(comparisonData && { comparison: comparisonData }),
+    heatmapData,
+    realTimeUpdate: true
   }
 
   logger.info('KPIs calculated successfully', { 
@@ -257,5 +390,8 @@ interface DailyStat {
     servicesCount: popularServices.length
   })
 
-  return createSuccessResponse(kpiData)
+  return createSuccessResponse({ 
+    ...kpiData, 
+    permissions 
+  })
 }

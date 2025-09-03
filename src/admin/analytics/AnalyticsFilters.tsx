@@ -20,6 +20,7 @@ interface AnalyticsFiltersProps {
     staffId: string
     serviceId: string
     period: 'day' | 'week' | 'month'
+    comparisonPeriod?: 'previous_period' | 'previous_year' | 'none'
   }
   onFiltersChange: (filters: AnalyticsFiltersProps['filters']) => void
   isLoading?: boolean
@@ -190,7 +191,7 @@ export function AnalyticsFilters({ filters, onFiltersChange, isLoading }: Analyt
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="staffFilter" className="text-sm font-medium">
             Mitarbeiter
@@ -236,6 +237,29 @@ export function AnalyticsFilters({ filters, onFiltersChange, isLoading }: Analyt
                   )}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="comparisonFilter" className="text-sm font-medium">
+            Vergleichszeitraum
+          </Label>
+          <Select
+            value={localFilters.comparisonPeriod || 'none'}
+            onValueChange={(value) => handleFilterChange('comparisonPeriod', value === 'none' ? undefined : value as 'previous_period' | 'previous_year')}
+            disabled={isLoading}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Kein Vergleich" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Kein Vergleich</SelectItem>
+              <SelectItem value="previous_period">
+                {localFilters.period === 'day' ? 'vs. Vortag' : 
+                 localFilters.period === 'week' ? 'vs. Vorwoche' : 'vs. Vormonat'}
+              </SelectItem>
+              <SelectItem value="previous_year">vs. Vorjahr</SelectItem>
             </SelectContent>
           </Select>
         </div>

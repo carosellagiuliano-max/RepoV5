@@ -434,7 +434,8 @@ export const analyticsFiltersSchema = z.object({
   endDate: dateSchema.optional(),
   staffId: uuidSchema.optional(),
   serviceId: uuidSchema.optional(),
-  period: z.enum(['day', 'week', 'month']).optional().default('month')
+  period: z.enum(['day', 'week', 'month']).optional().default('month'),
+  comparisonPeriod: z.enum(['previous_period', 'previous_year', 'none']).optional()
 })
 
 export const csvExportFiltersSchema = z.object({
@@ -442,7 +443,16 @@ export const csvExportFiltersSchema = z.object({
   endDate: dateSchema.optional(),
   staffId: uuidSchema.optional(),
   serviceId: uuidSchema.optional(),
-  type: z.enum(['appointments', 'staff-utilization', 'services-revenue']).default('appointments')
+  type: z.enum(['appointments', 'staff-utilization', 'services-revenue', 'drilldown', 'heatmap']).default('appointments'),
+  format: z.enum(['csv', 'pdf']).optional().default('csv')
+})
+
+export const drilldownFiltersSchema = z.object({
+  metric: z.enum(['appointments', 'revenue', 'staff', 'service']),
+  value: z.string().optional(),
+  startDate: dateSchema,
+  endDate: dateSchema,
+  status: z.string().optional() // Comma-separated status values
 })
 
 // Validation helper functions
@@ -535,6 +545,7 @@ export const schemas = {
   mediaFilters: mediaFiltersSchema,
   analyticsFilters: analyticsFiltersSchema,
   csvExportFilters: csvExportFiltersSchema,
+  drilldownFilters: drilldownFiltersSchema,
   
   // Auth schemas
   login: loginSchema,

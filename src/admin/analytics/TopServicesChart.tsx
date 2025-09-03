@@ -20,9 +20,10 @@ interface TopServicesChartProps {
   data: PopularService[]
   isLoading?: boolean
   detailed?: boolean
+  onServiceClick?: (serviceId: string, serviceName: string) => void
 }
 
-export function TopServicesChart({ data, isLoading, detailed = false }: TopServicesChartProps) {
+export function TopServicesChart({ data, isLoading, detailed = false, onServiceClick }: TopServicesChartProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-CH', {
       style: 'currency',

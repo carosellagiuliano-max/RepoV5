@@ -21,9 +21,10 @@ interface RevenueChartProps {
   data: DailyStat[]
   isLoading?: boolean
   detailed?: boolean
+  onDataPointClick?: (date: string) => void
 }
 
-export function RevenueChart({ data, isLoading, detailed = false }: RevenueChartProps) {
+export function RevenueChart({ data, isLoading, detailed = false, onDataPointClick }: RevenueChartProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-CH', {
       style: 'currency',
@@ -94,7 +95,14 @@ export function RevenueChart({ data, isLoading, detailed = false }: RevenueChart
         {data.length > 0 ? (
           <div className="space-y-4">
             <ResponsiveContainer width="100%" height={detailed ? 400 : 300}>
-              <LineChart data={data}>
+              <LineChart 
+                data={data}
+                onClick={(data) => {
+                  if (data && data.activeLabel && onDataPointClick) {
+                    onDataPointClick(data.activeLabel as string)
+                  }
+                }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="date" 

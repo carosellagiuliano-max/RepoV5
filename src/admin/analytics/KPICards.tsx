@@ -53,9 +53,10 @@ interface KPIData {
 interface KPICardsProps {
   data: KPIData
   isLoading?: boolean
+  onCardClick?: (metric: 'appointments' | 'revenue' | 'staff' | 'service', title: string, value?: string) => void
 }
 
-export function KPICards({ data, isLoading }: KPICardsProps) {
+export function KPICards({ data, isLoading, onCardClick }: KPICardsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-CH', {
       style: 'currency',
@@ -123,7 +124,10 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Appointments */}
-      <Card className="border-l-4 border-l-blue-500">
+      <Card 
+        className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => onCardClick?.('appointments', 'Alle Termine')}
+      >
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Calendar className="w-4 h-4" />
@@ -141,7 +145,10 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
       </Card>
 
       {/* Total Revenue */}
-      <Card className="border-l-4 border-l-green-500">
+      <Card 
+        className="border-l-4 border-l-green-500 cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => onCardClick?.('revenue', 'Umsatz Details')}
+      >
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
@@ -157,7 +164,10 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
       </Card>
 
       {/* Average Service Time */}
-      <Card className="border-l-4 border-l-purple-500">
+      <Card 
+        className="border-l-4 border-l-purple-500 cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => onCardClick?.('appointments', 'Service-Zeit Details')}
+      >
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Clock className="w-4 h-4" />
@@ -173,7 +183,10 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
       </Card>
 
       {/* Booking Rate */}
-      <Card className="border-l-4 border-l-indigo-500">
+      <Card 
+        className="border-l-4 border-l-indigo-500 cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => onCardClick?.('appointments', 'Abgeschlossene Termine')}
+      >
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <CheckCircle className="w-4 h-4" />
