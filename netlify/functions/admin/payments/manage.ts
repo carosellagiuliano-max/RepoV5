@@ -27,7 +27,7 @@ const refundSchema = z.object({
   payment_id: z.string().uuid(),
   amount_cents: z.number().int().min(1).optional(), // Partial refund if specified
   reason: z.string().optional(),
-  metadata: z.record(z.any()).default({})
+  metadata: z.record(z.string(), z.unknown()).default({})
 })
 
 const captureSchema = z.object({
@@ -45,6 +45,19 @@ const paymentListSchema = z.object({
   end_date: z.string().optional(),
   search: z.string().optional()
 })
+
+interface AuthenticatedUser {
+  id: string
+  email: string
+  role: 'admin' | 'staff' | 'customer'
+  full_name?: string
+}
+
+interface JWTPayload {
+  sub: string
+  email: string
+  role?: string
+}
 
 /**
  * Payment Management API for Admin/Staff
@@ -134,7 +147,7 @@ async function authenticateUser(event: HandlerEvent) {
 
   try {
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload
     
     // Get user profile
     const { data: profile, error } = await supabase
@@ -158,7 +171,7 @@ async function authenticateUser(event: HandlerEvent) {
 /**
  * Handle listing payments with filtering and pagination
  */
-async function handleListPayments(event: HandlerEvent, user: any) {
+async function handleListPayments(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
@@ -261,7 +274,7 @@ async function handleListPayments(event: HandlerEvent, user: any) {
 /**
  * Handle payment refund
  */
-async function handleRefundPayment(event: HandlerEvent, user: any) {
+async function handleRefundPayment(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -301,7 +314,7 @@ async function handleRefundPayment(event: HandlerEvent, user: any) {
     // Create refund in Stripe
     const refundParams: Stripe.RefundCreateParams = {
       payment_intent: payment.stripe_payment_intent_id!,
-      reason: validatedData.reason as any || 'requested_by_customer',
+      reason: (validatedData.reason as Stripe.RefundCreateParams.Reason) || 'requested_by_customer',
       metadata: {
         refunded_by: user.id,
         admin_email: user.email,
@@ -390,7 +403,7 @@ async function handleRefundPayment(event: HandlerEvent, user: any) {
 /**
  * Handle payment capture (for manual capture)
  */
-async function handleCapturePayment(event: HandlerEvent, user: any) {
+async function handleCapturePayment(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -518,7 +531,7 @@ async function handleCapturePayment(event: HandlerEvent, user: any) {
 /**
  * Handle payment void (cancel before capture)
  */
-async function handleVoidPayment(event: HandlerEvent, user: any) {
+async function handleVoidPayment(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -646,7 +659,7 @@ async function handleVoidPayment(event: HandlerEvent, user: any) {
 /**
  * Handle payment summary for dashboard
  */
-async function handlePaymentSummary(event: HandlerEvent, user: any) {
+async function handlePaymentSummary(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
@@ -713,7 +726,7 @@ async function createAdminAudit(auditData: {
   resource_id: string
   admin_id: string
   admin_email: string
-  action_data: Record<string, any>
+  action_data: Record<string, unknown>
   success: boolean
   reason?: string
   error_message?: string

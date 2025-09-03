@@ -30,7 +30,7 @@ const createPaymentIntentSchema = z.object({
   currency: z.string().length(3).default('CHF'),
   payment_method_type: z.enum(['card', 'apple_pay', 'google_pay', 'sepa_debit', 'bancontact', 'ideal']).default('card'),
   description: z.string().optional(),
-  metadata: z.record(z.any()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   capture_method: z.enum(['automatic', 'manual']).default('automatic'),
   customer_email: z.string().email().optional(),
   save_payment_method: z.boolean().default(false)
@@ -41,6 +41,27 @@ const confirmPaymentIntentSchema = z.object({
   payment_method_id: z.string().optional(),
   return_url: z.string().url().optional()
 })
+
+interface AuthenticatedUser {
+  id: string
+  email: string
+  role: 'admin' | 'staff' | 'customer'
+  full_name?: string
+}
+
+interface JWTPayload {
+  sub: string
+  email: string
+  role?: string
+}
+
+interface CustomerData {
+  id: string
+  email: string
+  full_name?: string
+  phone?: string
+  stripe_customer_id?: string
+}
 
 /**
  * Payment Creation and Management API
@@ -119,7 +140,7 @@ async function authenticateUser(event: HandlerEvent) {
 
   try {
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload
     
     // Get user profile
     const { data: profile, error } = await supabase
@@ -143,7 +164,7 @@ async function authenticateUser(event: HandlerEvent) {
 /**
  * Handle payment intent creation
  */
-async function handleCreatePaymentIntent(event: HandlerEvent, user: any) {
+async function handleCreatePaymentIntent(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -344,7 +365,7 @@ async function handleCreatePaymentIntent(event: HandlerEvent, user: any) {
 /**
  * Handle payment intent confirmation
  */
-async function handleConfirmPaymentIntent(event: HandlerEvent, user: any) {
+async function handleConfirmPaymentIntent(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -402,7 +423,7 @@ async function handleConfirmPaymentIntent(event: HandlerEvent, user: any) {
     await supabase
       .from('payments')
       .update({
-        status: confirmedPaymentIntent.status as any,
+        status: confirmedPaymentIntent.status,
         stripe_payment_method_id: confirmedPaymentIntent.payment_method as string,
         requires_action: confirmedPaymentIntent.status === 'requires_action',
         next_action: confirmedPaymentIntent.next_action,
@@ -439,7 +460,7 @@ async function handleConfirmPaymentIntent(event: HandlerEvent, user: any) {
 /**
  * Handle payment intent retrieval
  */
-async function handleRetrievePaymentIntent(event: HandlerEvent, user: any) {
+async function handleRetrievePaymentIntent(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
@@ -514,7 +535,7 @@ async function handleRetrievePaymentIntent(event: HandlerEvent, user: any) {
 /**
  * Handle payment intent cancellation
  */
-async function handleCancelPaymentIntent(event: HandlerEvent, user: any) {
+async function handleCancelPaymentIntent(event: HandlerEvent, user: AuthenticatedUser) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -616,7 +637,7 @@ async function handleCancelPaymentIntent(event: HandlerEvent, user: any) {
 /**
  * Check if user is authorized to access appointment payment
  */
-async function checkAppointmentAuthorization(appointmentId: string, user: any): Promise<{ authorized: boolean; reason?: string }> {
+async function checkAppointmentAuthorization(appointmentId: string, user: AuthenticatedUser): Promise<{ authorized: boolean; reason?: string }> {
   // Admin and staff can access any appointment
   if (user.role === 'admin' || user.role === 'staff') {
     return { authorized: true }
@@ -650,7 +671,7 @@ async function checkAppointmentAuthorization(appointmentId: string, user: any): 
 /**
  * Get or create Stripe customer
  */
-async function getOrCreateStripeCustomer(customer: any): Promise<Stripe.Customer> {
+async function getOrCreateStripeCustomer(customer: CustomerData): Promise<Stripe.Customer> {
   // Check if customer already has Stripe ID
   if (customer.stripe_customer_id) {
     try {
@@ -685,7 +706,7 @@ async function getOrCreateStripeCustomer(customer: any): Promise<Stripe.Customer
 /**
  * Check idempotency
  */
-async function checkIdempotency(idempotencyKey: string, requestBody: string): Promise<any> {
+async function checkIdempotency(idempotencyKey: string, requestBody: string): Promise<{ exists: boolean; response?: unknown; error?: string }> {
   try {
     const requestHash = crypto.createHash('sha256').update(requestBody).digest('hex')
     
@@ -726,7 +747,7 @@ async function storeIdempotencyResponse(
   idempotencyKey: string,
   requestBody: string,
   statusCode: number,
-  responseBody: any
+  responseBody: unknown
 ): Promise<void> {
   try {
     const requestHash = crypto.createHash('sha256').update(requestBody).digest('hex')

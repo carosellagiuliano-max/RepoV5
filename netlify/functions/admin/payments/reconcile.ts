@@ -34,6 +34,41 @@ interface ReconciliationResult {
   errors: string[]
 }
 
+interface AuthenticatedUser {
+  id: string
+  email: string
+  role: 'admin' | 'staff' | 'customer'
+  full_name?: string
+}
+
+interface JWTPayload {
+  sub: string
+  email: string
+  role?: string
+}
+
+interface InternalPayment {
+  id: string
+  stripe_payment_intent_id: string
+  amount_cents: number
+  status: string
+  created_at: string
+  customer_id: string
+  appointment_id?: string
+}
+
+interface StripeTransaction {
+  id: string
+  amount: number
+  currency: string
+  fee: number
+  net: number
+  created: number
+  description?: string
+  payment_intent?: string
+  source?: string
+}
+
 /**
  * Payment Reconciliation Job
  * Daily job to reconcile Stripe Balance Transactions with internal payment records
@@ -135,7 +170,7 @@ async function verifyAuthentication(event: HandlerEvent): Promise<boolean> {
   try {
     const jwt = await import('jsonwebtoken')
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload
     
     // Get user profile and check admin role
     const { data: profile, error } = await supabase
@@ -298,23 +333,23 @@ async function getInternalPayments(date: string) {
  */
 async function matchTransactions(
   stripeTransactions: Stripe.BalanceTransaction[],
-  internalPayments: any[]
+  internalPayments: InternalPayment[]
 ) {
   const matched: Array<{
     stripeTransaction: Stripe.BalanceTransaction
-    internalPayment: any
+    internalPayment: InternalPayment
   }> = []
   
   const discrepancies: Array<{
     type: 'stripe_only' | 'internal_only' | 'amount_mismatch'
     stripeTransaction?: Stripe.BalanceTransaction
-    internalPayment?: any
+    internalPayment?: InternalPayment
     details: string
   }> = []
 
   // Create maps for efficient lookup
   const stripeByChargeId = new Map<string, Stripe.BalanceTransaction>()
-  const internalByChargeId = new Map<string, any>()
+  const internalByChargeId = new Map<string, InternalPayment>()
 
   // Index Stripe transactions by charge ID
   for (const tx of stripeTransactions) {
@@ -379,8 +414,8 @@ async function matchTransactions(
 async function storeReconciliationResults(
   date: string,
   stripeTransactions: Stripe.BalanceTransaction[],
-  matched: any[],
-  discrepancies: any[]
+  matched: Array<{ stripeTransaction: Stripe.BalanceTransaction; internalPayment: InternalPayment }>,
+  discrepancies: Array<{ type: string; stripeTransaction?: Stripe.BalanceTransaction; internalPayment?: InternalPayment; details: string }>
 ) {
   // Calculate summary totals
   const grossAmount = stripeTransactions.reduce((sum, tx) => sum + tx.amount, 0)
@@ -431,7 +466,7 @@ async function storeReconciliationResults(
 /**
  * Create admin alerts for reconciliation discrepancies
  */
-async function createDiscrepancyAlerts(date: string, discrepancies: any[]) {
+async function createDiscrepancyAlerts(date: string, discrepancies: Array<{ type: string; stripeTransaction?: Stripe.BalanceTransaction; internalPayment?: InternalPayment; details: string }>) {
   for (const discrepancy of discrepancies) {
     await supabase
       .from('admin_audit')

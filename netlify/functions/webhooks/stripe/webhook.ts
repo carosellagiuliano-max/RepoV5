@@ -27,8 +27,8 @@ interface StripeWebhookPayload {
   api_version: string
   created: number
   data: {
-    object: any
-    previous_attributes?: any
+    object: Stripe.PaymentIntent | Stripe.Charge | Stripe.SetupIntent | Stripe.Customer | unknown
+    previous_attributes?: Record<string, unknown>
   }
   livemode: boolean
   pending_webhooks: number
@@ -174,7 +174,7 @@ async function checkEventIdempotency(eventId: string): Promise<boolean> {
 /**
  * Process Stripe webhook event based on type
  */
-async function processStripeWebhook(event: Stripe.Event): Promise<any> {
+async function processStripeWebhook(event: Stripe.Event): Promise<{ success: boolean; message?: string; error?: string }> {
   console.log(`Processing event type: ${event.type}`)
 
   switch (event.type) {
@@ -402,10 +402,10 @@ async function handleInvoicePaymentFailed(event: Stripe.Event) {
 async function updatePaymentStatus(
   stripePaymentIntentId: string,
   status: string,
-  additionalData: Record<string, any> = {}
+  additionalData: Record<string, unknown> = {}
 ) {
   try {
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status,
       updated_at: new Date().toISOString(),
       ...additionalData
@@ -447,8 +447,8 @@ async function getBalanceTransactionFee(balanceTransactionId: string): Promise<n
 async function logWebhookEvent(
   event: Stripe.Event,
   eventType: string,
-  additionalData: Record<string, any> = {}
-): Promise<any> {
+  additionalData: Record<string, unknown> = {}
+): Promise<{ success: boolean; error?: string }> {
   try {
     // Find payment by payment intent ID if available
     let paymentId: string | null = null
@@ -497,16 +497,16 @@ async function logWebhookEvent(
  * Extract payment intent ID from various Stripe objects
  */
 function getPaymentIntentId(event: Stripe.Event): string | null {
-  const obj = event.data.object as any
+  const obj = event.data.object as Stripe.PaymentIntent | Stripe.Charge | { object: string; payment_intent?: string }
   
   // Direct payment intent
   if (obj.object === 'payment_intent') {
-    return obj.id
+    return (obj as Stripe.PaymentIntent).id
   }
   
   // Charge object
-  if (obj.object === 'charge' && obj.payment_intent) {
-    return obj.payment_intent
+  if (obj.object === 'charge' && 'payment_intent' in obj && obj.payment_intent) {
+    return typeof obj.payment_intent === 'string' ? obj.payment_intent : obj.payment_intent.id
   }
   
   // Invoice object
@@ -531,7 +531,7 @@ async function createAdminAudit(auditData: {
   resource_id: string
   admin_id: string
   admin_email: string
-  action_data: Record<string, any>
+  action_data: Record<string, unknown>
   success: boolean
   reason?: string
 }): Promise<void> {

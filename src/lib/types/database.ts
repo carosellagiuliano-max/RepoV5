@@ -3,6 +3,8 @@
  * These interfaces represent the structure of our Supabase database tables
  */
 
+import type Stripe from 'stripe'
+
 export interface Database {
   public: {
     Tables: {
@@ -429,12 +431,12 @@ export interface Database {
           card_funding?: string
           requires_action: boolean
           client_secret?: string
-          next_action?: Record<string, any>
+          next_action?: Stripe.PaymentIntent.NextAction
           fee_cents: number
           net_amount_cents?: number
           application_fee_cents: number
           description?: string
-          metadata: Record<string, any>
+          metadata: Record<string, unknown>
           receipt_email?: string
           receipt_url?: string
           created_by?: string
@@ -460,12 +462,12 @@ export interface Database {
           card_funding?: string
           requires_action?: boolean
           client_secret?: string
-          next_action?: Record<string, any>
+          next_action?: Stripe.PaymentIntent.NextAction
           fee_cents?: number
           net_amount_cents?: number
           application_fee_cents?: number
           description?: string
-          metadata?: Record<string, any>
+          metadata?: Record<string, unknown>
           receipt_email?: string
           receipt_url?: string
           created_by?: string
@@ -486,12 +488,12 @@ export interface Database {
           card_funding?: string
           requires_action?: boolean
           client_secret?: string
-          next_action?: Record<string, any>
+          next_action?: Stripe.PaymentIntent.NextAction
           fee_cents?: number
           net_amount_cents?: number
           application_fee_cents?: number
           description?: string
-          metadata?: Record<string, any>
+          metadata?: Record<string, unknown>
           receipt_email?: string
           receipt_url?: string
           updated_at?: string
@@ -503,7 +505,7 @@ export interface Database {
           payment_id: string
           event_type: PaymentEventType
           stripe_event_id?: string
-          event_data: Record<string, any>
+          event_data: Record<string, unknown>
           amount_cents?: number
           status?: PaymentStatus
           processed: boolean
@@ -518,7 +520,7 @@ export interface Database {
           payment_id: string
           event_type: PaymentEventType
           stripe_event_id?: string
-          event_data?: Record<string, any>
+          event_data?: Record<string, unknown>
           amount_cents?: number
           status?: PaymentStatus
           processed?: boolean
@@ -528,7 +530,7 @@ export interface Database {
           created_by?: string
         }
         Update: {
-          event_data?: Record<string, any>
+          event_data?: Record<string, unknown>
           amount_cents?: number
           status?: PaymentStatus
           processed?: boolean
@@ -590,7 +592,7 @@ export interface Database {
           resource_id: string
           admin_id: string
           admin_email: string
-          action_data: Record<string, any>
+          action_data: Record<string, unknown>
           reason?: string
           success: boolean
           error_message?: string
@@ -606,7 +608,7 @@ export interface Database {
           resource_id: string
           admin_id: string
           admin_email: string
-          action_data?: Record<string, any>
+          action_data?: Record<string, unknown>
           reason?: string
           success: boolean
           error_message?: string
@@ -615,7 +617,7 @@ export interface Database {
           session_id?: string
         }
         Update: {
-          action_data?: Record<string, any>
+          action_data?: Record<string, unknown>
           reason?: string
           success?: boolean
           error_message?: string
@@ -629,7 +631,7 @@ export interface Database {
           endpoint: string
           method: string
           response_status?: number
-          response_body?: Record<string, any>
+          response_body?: Record<string, unknown>
           expires_at: string
           created_at: string
         }
@@ -640,12 +642,12 @@ export interface Database {
           endpoint: string
           method: string
           response_status?: number
-          response_body?: Record<string, any>
+          response_body?: Record<string, unknown>
           expires_at?: string
         }
         Update: {
           response_status?: number
-          response_body?: Record<string, any>
+          response_body?: Record<string, unknown>
           expires_at?: string
         }
       }
@@ -1054,7 +1056,7 @@ export interface Payment {
   // Payment flow
   requires_action: boolean
   client_secret?: string
-  next_action?: Record<string, any>
+  next_action?: Stripe.PaymentIntent.NextAction
   
   // Financial details
   fee_cents: number
@@ -1063,7 +1065,7 @@ export interface Payment {
   
   // Metadata
   description?: string
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   receipt_email?: string
   receipt_url?: string
   
@@ -1078,7 +1080,7 @@ export interface PaymentEvent {
   payment_id: string
   event_type: PaymentEventType
   stripe_event_id?: string
-  event_data: Record<string, any>
+  event_data: Record<string, unknown>
   amount_cents?: number
   status?: PaymentStatus
   processed: boolean
@@ -1113,7 +1115,7 @@ export interface AdminAudit {
   resource_id: string
   admin_id: string
   admin_email: string
-  action_data: Record<string, any>
+  action_data: Record<string, unknown>
   reason?: string
   success: boolean
   error_message?: string
@@ -1130,7 +1132,7 @@ export interface PaymentIdempotency {
   endpoint: string
   method: string
   response_status?: number
-  response_body?: Record<string, any>
+  response_body?: Record<string, unknown>
   expires_at: string
   created_at: string
 }
@@ -1142,8 +1144,8 @@ export interface StripeWebhookEvent {
   api_version: string
   created: number
   data: {
-    object: any
-    previous_attributes?: any
+    object: Stripe.PaymentIntent | Stripe.Charge | Stripe.SetupIntent | Stripe.Customer | unknown
+    previous_attributes?: Record<string, unknown>
   }
   livemode: boolean
   pending_webhooks: number
@@ -1160,7 +1162,7 @@ export interface PaymentIntentCreateRequest {
   currency?: string
   payment_method_type?: PaymentMethodType
   description?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   capture_method?: 'automatic' | 'manual'
 }
 

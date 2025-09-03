@@ -53,7 +53,7 @@ import {
   getPaymentStatusInfo,
   getPaymentMethodInfo
 } from '@/hooks/use-payments'
-import { PaymentStatus, PaymentMethodType } from '@/lib/types/database'
+import { PaymentStatus, PaymentMethodType, Payment } from '@/lib/types/database'
 import { toast } from '@/hooks/use-toast'
 
 interface PaymentManagerProps {
@@ -77,7 +77,7 @@ export function PaymentManager({ className }: PaymentManagerProps) {
   })
 
   // Dialog states
-  const [refundDialog, setRefundDialog] = useState<{ open: boolean; payment: any }>({
+  const [refundDialog, setRefundDialog] = useState<{ open: boolean; payment: Payment | null }>({
     open: false,
     payment: null
   })
@@ -100,7 +100,7 @@ export function PaymentManager({ className }: PaymentManagerProps) {
   const capturePayment = useCapturePayment()
   const voidPayment = useVoidPayment()
 
-  const handleRefund = async (payment: any) => {
+  const handleRefund = async (payment: Payment) => {
     try {
       const amountCents = refundAmount ? 
         Math.round(parseFloat(refundAmount) * 100) : 
@@ -129,7 +129,7 @@ export function PaymentManager({ className }: PaymentManagerProps) {
     }
   }
 
-  const handleCapture = async (payment: any) => {
+  const handleCapture = async (payment: Payment) => {
     try {
       await capturePayment.mutateAsync({
         payment_id: payment.id
@@ -148,7 +148,7 @@ export function PaymentManager({ className }: PaymentManagerProps) {
     }
   }
 
-  const handleVoid = async (payment: any) => {
+  const handleVoid = async (payment: Payment) => {
     try {
       await voidPayment.mutateAsync({
         payment_id: payment.id,
@@ -168,7 +168,7 @@ export function PaymentManager({ className }: PaymentManagerProps) {
     }
   }
 
-  const getActionButtons = (payment: any) => {
+  const getActionButtons = (payment: Payment) => {
     const buttons = []
 
     if (payment.status === 'requires_capture') {
@@ -413,7 +413,7 @@ export function PaymentManager({ className }: PaymentManagerProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paymentsData?.payments?.map((payment: any) => {
+              {paymentsData?.payments?.map((payment: Payment) => {
                 const statusInfo = getPaymentStatusInfo(payment.status)
                 const methodInfo = getPaymentMethodInfo(payment.payment_method_type)
                 

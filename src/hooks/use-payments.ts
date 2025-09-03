@@ -266,7 +266,7 @@ export const useRefundPayment = () => {
       payment_id: string
       amount_cents?: number
       reason?: string
-      metadata?: Record<string, any>
+      metadata?: Record<string, unknown>
     }) => {
       const { data: session } = await supabase.auth.getSession()
       if (!session.session?.access_token) {
