@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
 import crypto from 'crypto'
+import { TwilioStatusPayload, WebhookEvent } from '../../src/lib/notifications/types'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -143,7 +144,7 @@ function verifyTwilioSignature(
 
 function parseFormData(body: string): TwilioWebhookEvent {
   const params = new URLSearchParams(body)
-  const data: any = {}
+  const data: Record<string, string> = {}
   
   for (const [key, value] of params.entries()) {
     data[key] = value
@@ -152,7 +153,16 @@ function parseFormData(body: string): TwilioWebhookEvent {
   return data as TwilioWebhookEvent
 }
 
-async function processTwilioWebhook(webhookData: TwilioWebhookEvent): Promise<any> {
+interface TwilioWebhookProcessingResult {
+  success: boolean
+  messageId: string
+  status: string
+  updatedCount: number
+  suppressionAdded?: boolean
+  error?: string
+}
+
+async function processTwilioWebhook(webhookData: TwilioWebhookEvent): Promise<TwilioWebhookProcessingResult> {
   const {
     MessageSid,
     MessageStatus,

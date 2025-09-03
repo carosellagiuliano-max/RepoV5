@@ -583,7 +583,7 @@ export class NotificationService {
       phone?: string
       reason?: string
       timestamp?: Date
-      providerResponse?: any
+      providerResponse?: Record<string, unknown>
     }
   ): Promise<void> {
     if (!this.consentService) {

@@ -65,7 +65,7 @@ describe('Budget Controls & DLQ System', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(createClient as any).mockReturnValue(mockSupabase)
+    ;(createClient as jest.MockedFunction<typeof createClient>).mockReturnValue(mockSupabase)
     
     settingsService = new NotificationSettingsService('test-url', 'test-key')
     dlqService = new DeadLetterQueueService('test-url', 'test-key')

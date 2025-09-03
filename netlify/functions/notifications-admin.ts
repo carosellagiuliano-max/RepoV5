@@ -2,6 +2,13 @@ import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
 import { DeadLetterQueueService } from '../../src/lib/notifications/dlq-service'
 import { NotificationSettingsService } from '../../src/lib/notifications/settings-service'
+import { 
+  AdminBudgetResponse, 
+  AdminDLQResponse, 
+  HealthCheckResult,
+  BudgetUsage,
+  DLQItem
+} from '../../src/lib/notifications/types'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -18,6 +25,22 @@ interface NetlifyEvent {
   queryStringParameters?: Record<string, string>
   body: string
   path: string
+}
+
+interface RequestParams {
+  scope?: 'global' | 'location' | 'user'
+  scope_id?: string
+  channel?: 'email' | 'sms'
+  page?: string
+  per_page?: string
+  [key: string]: string | undefined
+}
+
+interface RequestBody {
+  recipient?: string
+  updated_data?: Record<string, unknown>
+  resolution_notes?: string
+  [key: string]: unknown
 }
 
 export async function handler(event: NetlifyEvent, context: Context) {
@@ -125,15 +148,16 @@ async function handleGetRequest(
   corsHeaders: Record<string, string>
 ) {
   switch (action) {
-    case 'dlq-stats':
+    case 'dlq-stats': {
       const dlqStats = await dlqService.getDLQStats()
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({ success: true, data: dlqStats })
       }
+    }
 
-    case 'dlq-items':
+    case 'dlq-items': {
       const filters = {
         failureType: params?.failureType,
         notificationChannel: params?.notificationChannel,
@@ -149,9 +173,10 @@ async function handleGetRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: true, data: dlqItems })
       }
+    }
 
-    case 'budget-tracking':
-      const scope = (params?.scope as any) || 'global'
+    case 'budget-tracking': {
+      const scope = (params?.scope as 'global' | 'location' | 'user') || 'global'
       const scopeId = params?.scopeId
       const year = parseInt(params?.year || new Date().getFullYear().toString())
       const month = parseInt(params?.month || (new Date().getMonth() + 1).toString())
@@ -162,9 +187,10 @@ async function handleGetRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: true, data: budgetTracking })
       }
+    }
 
-    case 'budget-alerts':
-      const alertScope = (params?.scope as any) || 'global'
+    case 'budget-alerts': {
+      const alertScope = (params?.scope as 'global' | 'location' | 'user') || 'global'
       const alertScopeId = params?.scopeId
       
       const budgetAlerts = await settingsService.getBudgetAlerts(alertScope, alertScopeId)
@@ -173,8 +199,9 @@ async function handleGetRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: true, data: budgetAlerts })
       }
+    }
 
-    case 'webhook-events':
+    case 'webhook-events': {
       const webhookFilters = {
         provider: params?.provider,
         eventType: params?.eventType,
@@ -190,8 +217,9 @@ async function handleGetRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: true, data: webhookEvents })
       }
+    }
 
-    case 'cost-tracking':
+    case 'cost-tracking': {
       const costYear = parseInt(params?.year || new Date().getFullYear().toString())
       const costMonth = parseInt(params?.month || (new Date().getMonth() + 1).toString())
       const costLimit = parseInt(params?.limit || '100')
@@ -203,6 +231,7 @@ async function handleGetRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: true, data: costTracking })
       }
+    }
 
     default:
       return {
@@ -215,14 +244,14 @@ async function handleGetRequest(
 
 async function handlePostRequest(
   action: string | undefined,
-  body: any,
+  body: RequestBody,
   dlqService: DeadLetterQueueService,
   settingsService: NotificationSettingsService,
   corsHeaders: Record<string, string>,
   userId: string
 ) {
   switch (action) {
-    case 'retry-dlq-item':
+    case 'retry-dlq-item': {
       const { dlqId, updateRecipient, notes } = body
       if (!dlqId) {
         return {
@@ -232,7 +261,7 @@ async function handlePostRequest(
         }
       }
       
-      const retryResult = await dlqService.retryDLQItem(dlqId, {
+      const retryResult = await dlqService.retryDLQItem(dlqId as string, {
         updateRecipient,
         notes,
         retryBy: userId
@@ -243,8 +272,9 @@ async function handlePostRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: retryResult.success, data: retryResult })
       }
+    }
 
-    case 'resolve-dlq-item':
+    case 'resolve-dlq-item': {
       const { dlqId: resolveDlqId, resolution } = body
       if (!resolveDlqId || !resolution) {
         return {
@@ -254,8 +284,8 @@ async function handlePostRequest(
         }
       }
       
-      const resolveResult = await dlqService.resolveDLQItem(resolveDlqId, {
-        ...resolution,
+      const resolveResult = await dlqService.resolveDLQItem(resolveDlqId as string, {
+        ...resolution as Record<string, unknown>,
         resolvedBy: userId
       })
       
@@ -264,8 +294,9 @@ async function handlePostRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: resolveResult.success, data: resolveResult })
       }
+    }
 
-    case 'reprocess-webhook':
+    case 'reprocess-webhook': {
       const { eventId } = body
       if (!eventId) {
         return {
@@ -275,13 +306,14 @@ async function handlePostRequest(
         }
       }
       
-      const reprocessResult = await dlqService.reprocessWebhookEvent(eventId)
+      const reprocessResult = await dlqService.reprocessWebhookEvent(eventId as string)
       
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({ success: reprocessResult.success, data: reprocessResult })
       }
+    }
 
     default:
       return {
@@ -294,14 +326,14 @@ async function handlePostRequest(
 
 async function handlePutRequest(
   action: string | undefined,
-  body: any,
+  body: RequestBody,
   dlqService: DeadLetterQueueService,
   settingsService: NotificationSettingsService,
   corsHeaders: Record<string, string>,
   userId: string
 ) {
   switch (action) {
-    case 'notification-settings':
+    case 'notification-settings': {
       const { scope, scopeId, settings } = body
       if (!scope || !settings) {
         return {
@@ -311,15 +343,16 @@ async function handlePutRequest(
         }
       }
       
-      const updateResult = await settingsService.updateSettings(settings, scope, scopeId, userId)
+      const updateResult = await settingsService.updateSettings(settings as Record<string, unknown>, scope as string, scopeId as string, userId)
       
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({ success: !!updateResult, data: updateResult })
       }
+    }
 
-    case 'retry-config':
+    case 'retry-config': {
       const { retryScope, retryConfig, scopeValue } = body
       if (!retryScope || !retryConfig) {
         return {
@@ -329,13 +362,14 @@ async function handlePutRequest(
         }
       }
       
-      const retryConfigResult = await dlqService.updateRetryConfig(retryScope, retryConfig, scopeValue, userId)
+      const retryConfigResult = await dlqService.updateRetryConfig(retryScope as string, retryConfig as Record<string, unknown>, scopeValue as string, userId)
       
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({ success: !!retryConfigResult, data: retryConfigResult })
       }
+    }
 
     default:
       return {
@@ -355,7 +389,7 @@ async function handleDeleteRequest(
   userId: string
 ) {
   switch (action) {
-    case 'cleanup-dlq':
+    case 'cleanup-dlq': {
       const olderThanDays = parseInt(params?.olderThanDays || '30')
       
       const cleanupResult = await dlqService.cleanupResolvedItems(olderThanDays)
@@ -365,6 +399,7 @@ async function handleDeleteRequest(
         headers: corsHeaders,
         body: JSON.stringify({ success: true, data: cleanupResult })
       }
+    }
 
     default:
       return {

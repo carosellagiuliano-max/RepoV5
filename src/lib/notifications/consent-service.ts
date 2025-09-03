@@ -11,6 +11,33 @@ import {
   DedupeConfig
 } from './consent-types';
 
+interface DatabaseConsentRecord {
+  id: string;
+  customer_id: string;
+  channel: 'email' | 'sms';
+  consent_type: NotificationConsent['consentType'];
+  granted: boolean;
+  timestamp: string;
+  source: string;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DatabaseSuppressionRecord {
+  id: string;
+  recipient: string;
+  channel: 'email' | 'sms';
+  suppression_type: NotificationSuppression['suppressionType'];
+  reason: string;
+  timestamp: string;
+  source: string;
+  permanent: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export class NotificationConsentService {
   private supabase: SupabaseClient;
 
@@ -346,7 +373,7 @@ export class NotificationConsentService {
     return results;
   }
 
-  private mapConsentRecord(data: any): NotificationConsent {
+  private mapConsentRecord(data: DatabaseConsentRecord): NotificationConsent {
     return {
       id: data.id,
       customerId: data.customer_id,
@@ -363,7 +390,7 @@ export class NotificationConsentService {
     };
   }
 
-  private mapSuppressionRecord(data: any): NotificationSuppression {
+  private mapSuppressionRecord(data: DatabaseSuppressionRecord): NotificationSuppression {
     return {
       id: data.id,
       email: data.email,

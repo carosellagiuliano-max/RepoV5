@@ -1,5 +1,61 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+interface DatabaseDLQRecord {
+  id: string;
+  original_notification_id: string;
+  notification_type: 'email' | 'sms';
+  notification_channel: string;
+  recipient_id: string;
+  recipient_email?: string;
+  recipient_phone?: string;
+  template_data: Record<string, unknown>;
+  failure_reason: string;
+  failure_details?: Record<string, unknown>;
+  failure_type: string;
+  is_permanent: boolean;
+  retry_eligible: boolean;
+  total_attempts: number;
+  last_error_message?: string;
+  last_attempt_at?: string;
+  resolved_at?: string;
+  resolved_by?: string;
+  resolution_action?: string;
+  resolution_notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DatabaseWebhookRecord {
+  id: string;
+  provider: string;
+  provider_event_id?: string;
+  event_type: string;
+  notification_id?: string;
+  provider_message_id?: string;
+  event_data: Record<string, unknown>;
+  status?: string;
+  error_code?: string;
+  error_message?: string;
+  delivered_at?: string;
+  bounce_type?: string;
+  processed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DatabaseRetryConfigRecord {
+  id: string;
+  scope: string;
+  scope_id?: string;
+  max_attempts: number;
+  retry_delay_minutes: number;
+  exponential_backoff: boolean;
+  max_queue_age_hours: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface DeadLetterItem {
   id: string;
   originalNotificationId: string;
@@ -8,9 +64,9 @@ export interface DeadLetterItem {
   recipientId: string;
   recipientEmail?: string;
   recipientPhone?: string;
-  templateData: any;
+  templateData: Record<string, unknown>;
   failureReason: string;
-  failureDetails?: any;
+  failureDetails?: Record<string, unknown>;
   failureType: string;
   isPermanent: boolean;
   retryEligible: boolean;
@@ -32,7 +88,7 @@ export interface WebhookEvent {
   eventType: string;
   notificationId?: string;
   providerMessageId?: string;
-  eventData: any;
+  eventData: Record<string, unknown>;
   status?: string;
   errorCode?: string;
   errorMessage?: string;
@@ -541,7 +597,7 @@ export class DeadLetterQueueService {
     }
   }
 
-  private mapDLQItem(data: any): DeadLetterItem {
+  private mapDLQItem(data: DatabaseDLQRecord): DeadLetterItem {
     return {
       id: data.id,
       originalNotificationId: data.original_notification_id,
@@ -568,7 +624,7 @@ export class DeadLetterQueueService {
     };
   }
 
-  private mapWebhookEvent(data: any): WebhookEvent {
+  private mapWebhookEvent(data: DatabaseWebhookRecord): WebhookEvent {
     return {
       id: data.id,
       provider: data.provider,
@@ -593,7 +649,7 @@ export class DeadLetterQueueService {
     };
   }
 
-  private mapRetryConfig(data: any): RetryConfig {
+  private mapRetryConfig(data: DatabaseRetryConfigRecord): RetryConfig {
     return {
       id: data.id,
       scope: data.scope,

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
+import { SMTPBounceEvent, WebhookEvent } from '../../src/lib/notifications/types'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -28,12 +29,85 @@ interface BouncedEmail {
   reason?: string
 }
 
+interface SESBounceNotification {
+  bounce: {
+    bounceType: 'Permanent' | 'Transient' | 'Undetermined'
+    bounceSubType: string
+    bouncedRecipients: Array<{
+      emailAddress: string
+      status?: string
+      action?: string
+      diagnosticCode?: string
+    }>
+    timestamp: string
+    feedbackId: string
+    reportingMTA?: string
+  }
+  mail: {
+    timestamp: string
+    messageId: string
+    source: string
+    sourceIp?: string
+    sendingAccountId?: string
+    destination: string[]
+    commonHeaders?: {
+      from: string[]
+      to: string[]
+      messageId: string
+      subject: string
+    }
+  }
+}
+
+interface MailgunBounceNotification {
+  'event-data': {
+    event: string
+    timestamp: number
+    id: string
+    recipient: string
+    message: {
+      headers: {
+        'message-id': string
+      }
+    }
+    'delivery-status': {
+      code?: number
+      description?: string
+      message?: string
+    }
+    severity?: 'temporary' | 'permanent'
+    reason?: string
+  }
+}
+
+interface SendGridBounceNotification {
+  event: string
+  email: string
+  timestamp: number
+  'smtp-id': string
+  sg_event_id: string
+  sg_message_id: string
+  reason?: string
+  status?: string
+  type?: string
+  bounce_classification?: string
+}
+
 interface ComplaintEmail {
   email: string
   complaintType: string
   timestamp: Date
   feedbackId?: string
   originalMessageId?: string
+}
+
+interface BounceProcessingResult {
+  bounces: BouncedEmail[]
+  complaints: ComplaintEmail[]
+}
+
+interface ParsedFormData {
+  [key: string]: string | string[]
 }
 
 /**
@@ -67,11 +141,11 @@ export async function handler(event: NetlifyEvent, context: Context) {
 
   try {
     const contentType = event.headers['content-type'] || ''
-    let bounceData: any
+    let bounceData: Record<string, unknown>
 
     // Parse different content types
     if (contentType.includes('application/json')) {
-      bounceData = JSON.parse(event.body)
+      bounceData = JSON.parse(event.body) as Record<string, unknown>
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       bounceData = parseFormData(event.body)
     } else {
@@ -115,9 +189,9 @@ export async function handler(event: NetlifyEvent, context: Context) {
   }
 }
 
-function parseFormData(body: string): any {
+function parseFormData(body: string): ParsedFormData {
   const params = new URLSearchParams(body)
-  const data: any = {}
+  const data: ParsedFormData = {}
   
   for (const [key, value] of params.entries()) {
     data[key] = value
@@ -126,7 +200,7 @@ function parseFormData(body: string): any {
   return data
 }
 
-function detectProvider(data: any, headers: Record<string, string>): string {
+function detectProvider(data: Record<string, unknown>, headers: Record<string, string>): string {
   // Check headers first
   if (headers['user-agent']?.includes('Amazon')) return 'ses'
   if (headers['user-agent']?.includes('Mailgun')) return 'mailgun'
@@ -141,7 +215,7 @@ function detectProvider(data: any, headers: Record<string, string>): string {
   return 'generic'
 }
 
-async function processBounceWebhook(provider: string, data: any): Promise<any> {
+async function processBounceWebhook(provider: string, data: Record<string, unknown>): Promise<BounceProcessingResult> {
   let bounces: BouncedEmail[] = []
   let complaints: ComplaintEmail[] = []
 
@@ -177,7 +251,7 @@ async function processBounceWebhook(provider: string, data: any): Promise<any> {
   }
 }
 
-async function processSESBounce(data: any): Promise<{ bounces: BouncedEmail[]; complaints: ComplaintEmail[] }> {
+async function processSESBounce(data: Record<string, unknown>): Promise<BounceProcessingResult> {
   const bounces: BouncedEmail[] = []
   const complaints: ComplaintEmail[] = []
 
@@ -220,7 +294,7 @@ async function processSESBounce(data: any): Promise<{ bounces: BouncedEmail[]; c
   return { bounces, complaints }
 }
 
-async function processMailgunBounce(data: any): Promise<{ bounces: BouncedEmail[]; complaints: ComplaintEmail[] }> {
+async function processMailgunBounce(data: Record<string, unknown>): Promise<BounceProcessingResult> {
   const bounces: BouncedEmail[] = []
   const complaints: ComplaintEmail[] = []
 
@@ -251,7 +325,7 @@ async function processMailgunBounce(data: any): Promise<{ bounces: BouncedEmail[
   return { bounces, complaints }
 }
 
-async function processSendGridBounce(data: any): Promise<{ bounces: BouncedEmail[]; complaints: ComplaintEmail[] }> {
+async function processSendGridBounce(data: Record<string, unknown>): Promise<BounceProcessingResult> {
   const bounces: BouncedEmail[] = []
   const complaints: ComplaintEmail[] = []
 
@@ -284,7 +358,7 @@ async function processSendGridBounce(data: any): Promise<{ bounces: BouncedEmail
   return { bounces, complaints }
 }
 
-async function processGenericBounce(data: any): Promise<{ bounces: BouncedEmail[]; complaints: ComplaintEmail[] }> {
+async function processGenericBounce(data: Record<string, unknown>): Promise<BounceProcessingResult> {
   const bounces: BouncedEmail[] = []
   const complaints: ComplaintEmail[] = []
 

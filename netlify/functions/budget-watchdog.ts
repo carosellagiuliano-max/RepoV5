@@ -1,6 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
 import { NotificationSettingsService } from '../../src/lib/notifications/settings-service'
+import { 
+  BudgetUsage, 
+  BudgetLimits, 
+  Channel,
+  SettingsConfig 
+} from '../../src/lib/notifications/types'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -21,12 +27,31 @@ interface NetlifyEvent {
 interface BudgetAlert {
   scope: string
   scopeId?: string
-  type: 'email' | 'sms'
+  type: Channel
   currentUsage: number
   limit: number
   usagePercentage: number
   alertType: 'warning' | 'limit_reached'
   behavior: 'skip' | 'delay'
+}
+
+interface BudgetCheckDetail {
+  scope: string
+  scope_id: string
+  channel: Channel
+  usage: BudgetUsage
+  limits: BudgetLimits
+  status: 'healthy' | 'warning' | 'exceeded'
+  alerts_generated: string[]
+}
+
+interface DatabaseSettingsRow {
+  scope: 'global' | 'location' | 'user'
+  scope_id: string | null
+  monthly_email_limit: number | null
+  monthly_sms_limit: number | null
+  budget_warning_threshold: number | null
+  budget_hard_cap: boolean | null
 }
 
 export async function handler(event: NetlifyEvent, context: Context) {
@@ -91,7 +116,7 @@ async function runBudgetWatchdog(): Promise<{
   alertsGenerated: number
   warningsTriggered: number
   capsTriggered: number
-  details: any[]
+  details: BudgetCheckDetail[]
 }> {
   const settingsService = new NotificationSettingsService(supabaseUrl, supabaseServiceKey)
   const currentDate = new Date()
@@ -102,7 +127,7 @@ async function runBudgetWatchdog(): Promise<{
   let alertsGenerated = 0
   let warningsTriggered = 0
   let capsTriggered = 0
-  const details: any[] = []
+  const details: BudgetCheckDetail[] = []
 
   // Get all notification settings to check different scopes
   const { data: allSettings, error: settingsError } = await supabase
@@ -135,7 +160,7 @@ async function runBudgetWatchdog(): Promise<{
     try {
       // Get current budget tracking
       const budgetTracking = await settingsService.getBudgetTracking(
-        settings.scope as any,
+        settings.scope,
         settings.scope_id,
         currentYear,
         currentMonth
@@ -215,8 +240,8 @@ async function runBudgetWatchdog(): Promise<{
 }
 
 async function checkBudgetThreshold(
-  settings: any,
-  type: 'email' | 'sms',
+  settings: DatabaseSettingsRow,
+  type: Channel,
   currentUsage: number,
   limit: number,
   usagePercentage: number,
@@ -264,8 +289,8 @@ async function checkBudgetThreshold(
 }
 
 async function handleBudgetWarning(
-  settings: any,
-  type: 'email' | 'sms',
+  settings: DatabaseSettingsRow,
+  type: Channel,
   currentUsage: number,
   limit: number,
   usagePercentage: number
@@ -297,8 +322,8 @@ async function handleBudgetWarning(
 }
 
 async function handleBudgetCapReached(
-  settings: any,
-  type: 'email' | 'sms',
+  settings: DatabaseSettingsRow,
+  type: Channel,
   currentUsage: number,
   limit: number,
   usagePercentage: number
@@ -331,8 +356,8 @@ async function handleBudgetCapReached(
 
 async function sendBudgetAlert(
   alertType: 'warning' | 'limit_reached',
-  settings: any,
-  type: 'email' | 'sms',
+  settings: DatabaseSettingsRow,
+  type: Channel,
   currentUsage: number,
   limit: number,
   usagePercentage: number

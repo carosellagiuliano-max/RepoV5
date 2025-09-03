@@ -1,5 +1,12 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { NotificationSettings } from './consent-types';
+import { 
+  BudgetUsage, 
+  BudgetLimits, 
+  SettingsConfig, 
+  BudgetCheckResult,
+  Channel
+} from './types';
 
 export interface NotificationSettingsDB {
   id: string;
@@ -66,7 +73,7 @@ export interface CostTracking {
   costCents: number;
   currency: string;
   providerMessageId?: string;
-  providerCostDetails?: any;
+  providerCostDetails?: Record<string, unknown>;
   billingYear: number;
   billingMonth: number;
   createdAt: string;
@@ -90,6 +97,75 @@ export interface BudgetAlert {
   timestamp: Date;
 }
 
+interface SettingsRecord {
+  setting_key: string;
+  setting_value: string;
+  scope: 'global' | 'location' | 'user';
+  scope_id?: string;
+}
+
+interface DatabaseNotificationSettingsRecord {
+  id: string;
+  scope: 'global' | 'location' | 'user';
+  scope_id?: string;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  reminder_hours_before: number;
+  send_confirmations: boolean;
+  send_cancellations: boolean;
+  send_daily_schedule: boolean;
+  daily_schedule_time: string;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  timezone: string;
+  monthly_email_limit?: number;
+  monthly_sms_limit?: number;
+  budget_warning_threshold: number;
+  budget_hard_cap: boolean;
+  budget_cap_behavior: 'skip' | 'delay';
+  budget_warning_behavior: 'continue' | 'throttle';
+  cost_per_email_cents: number;
+  cost_per_sms_cents: number;
+  retry_attempts: number;
+  retry_delay_minutes: number;
+  max_queue_age_hours: number;
+  sms_fallback_to_email: boolean;
+  email_fallback_to_sms: boolean;
+  short_window_policy: 'send' | 'skip';
+  created_at: string;
+  updated_at: string;
+}
+
+interface DatabaseBudgetTrackingRecord {
+  id: string;
+  scope: 'global' | 'location' | 'user';
+  scope_id?: string;
+  year: number;
+  month: number;
+  email_count: number;
+  sms_count: number;
+  email_cost_cents: number;
+  sms_cost_cents: number;
+  last_warning_sent?: string;
+  hard_cap_reached: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DatabaseCostTrackingRecord {
+  id: string;
+  notification_id: string;
+  provider: string;
+  cost_cents: number;
+  currency: string;
+  provider_message_id?: string;
+  provider_cost_details?: Record<string, unknown>;
+  billing_year: number;
+  billing_month: number;
+  created_at: string;
+}
+
 export interface HealthStatus {
   overall: 'healthy' | 'warning' | 'error';
   checks: {
@@ -97,19 +173,19 @@ export interface HealthStatus {
       status: 'healthy' | 'warning' | 'error';
       message: string;
       lastCheck: Date;
-      details?: any;
+      details?: Record<string, unknown>;
     };
     sms: {
       status: 'healthy' | 'warning' | 'error';
       message: string;
       lastCheck: Date;
-      details?: any;
+      details?: Record<string, unknown>;
     };
     database: {
       status: 'healthy' | 'warning' | 'error';
       message: string;
       lastCheck: Date;
-      details?: any;
+      details?: Record<string, unknown>;
     };
     queue: {
       status: 'healthy' | 'warning' | 'error';
@@ -161,7 +237,7 @@ export class NotificationSettingsService {
       const settings: NotificationSettings = this.getDefaultSettings();
       
       if (data) {
-        data.forEach((item: any) => {
+        data.forEach((item: SettingsRecord) => {
           switch (item.setting_key) {
             case 'email_enabled':
               settings.emailEnabled = item.setting_value === 'true';
@@ -610,7 +686,7 @@ export class NotificationSettingsService {
     };
   }
 
-  private mapSettingsRecord(data: any): NotificationSettingsDB {
+  private mapSettingsRecord(data: DatabaseNotificationSettingsRecord): NotificationSettingsDB {
     return {
       id: data.id,
       scope: data.scope,
@@ -650,7 +726,7 @@ export class NotificationSettingsService {
     };
   }
 
-  private mapBudgetTrackingRecord(data: any): BudgetTracking {
+  private mapBudgetTrackingRecord(data: DatabaseBudgetTrackingRecord): BudgetTracking {
     return {
       id: data.id,
       year: data.year,
@@ -672,7 +748,7 @@ export class NotificationSettingsService {
     };
   }
 
-  private mapCostTrackingRecord(data: any): CostTracking {
+  private mapCostTrackingRecord(data: DatabaseCostTrackingRecord): CostTracking {
     return {
       id: data.id,
       notificationId: data.notification_id,
