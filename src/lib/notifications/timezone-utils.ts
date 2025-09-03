@@ -36,10 +36,24 @@ export function getTimezoneInfo(date: Date, timezone: string = 'Europe/Zurich'):
     const parts = formatter.formatToParts(date)
     const timeZoneName = parts.find(part => part.type === 'timeZoneName')?.value || timezone
     
-    // Calculate offset by comparing with UTC
-    const utcDate = new Date(date.toISOString())
-    const localDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }))
-    const offset = (utcDate.getTime() - localDate.getTime()) / (1000 * 60)
+    // Calculate offset using Intl.DateTimeFormat to avoid locale string round-trip
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    const parts = dtf.formatToParts(date);
+    const getPart = (type: string) => parts.find(p => p.type === type)?.value || '00';
+    // Build a date string in ISO format using the parts
+    const localIso = `${getPart('year')}-${getPart('month')}-${getPart('day')}T${getPart('hour')}:${getPart('minute')}:${getPart('second')}.000Z`;
+    const localAsUTC = new Date(localIso);
+    // The offset is the difference between the original UTC time and the "local" time interpreted as UTC
+    const offset = (localAsUTC.getTime() - date.getTime()) / (1000 * 60);
     
     // Determine if DST is active (rough approximation for Europe/Zurich)
     const isDST = isDaylightSavingTime(date, timezone)
