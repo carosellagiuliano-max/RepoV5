@@ -302,6 +302,113 @@ export interface Database {
           updated_at?: string
         }
       }
+      notification_queue: {
+        Row: {
+          id: string
+          type: 'email' | 'sms'
+          channel: 'appointment_reminder' | 'appointment_confirmation' | 'appointment_cancellation' | 'appointment_reschedule' | 'staff_daily_schedule'
+          recipient_id: string
+          recipient_email: string | null
+          recipient_phone: string | null
+          subject: string | null
+          template_name: string
+          template_data: Record<string, unknown>
+          scheduled_for: string
+          status: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled'
+          attempts: number
+          max_attempts: number
+          last_attempt_at: string | null
+          sent_at: string | null
+          failed_at: string | null
+          error_message: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          type: 'email' | 'sms'
+          channel: 'appointment_reminder' | 'appointment_confirmation' | 'appointment_cancellation' | 'appointment_reschedule' | 'staff_daily_schedule'
+          recipient_id: string
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          subject?: string | null
+          template_name: string
+          template_data: Record<string, unknown>
+          scheduled_for: string
+          status?: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled'
+          attempts?: number
+          max_attempts?: number
+          last_attempt_at?: string | null
+          sent_at?: string | null
+          failed_at?: string | null
+          error_message?: string | null
+        }
+        Update: {
+          status?: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled'
+          attempts?: number
+          last_attempt_at?: string | null
+          sent_at?: string | null
+          failed_at?: string | null
+          error_message?: string | null
+          updated_at?: string
+        }
+      }
+      notification_audit: {
+        Row: {
+          id: string
+          notification_id: string
+          event_type: 'queued' | 'sent' | 'failed' | 'cancelled' | 'retry'
+          details: Record<string, unknown> | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          notification_id: string
+          event_type: 'queued' | 'sent' | 'failed' | 'cancelled' | 'retry'
+          details?: Record<string, unknown> | null
+        }
+        Update: {
+          // Audit records are immutable - no updates allowed
+          [key: string]: never
+        }
+      }
+      notification_templates: {
+        Row: {
+          id: string
+          name: string
+          type: 'email' | 'sms'
+          channel: 'appointment_reminder' | 'appointment_confirmation' | 'appointment_cancellation' | 'appointment_reschedule' | 'staff_daily_schedule'
+          subject_template: string | null
+          body_template: string
+          variables: string[]
+          is_active: boolean
+          is_default: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          type: 'email' | 'sms'
+          channel: 'appointment_reminder' | 'appointment_confirmation' | 'appointment_cancellation' | 'appointment_reschedule' | 'staff_daily_schedule'
+          subject_template?: string | null
+          body_template: string
+          variables?: string[]
+          is_active?: boolean
+          is_default?: boolean
+          created_by?: string | null
+        }
+        Update: {
+          name?: string
+          subject_template?: string | null
+          body_template?: string
+          variables?: string[]
+          is_active?: boolean
+          is_default?: boolean
+          updated_at?: string
+        }
+      }
     }
     Views: {
       staff_with_profiles: {
@@ -431,9 +538,30 @@ export interface EmailSettings {
   smtp_use_tls: boolean
 }
 
+export interface NotificationSettings {
+  email_enabled: boolean
+  sms_enabled: boolean
+  reminder_hours_before: number
+  send_confirmations: boolean
+  send_cancellations: boolean
+  send_daily_schedule: boolean
+  daily_schedule_time: string  // HH:MM format
+  retry_attempts: number
+  retry_delay_minutes: number
+}
+
+export interface SmsSettings {
+  twilio_account_sid: string
+  twilio_auth_token: string
+  twilio_phone_number: string
+  enabled: boolean
+}
+
 export interface SettingsState {
   business: BusinessSettings
   email: EmailSettings
+  notifications: NotificationSettings
+  sms: SmsSettings
   loading: boolean
   error: string | null
 }
@@ -451,6 +579,8 @@ export type SettingValue =
 // Typed settings by category
 export type BusinessSettingKeys = keyof BusinessSettings
 export type EmailSettingKeys = keyof EmailSettings
+export type NotificationSettingKeys = keyof NotificationSettings
+export type SmsSettingKeys = keyof SmsSettings
 
 // Setting value mapping for type safety
 export interface SettingValueMap {
@@ -468,11 +598,41 @@ export interface SettingValueMap {
   'smtp_from_email': string
   'smtp_from_name': string
   'smtp_use_tls': boolean
+  'email_enabled': boolean
+  'sms_enabled': boolean
+  'reminder_hours_before': number
+  'send_confirmations': boolean
+  'send_cancellations': boolean
+  'send_daily_schedule': boolean
+  'daily_schedule_time': string
+  'retry_attempts': number
+  'retry_delay_minutes': number
+  'twilio_account_sid': string
+  'twilio_auth_token': string
+  'twilio_phone_number': string
 }
 
 export type MediaFile = Database['public']['Tables']['media_files']['Row']
 export type MediaFileInsert = Database['public']['Tables']['media_files']['Insert']
 export type MediaFileUpdate = Database['public']['Tables']['media_files']['Update']
+
+// Notification types
+export type NotificationQueue = Database['public']['Tables']['notification_queue']['Row']
+export type NotificationQueueInsert = Database['public']['Tables']['notification_queue']['Insert']
+export type NotificationQueueUpdate = Database['public']['Tables']['notification_queue']['Update']
+
+export type NotificationAudit = Database['public']['Tables']['notification_audit']['Row']
+export type NotificationAuditInsert = Database['public']['Tables']['notification_audit']['Insert']
+
+export type NotificationTemplate = Database['public']['Tables']['notification_templates']['Row']
+export type NotificationTemplateInsert = Database['public']['Tables']['notification_templates']['Insert']
+export type NotificationTemplateUpdate = Database['public']['Tables']['notification_templates']['Update']
+
+// Notification enums
+export type NotificationType = 'email' | 'sms'
+export type NotificationChannel = 'appointment_reminder' | 'appointment_confirmation' | 'appointment_cancellation' | 'appointment_reschedule' | 'staff_daily_schedule'
+export type NotificationStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled'
+export type NotificationAuditEvent = 'queued' | 'sent' | 'failed' | 'cancelled' | 'retry'
 
 // View types
 export type StaffWithProfile = Database['public']['Views']['staff_with_profiles']['Row']
