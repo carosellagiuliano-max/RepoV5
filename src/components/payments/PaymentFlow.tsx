@@ -167,15 +167,19 @@ export function PaymentFlow({
           title: "Zahlung wird verarbeitet",
           description: "Sie werden zur sicheren Zahlungsseite weitergeleitet..."
         })
-        
-        // Simulate successful payment for demo
-        setTimeout(() => {
-          onPaymentSuccess?.(result.payment.id)
+
+        // TODO: Redirect to payment provider or show payment form here.
+        // Example: If using Stripe Checkout, redirect to result.payment.checkout_url
+        if (result.payment && result.payment.checkout_url) {
+          window.location.href = result.payment.checkout_url
+        } else {
+          // Handle other payment flows or show error if no redirect URL is available
           toast({
-            title: "Zahlung erfolgreich",
-            description: "Ihre Zahlung wurde erfolgreich verarbeitet."
+            title: "Zahlungsweiterleitung fehlgeschlagen",
+            description: "Die Weiterleitung zur Zahlungsseite ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+            variant: "destructive"
           })
-        }, 2000)
+        }
       }
     } catch (error) {
       console.error('Payment error:', error)
