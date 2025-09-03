@@ -163,9 +163,19 @@ export const isAdmin = (user: AuthenticatedUser): boolean => {
   return user.role === 'admin'
 }
 
-// Check if user is staff or admin
+// Check if user is staff, receptionist, or admin
 export const isStaffOrAdmin = (user: AuthenticatedUser): boolean => {
-  return ['admin', 'staff'].includes(user.role)
+  return ['admin', 'staff', 'receptionist'].includes(user.role)
+}
+
+// Check if user is receptionist or admin
+export const isReceptionistOrAdmin = (user: AuthenticatedUser): boolean => {
+  return ['admin', 'receptionist'].includes(user.role)
+}
+
+// Check if user has appointment management permissions (staff, receptionist, or admin)
+export const hasAppointmentAccess = (user: AuthenticatedUser): boolean => {
+  return ['admin', 'staff', 'receptionist'].includes(user.role)
 }
 
 // HOF to create authenticated handlers
@@ -175,6 +185,8 @@ export const withAuth = (
     requiredRoles?: UserRole[]
     requireAdmin?: boolean
     requireStaff?: boolean
+    requireReceptionist?: boolean
+    requireAppointmentAccess?: boolean
   } = {}
 ): Handler => {
   return async (event, context) => {
@@ -218,6 +230,22 @@ export const withAuth = (
           statusCode: 403,
           message: 'Staff access required',
           code: 'STAFF_REQUIRED'
+        })
+      }
+
+      if (options.requireReceptionist && !isReceptionistOrAdmin(user)) {
+        return createErrorResponse({
+          statusCode: 403,
+          message: 'Receptionist access required',
+          code: 'RECEPTIONIST_REQUIRED'
+        })
+      }
+
+      if (options.requireAppointmentAccess && !hasAppointmentAccess(user)) {
+        return createErrorResponse({
+          statusCode: 403,
+          message: 'Appointment management access required',
+          code: 'APPOINTMENT_ACCESS_REQUIRED'
         })
       }
 

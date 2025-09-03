@@ -12,7 +12,7 @@ export interface Database {
         Row: {
           id: string
           email: string
-          role: 'admin' | 'staff' | 'customer'
+          role: 'admin' | 'staff' | 'receptionist' | 'customer'
           first_name: string | null
           last_name: string | null
           phone: string | null
@@ -24,7 +24,7 @@ export interface Database {
         Insert: {
           id: string
           email: string
-          role?: 'admin' | 'staff' | 'customer'
+          role?: 'admin' | 'staff' | 'receptionist' | 'customer'
           first_name?: string | null
           last_name?: string | null
           phone?: string | null
@@ -33,7 +33,7 @@ export interface Database {
         }
         Update: {
           email?: string
-          role?: 'admin' | 'staff' | 'customer'
+          role?: 'admin' | 'staff' | 'receptionist' | 'customer'
           first_name?: string | null
           last_name?: string | null
           phone?: string | null
@@ -881,7 +881,7 @@ export type StaffWithProfile = Database['public']['Views']['staff_with_profiles'
 export type AppointmentWithDetails = Database['public']['Views']['appointments_with_details']['Row']
 
 // Utility types
-export type UserRole = 'admin' | 'staff' | 'customer'
+export type UserRole = 'admin' | 'staff' | 'receptionist' | 'customer'
 export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 
 // API Response types
