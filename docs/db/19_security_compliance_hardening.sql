@@ -23,12 +23,7 @@ CREATE TABLE IF NOT EXISTS operations_idempotency (
   created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
   
   -- Indexes for performance
-  INDEX idx_operations_idempotency_key (idempotency_key),
-  INDEX idx_operations_idempotency_expires (expires_at),
-  INDEX idx_operations_idempotency_endpoint (endpoint)
 );
-
--- Enhanced admin audit table with diff tracking
 -- Extend existing admin_audit table if it exists, otherwise create it
 ALTER TABLE admin_audit ADD COLUMN IF NOT EXISTS before_data JSONB;
 ALTER TABLE admin_audit ADD COLUMN IF NOT EXISTS after_data JSONB;
