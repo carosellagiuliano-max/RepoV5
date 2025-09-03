@@ -17,7 +17,6 @@ const mockSupabase = {
   eq: vi.fn(),
   in: vi.fn(),
   lte: vi.fn(),
-  lt: vi.fn(),
   gte: vi.fn(),
   order: vi.fn(),
   limit: vi.fn(),
