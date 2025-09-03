@@ -3,6 +3,8 @@
  * These interfaces represent the structure of our Supabase database tables
  */
 
+import type Stripe from 'stripe'
+
 export interface Database {
   public: {
     Tables: {
@@ -409,6 +411,246 @@ export interface Database {
           updated_at?: string
         }
       }
+      payments: {
+        Row: {
+          id: string
+          appointment_id: string
+          customer_id: string
+          stripe_payment_intent_id?: string
+          stripe_charge_id?: string
+          stripe_customer_id?: string
+          stripe_payment_method_id?: string
+          amount_cents: number
+          currency: string
+          status: PaymentStatus
+          payment_method_type: PaymentMethodType
+          card_last4?: string
+          card_brand?: string
+          card_exp_month?: number
+          card_exp_year?: number
+          card_funding?: string
+          requires_action: boolean
+          client_secret?: string
+          next_action?: Stripe.PaymentIntent.NextAction
+          fee_cents: number
+          net_amount_cents?: number
+          application_fee_cents: number
+          description?: string
+          metadata: Record<string, unknown>
+          receipt_email?: string
+          receipt_url?: string
+          created_by?: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id: string
+          customer_id: string
+          stripe_payment_intent_id?: string
+          stripe_charge_id?: string
+          stripe_customer_id?: string
+          stripe_payment_method_id?: string
+          amount_cents: number
+          currency?: string
+          status?: PaymentStatus
+          payment_method_type?: PaymentMethodType
+          card_last4?: string
+          card_brand?: string
+          card_exp_month?: number
+          card_exp_year?: number
+          card_funding?: string
+          requires_action?: boolean
+          client_secret?: string
+          next_action?: Stripe.PaymentIntent.NextAction
+          fee_cents?: number
+          net_amount_cents?: number
+          application_fee_cents?: number
+          description?: string
+          metadata?: Record<string, unknown>
+          receipt_email?: string
+          receipt_url?: string
+          created_by?: string
+        }
+        Update: {
+          stripe_payment_intent_id?: string
+          stripe_charge_id?: string
+          stripe_customer_id?: string
+          stripe_payment_method_id?: string
+          amount_cents?: number
+          currency?: string
+          status?: PaymentStatus
+          payment_method_type?: PaymentMethodType
+          card_last4?: string
+          card_brand?: string
+          card_exp_month?: number
+          card_exp_year?: number
+          card_funding?: string
+          requires_action?: boolean
+          client_secret?: string
+          next_action?: Stripe.PaymentIntent.NextAction
+          fee_cents?: number
+          net_amount_cents?: number
+          application_fee_cents?: number
+          description?: string
+          metadata?: Record<string, unknown>
+          receipt_email?: string
+          receipt_url?: string
+          updated_at?: string
+        }
+      }
+      payment_events: {
+        Row: {
+          id: string
+          payment_id: string
+          event_type: PaymentEventType
+          stripe_event_id?: string
+          event_data: Record<string, unknown>
+          amount_cents?: number
+          status?: PaymentStatus
+          processed: boolean
+          processed_at?: string
+          processing_error?: string
+          idempotency_key?: string
+          created_by?: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          payment_id: string
+          event_type: PaymentEventType
+          stripe_event_id?: string
+          event_data?: Record<string, unknown>
+          amount_cents?: number
+          status?: PaymentStatus
+          processed?: boolean
+          processed_at?: string
+          processing_error?: string
+          idempotency_key?: string
+          created_by?: string
+        }
+        Update: {
+          event_data?: Record<string, unknown>
+          amount_cents?: number
+          status?: PaymentStatus
+          processed?: boolean
+          processed_at?: string
+          processing_error?: string
+        }
+      }
+      payment_reconciliation: {
+        Row: {
+          id: string
+          reconciliation_date: string
+          stripe_balance_transaction_id?: string
+          stripe_payout_id?: string
+          gross_amount_cents: number
+          fee_amount_cents: number
+          net_amount_cents: number
+          currency: string
+          reconciled: boolean
+          reconciled_at?: string
+          reconciliation_notes?: string
+          payment_ids: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          reconciliation_date: string
+          stripe_balance_transaction_id?: string
+          stripe_payout_id?: string
+          gross_amount_cents: number
+          fee_amount_cents: number
+          net_amount_cents: number
+          currency?: string
+          reconciled?: boolean
+          reconciled_at?: string
+          reconciliation_notes?: string
+          payment_ids?: string[]
+        }
+        Update: {
+          reconciliation_date?: string
+          stripe_balance_transaction_id?: string
+          stripe_payout_id?: string
+          gross_amount_cents?: number
+          fee_amount_cents?: number
+          net_amount_cents?: number
+          currency?: string
+          reconciled?: boolean
+          reconciled_at?: string
+          reconciliation_notes?: string
+          payment_ids?: string[]
+          updated_at?: string
+        }
+      }
+      admin_audit: {
+        Row: {
+          id: string
+          action_type: string
+          resource_type: string
+          resource_id: string
+          admin_id: string
+          admin_email: string
+          action_data: Record<string, unknown>
+          reason?: string
+          success: boolean
+          error_message?: string
+          ip_address?: string
+          user_agent?: string
+          session_id?: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          action_type: string
+          resource_type: string
+          resource_id: string
+          admin_id: string
+          admin_email: string
+          action_data?: Record<string, unknown>
+          reason?: string
+          success: boolean
+          error_message?: string
+          ip_address?: string
+          user_agent?: string
+          session_id?: string
+        }
+        Update: {
+          action_data?: Record<string, unknown>
+          reason?: string
+          success?: boolean
+          error_message?: string
+        }
+      }
+      payment_idempotency: {
+        Row: {
+          id: string
+          idempotency_key: string
+          request_hash: string
+          endpoint: string
+          method: string
+          response_status?: number
+          response_body?: Record<string, unknown>
+          expires_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          idempotency_key: string
+          request_hash: string
+          endpoint: string
+          method: string
+          response_status?: number
+          response_body?: Record<string, unknown>
+          expires_at?: string
+        }
+        Update: {
+          response_status?: number
+          response_body?: Record<string, unknown>
+          expires_at?: string
+        }
+      }
     }
     Views: {
       staff_with_profiles: {
@@ -751,5 +993,194 @@ export interface KPIData {
     appointments: number
     revenue: number
     newCustomers: number
+  }>
+}
+
+// Payment types
+export type PaymentStatus = 
+  | 'pending'
+  | 'processing'
+  | 'requires_action'
+  | 'succeeded'
+  | 'requires_capture'
+  | 'canceled'
+  | 'failed'
+
+export type PaymentMethodType = 
+  | 'card'
+  | 'paypal'
+  | 'apple_pay'
+  | 'google_pay'
+  | 'sepa_debit'
+  | 'bancontact'
+  | 'ideal'
+  | 'cash'
+
+export type PaymentEventType = 
+  | 'payment_intent_created'
+  | 'payment_method_attached'
+  | 'payment_confirmed'
+  | 'payment_succeeded'
+  | 'payment_failed'
+  | 'payment_canceled'
+  | 'payment_captured'
+  | 'payment_refunded'
+  | 'payment_disputed'
+  | 'webhook_received'
+  | 'manual_action'
+
+export interface Payment {
+  id: string
+  appointment_id: string
+  customer_id: string
+  
+  // Stripe identifiers
+  stripe_payment_intent_id?: string
+  stripe_charge_id?: string
+  stripe_customer_id?: string
+  stripe_payment_method_id?: string
+  
+  // Payment details
+  amount_cents: number
+  currency: string
+  status: PaymentStatus
+  payment_method_type: PaymentMethodType
+  
+  // Card information (PCI-compliant)
+  card_last4?: string
+  card_brand?: string
+  card_exp_month?: number
+  card_exp_year?: number
+  card_funding?: string
+  
+  // Payment flow
+  requires_action: boolean
+  client_secret?: string
+  next_action?: Stripe.PaymentIntent.NextAction
+  
+  // Financial details
+  fee_cents: number
+  net_amount_cents?: number
+  application_fee_cents: number
+  
+  // Metadata
+  description?: string
+  metadata: Record<string, unknown>
+  receipt_email?: string
+  receipt_url?: string
+  
+  // Audit fields
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PaymentEvent {
+  id: string
+  payment_id: string
+  event_type: PaymentEventType
+  stripe_event_id?: string
+  event_data: Record<string, unknown>
+  amount_cents?: number
+  status?: PaymentStatus
+  processed: boolean
+  processed_at?: string
+  processing_error?: string
+  idempotency_key?: string
+  created_by?: string
+  created_at: string
+}
+
+export interface PaymentReconciliation {
+  id: string
+  reconciliation_date: string
+  stripe_balance_transaction_id?: string
+  stripe_payout_id?: string
+  gross_amount_cents: number
+  fee_amount_cents: number
+  net_amount_cents: number
+  currency: string
+  reconciled: boolean
+  reconciled_at?: string
+  reconciliation_notes?: string
+  payment_ids: string[]
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminAudit {
+  id: string
+  action_type: string
+  resource_type: string
+  resource_id: string
+  admin_id: string
+  admin_email: string
+  action_data: Record<string, unknown>
+  reason?: string
+  success: boolean
+  error_message?: string
+  ip_address?: string
+  user_agent?: string
+  session_id?: string
+  created_at: string
+}
+
+export interface PaymentIdempotency {
+  id: string
+  idempotency_key: string
+  request_hash: string
+  endpoint: string
+  method: string
+  response_status?: number
+  response_body?: Record<string, unknown>
+  expires_at: string
+  created_at: string
+}
+
+// Stripe-specific types
+export interface StripeWebhookEvent {
+  id: string
+  object: 'event'
+  api_version: string
+  created: number
+  data: {
+    object: Stripe.PaymentIntent | Stripe.Charge | Stripe.SetupIntent | Stripe.Customer | unknown
+    previous_attributes?: Record<string, unknown>
+  }
+  livemode: boolean
+  pending_webhooks: number
+  request: {
+    id: string | null
+    idempotency_key: string | null
+  }
+  type: string
+}
+
+export interface PaymentIntentCreateRequest {
+  appointment_id: string
+  amount_cents: number
+  currency?: string
+  payment_method_type?: PaymentMethodType
+  description?: string
+  metadata?: Record<string, unknown>
+  capture_method?: 'automatic' | 'manual'
+}
+
+export interface PaymentSummary {
+  period: {
+    start_date: string
+    end_date: string
+  }
+  total_amount_cents: number
+  total_fee_cents: number
+  net_amount_cents: number
+  transaction_count: number
+  successful_payments: number
+  failed_payments: number
+  pending_payments: number
+  refunded_amount_cents: number
+  by_payment_method: Record<PaymentMethodType, {
+    count: number
+    amount_cents: number
   }>
 }
