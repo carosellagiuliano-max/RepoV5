@@ -64,7 +64,7 @@ export function RoleManagement({ onRoleChange }: RoleAssignmentProps) {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null)
   const [newRole, setNewRole] = useState<UserRole>('customer')
   const [showPermissions, setShowPermissions] = useState(false)
-  const [rolePermissions, setRolePermissions] = useState<Record<UserRole, RolePermission[]>>({} as any)
+  const [rolePermissions, setRolePermissions] = useState<Partial<Record<UserRole, RolePermission[]>>>({})
   const { toast } = useToast()
 
   // Fetch users data
