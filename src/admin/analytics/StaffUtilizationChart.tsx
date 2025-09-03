@@ -216,7 +216,7 @@ export function StaffUtilizationChart({ data, isLoading }: StaffUtilizationChart
                 <div className="text-2xl font-bold text-red-600">
                   {data.filter(s => s.utilization < 40).length}
                 </div>
-                <div className="text-sm text-muted-foreground">Niedrig ausgelastet (&lt;40%)</div>
+                <div className="text-sm text-muted-foreground">Niedrig ausgelastet (<40%)</div>
               </div>
             </div>
           </div>
