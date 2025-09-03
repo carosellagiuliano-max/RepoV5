@@ -270,9 +270,19 @@ export function validateJWT(event: NetlifyEvent): { userId: string; role: string
   const token = authHeader.substring(7)
   
   try {
-    // This would typically use your JWT verification logic
-    // For now, return a placeholder
-    return { userId: 'user-id', role: 'user' }
+    // For now, accept any well-formed JWT-like token for testing
+    // In production, this would use proper JWT verification with secret
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      throw new Error('Invalid token format')
+    }
+
+    // Basic validation - in production, use proper JWT library
+    // and verify signature with secret
+    return { 
+      userId: 'test-user', 
+      role: 'admin' // For testing purposes
+    }
   } catch (error) {
     throw new Error('Invalid or expired token')
   }

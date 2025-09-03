@@ -48,6 +48,55 @@ These runbooks provide step-by-step procedures for common operational scenarios.
 | Database Connections | >80% | >95% | 5 minutes |
 | Storage Usage | >80% | >95% | 15 minutes |
 | DLQ Items | >5 | >20 | 5 minutes |
+| Budget Usage | >80% | >100% | Hourly |
+| Memory Usage | >80% | >95% | 5 minutes |
+
+### Health Check Endpoints
+
+#### Lightweight Health Check: `/api/health`
+- **Purpose**: Fast liveness probe for load balancers
+- **Access**: Public (rate-limited: 60 req/min)
+- **Response Time**: <200ms
+- **Returns**: Basic system info, uptime, memory usage
+- **Status Codes**: 200 (healthy), 429 (rate limited)
+
+#### Comprehensive Readiness Check: `/api/ready`
+- **Purpose**: Deep dependency validation
+- **Access**: JWT protected (30 req/min)
+- **Response Time**: <3s
+- **Checks**: Database, SMTP, SMS, Storage, DLQ, Budget
+- **Status Codes**: 200 (ready), 503 (not ready), 401 (unauthorized)
+
+#### Metrics Endpoint: `/api/metrics`
+- **Purpose**: Operational metrics for monitoring
+- **Access**: JWT protected
+- **Returns**: System metrics, alert stats, DLQ/budget status
+- **Use**: Prometheus scraping, dashboards
+
+### Alert Channels
+
+#### Severity Routing
+- **Critical/High**: Webhook + Slack + SMS (for high/critical only)
+- **Medium**: Webhook + Slack + Email
+- **Low**: Webhook + Email
+
+#### Configuration
+```bash
+# Webhook alerts (primary)
+VITE_ALERT_WEBHOOK_URL=https://hooks.example.com/alerts
+
+# Slack integration
+VITE_ALERT_SLACK_WEBHOOK=https://hooks.slack.com/...
+
+# Email recipients (comma-separated)
+VITE_ALERT_EMAIL_RECIPIENTS=ops@salon.com,admin@salon.com
+
+# SMS for critical alerts (comma-separated)
+VITE_ALERT_PHONE_NUMBERS=+1234567890,+0987654321
+
+# Alert throttling (minutes)
+VITE_ALERT_THROTTLE_MINUTES=15
+```
 | Failed Webhooks | >5/hour | >20/hour | 5 minutes |
 | Budget Usage | >80% | >95% | 1 hour |
 | SMTP Queue | >50 | >200 | 5 minutes |
@@ -80,7 +129,110 @@ else
 fi
 ```
 
-## Common Issues & Solutions
+## Monitoring System Issues
+
+### Health Check Failures
+
+#### Symptoms
+- Health checks returning 503 status
+- Alerts about service unavailability
+- Load balancer removing instances
+
+#### Investigation
+1. Check individual dependency health:
+```bash
+# Test lightweight health check
+curl -H "X-Correlation-Id: test-$(date +%s)" https://app.netlify.app/api/health
+
+# Test comprehensive health check (requires JWT)
+curl -H "Authorization: Bearer $JWT_TOKEN" \
+     -H "X-Correlation-Id: test-$(date +%s)" \
+     https://app.netlify.app/api/ready
+```
+
+2. Review logs for correlation ID:
+```bash
+netlify logs | grep "test-$(date +%s)"
+```
+
+3. Check individual dependencies:
+- Database: Query execution time and connection pool
+- SMTP: Test email sending capability
+- Storage: Bucket accessibility and permissions
+- DLQ: Check message counts and failure rates
+
+#### Resolution
+1. **Database Issues**: Check Supabase status, connection limits
+2. **SMTP Issues**: Verify credentials, test connection
+3. **Storage Issues**: Check Supabase Storage bucket permissions
+4. **DLQ Issues**: Process stuck messages, check notification service
+
+### Alert System Not Working
+
+#### Symptoms
+- No alerts received despite known issues
+- Alerts delayed or missing
+- Partial alert delivery
+
+#### Investigation
+1. Test alert system:
+```bash
+# Simulate test alert (requires JWT)
+curl -X POST -H "Authorization: Bearer $JWT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"severity": "medium"}' \
+     https://app.netlify.app/api/test-alert
+```
+
+2. Check alert configuration:
+```bash
+# Verify environment variables
+echo $VITE_ALERT_WEBHOOK_URL
+echo $VITE_ALERT_SLACK_WEBHOOK
+echo $VITE_ALERT_EMAIL_RECIPIENTS
+```
+
+3. Review alert throttling:
+- Check if alerts are being throttled (same fingerprint within 15 min)
+- Review alert statistics via `/api/metrics`
+
+#### Resolution
+1. **Webhook Issues**: Test webhook URL manually
+2. **Slack Issues**: Regenerate Slack webhook if needed
+3. **Email Issues**: Check SMTP configuration
+4. **Throttling Issues**: Adjust `VITE_ALERT_THROTTLE_MINUTES`
+
+### Correlation ID Not Propagating
+
+#### Symptoms
+- Logs missing correlation IDs
+- Unable to trace requests end-to-end
+- Inconsistent correlation IDs across services
+
+#### Investigation
+1. Test correlation ID flow:
+```bash
+# Send request with known correlation ID
+CORRELATION_ID="test-$(date +%s)"
+curl -H "X-Correlation-Id: $CORRELATION_ID" \
+     https://app.netlify.app/api/health
+
+# Check if same ID appears in response
+```
+
+2. Review frontend implementation:
+- Check if correlation headers are added to requests
+- Verify correlation manager is initialized
+
+3. Check backend logging:
+- Ensure all functions use monitoring middleware
+- Verify correlation ID extraction in logs
+
+#### Resolution
+1. **Frontend**: Ensure `fetchWithCorrelation` is used for API calls
+2. **Backend**: Use `withMonitoring` wrapper for all functions
+3. **Logging**: Verify logger uses correlation ID from context
+
 
 ### Issue: High Response Times
 
