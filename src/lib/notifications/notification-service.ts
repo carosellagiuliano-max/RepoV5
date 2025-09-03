@@ -126,7 +126,7 @@ export class NotificationService {
    * Send an SMS notification
    */
   async sendSMS(notification: SmsNotificationData): Promise<NotificationResult> {
-    if (!this.smsSettings?.enabled || !this.notificationSettings?.sms_enabled) {
+    if (!this.smsSettings?.enabled || !this.notificationSettings?.smsEnabled) {
       throw new NotificationError(
         'SMS notifications are disabled',
         'SMS_DISABLED',
