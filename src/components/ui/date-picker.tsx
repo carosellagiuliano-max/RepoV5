@@ -7,9 +7,7 @@ import { forwardRef } from 'react'
 import { Input } from './input'
 import { cn } from '@/lib/utils'
 
-export interface DatePickerProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  // Add any additional props specific to date picker if needed
-}
+export type DatePickerProps = React.InputHTMLAttributes<HTMLInputElement>
 
 const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
   ({ className, ...props }, ref) => {
