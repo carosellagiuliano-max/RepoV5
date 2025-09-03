@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Context } from '@netlify/functions'
 import { NotificationSettingsService } from '../../src/lib/notifications/settings-service'
+import { DeadLetterQueueService } from '../../src/lib/notifications/dlq-service'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -44,9 +45,24 @@ export async function handler(event: NetlifyEvent, context: Context) {
 
   try {
     const settingsService = new NotificationSettingsService(supabaseUrl, supabaseServiceKey)
+    const dlqService = new DeadLetterQueueService(supabaseUrl, supabaseServiceKey)
     
     // Perform comprehensive health check
     const healthStatus = await settingsService.performHealthCheck()
+    
+    // Get DLQ statistics
+    const dlqStats = await dlqService.getDLQStats()
+    
+    // Check if DLQ needs attention
+    if (dlqStats.totalItems > 0) {
+      if (dlqStats.recentFailures > 10) {
+        healthStatus.checks.queue.status = 'error'
+        healthStatus.checks.queue.message = `High DLQ activity: ${dlqStats.recentFailures} recent failures`
+      } else if (dlqStats.totalItems > 5) {
+        healthStatus.checks.queue.status = 'warning'
+        healthStatus.checks.queue.message = `DLQ contains ${dlqStats.totalItems} items`
+      }
+    }
     
     // Determine HTTP status code based on health
     let statusCode = 200
@@ -57,7 +73,7 @@ export async function handler(event: NetlifyEvent, context: Context) {
     }
 
     // Add additional system metrics
-    const metrics = await getSystemMetrics(settingsService)
+    const metrics = await getSystemMetrics(settingsService, dlqService)
     
     return {
       statusCode,
@@ -67,6 +83,13 @@ export async function handler(event: NetlifyEvent, context: Context) {
         timestamp: new Date().toISOString(),
         checks: healthStatus.checks,
         metrics,
+        dlq: {
+          totalItems: dlqStats.totalItems,
+          recentFailures: dlqStats.recentFailures,
+          retryEligible: dlqStats.retryEligible,
+          byFailureType: dlqStats.byFailureType,
+          byChannel: dlqStats.byChannel
+        },
         version: process.env.VITE_APP_VERSION || '1.0.0'
       })
     }
@@ -87,7 +110,10 @@ export async function handler(event: NetlifyEvent, context: Context) {
   }
 }
 
-async function getSystemMetrics(settingsService: NotificationSettingsService) {
+async function getSystemMetrics(
+  settingsService: NotificationSettingsService, 
+  dlqService: DeadLetterQueueService
+) {
   try {
     const currentDate = new Date()
     const currentYear = currentDate.getFullYear()
@@ -102,6 +128,14 @@ async function getSystemMetrics(settingsService: NotificationSettingsService) {
     // Get cost tracking for current month
     const costTracking = await settingsService.getCostTracking(currentYear, currentMonth, 10)
     
+    // Get recent webhook events
+    const recentWebhooks = await dlqService.getWebhookEvents({
+      receivedAfter: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+    }, 50)
+    
+    const processedWebhooks = recentWebhooks.filter(w => w.processed)
+    const failedWebhooks = recentWebhooks.filter(w => !w.processed && w.errorMessage)
+    
     return {
       budget: {
         currentMonth: {
@@ -113,7 +147,8 @@ async function getSystemMetrics(settingsService: NotificationSettingsService) {
           smsUsagePercent: budgetTracking?.smsBudgetUsedPct || 0
         },
         alerts: budgetAlerts.length,
-        criticalAlerts: budgetAlerts.filter(a => a.type === 'limit_reached').length
+        criticalAlerts: budgetAlerts.filter(a => a.type === 'limit_reached').length,
+        warningAlerts: budgetAlerts.filter(a => a.type === 'warning').length
       },
       costs: {
         totalTransactions: costTracking.length,
@@ -122,10 +157,19 @@ async function getSystemMetrics(settingsService: NotificationSettingsService) {
           ? Math.round(costTracking.reduce((sum, c) => sum + c.costCents, 0) / costTracking.length)
           : 0
       },
+      webhooks: {
+        last24Hours: recentWebhooks.length,
+        processed: processedWebhooks.length,
+        failed: failedWebhooks.length,
+        processingRate: recentWebhooks.length > 0 
+          ? Math.round((processedWebhooks.length / recentWebhooks.length) * 100)
+          : 100
+      },
       system: {
         timezone: 'Europe/Zurich',
         environment: process.env.NODE_ENV || 'development',
-        region: process.env.AWS_REGION || 'unknown'
+        region: process.env.AWS_REGION || 'unknown',
+        uptime: process.uptime ? Math.round(process.uptime()) : null
       }
     }
   } catch (error) {
@@ -133,6 +177,7 @@ async function getSystemMetrics(settingsService: NotificationSettingsService) {
     return {
       budget: null,
       costs: null,
+      webhooks: null,
       system: {
         timezone: 'Europe/Zurich',
         environment: process.env.NODE_ENV || 'development',

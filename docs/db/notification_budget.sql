@@ -28,6 +28,8 @@ CREATE TABLE notification_settings (
   monthly_sms_limit INTEGER,
   budget_warning_threshold DECIMAL(3,2) DEFAULT 0.80, -- 80%
   budget_hard_cap BOOLEAN DEFAULT true,
+  budget_cap_behavior TEXT DEFAULT 'skip' CHECK (budget_cap_behavior IN ('skip', 'delay')),
+  budget_warning_behavior TEXT DEFAULT 'continue' CHECK (budget_warning_behavior IN ('continue', 'throttle')),
   cost_per_email_cents INTEGER DEFAULT 0, -- Track costs in cents
   cost_per_sms_cents INTEGER DEFAULT 5,   -- ~5 cents per SMS
   

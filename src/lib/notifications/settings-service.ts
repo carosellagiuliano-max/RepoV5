@@ -20,6 +20,8 @@ export interface NotificationSettingsDB {
   monthlySmsLimit?: number;
   budgetWarningThreshold: number;
   budgetHardCap: boolean;
+  budgetCapBehavior: 'skip' | 'delay';
+  budgetWarningBehavior: 'continue' | 'throttle';
   costPerEmailCents: number;
   costPerSmsCents: number;
   retryAttempts: number;
@@ -209,10 +211,12 @@ export class NotificationSettingsService {
           monthly_sms_limit: settings.monthlySmsLimit,
           budget_warning_threshold: settings.budgetWarningThreshold,
           budget_hard_cap: settings.budgetHardCap,
+          budget_cap_behavior: settings.budgetCapBehavior || 'skip',
+          budget_warning_behavior: settings.budgetWarningBehavior || 'continue',
           cost_per_email_cents: 0, // Usually free
           cost_per_sms_cents: 5,   // ~5 cents per SMS
           retry_attempts: settings.retryAttempts,
-          retry_delay_minutes: 15,
+          retry_delay_minutes: settings.retryDelayMinutes || 15,
           max_queue_age_hours: 48,
           sms_fallback_to_email: settings.smsFallbackToEmail,
           email_fallback_to_sms: settings.emailFallbackToSms,
@@ -595,7 +599,10 @@ export class NotificationSettingsService {
       timezone: 'Europe/Zurich',
       budgetWarningThreshold: 0.80,
       budgetHardCap: true,
+      budgetCapBehavior: 'skip',
+      budgetWarningBehavior: 'continue',
       retryAttempts: 3,
+      retryDelayMinutes: 15,
       smsFallbackToEmail: false,
       emailFallbackToSms: false,
       shortWindowPolicy: 'send',
@@ -623,6 +630,8 @@ export class NotificationSettingsService {
       monthlySmsLimit: data.monthly_sms_limit,
       budgetWarningThreshold: data.budget_warning_threshold,
       budgetHardCap: data.budget_hard_cap,
+      budgetCapBehavior: data.budget_cap_behavior || 'skip',
+      budgetWarningBehavior: data.budget_warning_behavior || 'continue',
       costPerEmailCents: data.cost_per_email_cents,
       costPerSmsCents: data.cost_per_sms_cents,
       retryAttempts: data.retry_attempts,

@@ -111,6 +111,8 @@ export interface NotificationSettings {
   monthlySmsLimit?: number;
   budgetWarningThreshold: number; // 0.8 for 80%
   budgetHardCap: boolean;
+  budgetCapBehavior: 'skip' | 'delay';
+  budgetWarningBehavior: 'continue' | 'throttle';
   
   // Retry settings
   retryAttempts: number;
