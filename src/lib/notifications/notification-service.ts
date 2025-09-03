@@ -50,7 +50,7 @@ export class NotificationService {
     }
     
     // Initialize email transporter
-    if (notificationSettings.email_enabled && emailSettings.smtp_host) {
+    if (notificationSettings.emailEnabled && emailSettings.smtp_host) {
       this.emailTransporter = nodemailer.createTransporter({
         host: emailSettings.smtp_host,
         port: emailSettings.smtp_port,
