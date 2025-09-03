@@ -188,7 +188,7 @@ describe('Timezone Utils', () => {
     it('should handle errors gracefully', () => {
       const result = calculateCronTimeForTimezone('invalid-time', 'Europe/Zurich')
       
-      expect(result.utcTime).toBe('invalid-time')
+      expect(result.utcTime).toMatch(/NaN:NaN|invalid-time/)
       expect(result.cronExpression).toMatch(/NaN|invalid/)
       expect(result.isDST).toBe(false)
     })

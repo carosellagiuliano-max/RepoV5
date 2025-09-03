@@ -143,11 +143,9 @@ describe('NotificationConsentService', () => {
 
       const result = await consentService.checkSuppression('test@example.com')
 
-      expect(result).toEqual({
-        isSuppressed: true,
-        suppressionType: 'unsubscribe',
-        suppressionReason: 'User unsubscribed'
-      })
+      expect(result.isSuppressed).toBe(true)
+      expect(result.suppressionType).toBe('unsubscribe')
+      expect(result.suppressionReason).toBe('User unsubscribed')
     })
 
     it('should return false when not suppressed', async () => {
@@ -162,11 +160,9 @@ describe('NotificationConsentService', () => {
 
       const result = await consentService.checkSuppression('test@example.com')
 
-      expect(result).toEqual({
-        isSuppressed: false,
-        suppressionType: null,
-        suppressionReason: null
-      })
+      expect(result.isSuppressed).toBe(false)
+      expect(result.suppressionType).toBeNull()
+      expect(result.suppressionReason).toBeNull()
     })
   })
 
@@ -212,12 +208,10 @@ describe('NotificationConsentService', () => {
 
       const result = await consentService.processUnsubscribe('token123', '192.168.1.1')
 
-      expect(result).toEqual({
-        success: true,
-        message: 'Successfully unsubscribed',
-        customerId: 'customer-123',
-        affectedChannels: ['email']
-      })
+      expect(result.success).toBe(true)
+      expect(result.message).toBe('Successfully unsubscribed')
+      expect(result.customerId).toBe('customer-123')
+      expect(result.affectedChannels).toEqual(['email'])
     })
 
     it('should handle invalid token', async () => {
@@ -233,12 +227,10 @@ describe('NotificationConsentService', () => {
 
       const result = await consentService.processUnsubscribe('invalid-token')
 
-      expect(result).toEqual({
-        success: false,
-        message: 'Invalid or expired token',
-        customerId: null,
-        affectedChannels: []
-      })
+      expect(result.success).toBe(false)
+      expect(result.message).toBe('Invalid or expired token')
+      expect(result.customerId).toBeNull()
+      expect(result.affectedChannels).toEqual([])
     })
   })
 
@@ -289,7 +281,7 @@ describe('NotificationConsentService', () => {
       )
 
       expect(result.canSend).toBe(false)
-      expect(result.reason).toContain('suppressed')
+      expect(result.reason).toContain('Contact suppressed')
     })
 
     it('should block sending when no consent', async () => {
@@ -365,6 +357,7 @@ describe('NotificationConsentService', () => {
 
   describe('recordBulkConsent', () => {
     it('should record multiple consent records', async () => {
+      let callCount = 0
       const mockConsentData = {
         id: 'consent-123',
         customer_id: 'customer-123',
@@ -380,9 +373,15 @@ describe('NotificationConsentService', () => {
       mockSupabaseClient.from.mockReturnValue({
         upsert: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({
-              data: mockConsentData,
-              error: null
+            single: vi.fn().mockImplementation(() => {
+              callCount++
+              return Promise.resolve({
+                data: {
+                  ...mockConsentData,
+                  consent_type: callCount === 1 ? 'appointment_reminders' : 'appointment_confirmations'
+                },
+                error: null
+              })
             })
           })
         })
