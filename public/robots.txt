@@ -12,3 +12,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap location
+Sitemap: https://schnittwerk.netlify.app/sitemap.xml

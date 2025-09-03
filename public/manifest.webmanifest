@@ -1,0 +1,80 @@
+{
+  "name": "Schnittwerk - Dein Look. Dein Schnittwerk.",
+  "short_name": "Schnittwerk",
+  "description": "Moderner Coiffeur im Silberturm St. Gallen für Damen und Herren. Online Termine buchen.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "lang": "de-CH",
+  "categories": ["beauty", "lifestyle", "business"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Termin buchen",
+      "short_name": "Buchen",
+      "description": "Neuen Termin buchen",
+      "url": "/booking",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "32x32",
+          "type": "image/x-icon"
+        }
+      ]
+    },
+    {
+      "name": "Dienstleistungen",
+      "short_name": "Services",
+      "description": "Unsere Dienstleistungen ansehen",
+      "url": "/services",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "32x32", 
+          "type": "image/x-icon"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/salon-hero.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Schnittwerk Salon"
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
