@@ -101,7 +101,10 @@ export function withSecurity(
       let user: AuthenticatedUser | null = null
       if (options.requireAuth !== false) {
         try {
-          const authResult = await withAuth(async (e, c) => c, {
+          const authResult = await withAuth(async (e, c) => ({
+            user: (c as AuthenticatedContext).user,
+            statusCode: 200
+          }), {
             allowedRoles: options.allowedRoles
           })(event, context)
           
