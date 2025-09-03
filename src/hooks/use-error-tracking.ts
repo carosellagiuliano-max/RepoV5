@@ -10,6 +10,7 @@
 
 import { useCallback } from 'react'
 import { logger } from '../lib/monitoring/logger'
+import { alertManager } from '../lib/monitoring/alerts'
 import { toast } from 'sonner'
 
 export interface ErrorContext {
@@ -247,6 +248,27 @@ class ErrorTracker {
 
     // Send to Sentry (if configured)
     await this.sendToSentry(trackedError)
+
+    // Send alert for high/critical errors
+    if (context.severity === 'critical' || context.severity === 'high') {
+      await alertManager.sendAlert(
+        `Error: ${error.name}`,
+        error.message,
+        {
+          correlationId: trackedError.context?.correlationId,
+          component: context.component || 'error-tracker',
+          action: context.action || 'error-tracked',
+          severity: context.severity,
+          metadata: {
+            errorName: error.name,
+            fingerprint: trackedError.fingerprint,
+            userFacing: context.userFacing,
+            recoverable: context.recoverable,
+            ...context.metadata
+          }
+        }
+      )
+    }
 
     // Show user notification (if applicable)
     this.showUserNotification(trackedError)
