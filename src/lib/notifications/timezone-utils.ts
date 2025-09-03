@@ -169,7 +169,7 @@ export function isInQuietHours(
     }
 
     // Convert back to original timezone
-    if (nextAllowedTime!) {
+    if (nextAllowedTime) {
       // This is a bit complex - we need to convert the local time back to UTC
       const utcString = nextAllowedTime.toLocaleString('en-CA', { timeZone: 'UTC' })
       const localString = nextAllowedTime.toLocaleString('en-CA', { timeZone: config.timezone })
