@@ -9,7 +9,8 @@ import { cleanupExpiredIdempotencyKeys } from '../../src/lib/security/idempotenc
 import { cleanupExpiredRateLimits } from '../../src/lib/security/rate-limiter'
 
 const cronSecret = process.env.NETLIFY_CRON_SECRET!
-const isDryRun = process.env.DATA_RETENTION_DRY_RUN !== 'false' // Default to dry run
+// By default, run in dry-run mode unless DATA_RETENTION_EXECUTE_REAL_DELETIONS is set to 'true'
+const isDryRun = String(process.env.DATA_RETENTION_EXECUTE_REAL_DELETIONS).toLowerCase() !== 'true'
 
 if (!cronSecret) {
   throw new Error('Missing NETLIFY_CRON_SECRET environment variable')
