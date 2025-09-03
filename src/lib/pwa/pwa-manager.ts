@@ -32,6 +32,9 @@ class PWAManager {
   }
 
   private async initialize() {
+    // Only initialize in browser environment
+    if (typeof window === 'undefined') return;
+    
     // Register service worker
     await this.registerServiceWorker();
     
@@ -99,6 +102,8 @@ class PWAManager {
    * Setup install prompt handling
    */
   private setupInstallPrompt(): void {
+    if (typeof window === 'undefined') return;
+    
     window.addEventListener('beforeinstallprompt', (event) => {
       console.log('[PWA] Install prompt available');
       
@@ -125,6 +130,8 @@ class PWAManager {
    * Setup offline detection
    */
   private setupOfflineDetection(): void {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+    
     const updateOnlineStatus = () => {
       const wasOffline = this.state.isOffline;
       this.state.isOffline = !navigator.onLine;
@@ -145,10 +152,19 @@ class PWAManager {
    * Check if the app is already installed
    */
   private checkInstallationStatus(): void {
+    // Check if running in browser environment
+    if (typeof window === 'undefined') return;
+    
     // Check if running in standalone mode (installed PWA)
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      this.state.isInstalled = true;
-      console.log('[PWA] App is installed (standalone mode)');
+    if (typeof window.matchMedia === 'function') {
+      try {
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+          this.state.isInstalled = true;
+          console.log('[PWA] App is installed (standalone mode)');
+        }
+      } catch (error) {
+        console.log('[PWA] matchMedia not available:', error);
+      }
     }
 
     // Check iOS standalone mode
