@@ -17,6 +17,8 @@ import {
 } from './types'
 import { NotificationTemplateManager } from './notification-templates'
 import { NotificationQueueManager } from './notification-queue'
+import { NotificationConsentService } from './consent-service'
+import { NotificationConsent } from './consent-types'
 
 /**
  * Core notification service for sending emails and SMS
@@ -26,6 +28,7 @@ export class NotificationService {
   private emailSettings: EmailSettings | null = null
   private smsSettings: SmsSettings | null = null
   private notificationSettings: NotificationSettings | null = null
+  private consentService: NotificationConsentService | null = null
   
   /**
    * Initialize the notification service with settings
@@ -33,11 +36,18 @@ export class NotificationService {
   async initialize(
     emailSettings: EmailSettings,
     smsSettings: SmsSettings,
-    notificationSettings: NotificationSettings
+    notificationSettings: NotificationSettings,
+    supabaseUrl?: string,
+    supabaseServiceKey?: string
   ): Promise<void> {
     this.emailSettings = emailSettings
     this.smsSettings = smsSettings
     this.notificationSettings = notificationSettings
+    
+    // Initialize consent service if Supabase credentials provided
+    if (supabaseUrl && supabaseServiceKey) {
+      this.consentService = new NotificationConsentService(supabaseUrl, supabaseServiceKey)
+    }
     
     // Initialize email transporter
     if (notificationSettings.email_enabled && emailSettings.smtp_host) {
@@ -165,11 +175,46 @@ export class NotificationService {
    */
   async processNotification(queueItem: NotificationQueue): Promise<NotificationResult> {
     try {
+      // Check consent and suppression if service is available
+      if (this.consentService && queueItem.recipient_id) {
+        const consentType = this.getConsentTypeFromChannel(queueItem.channel)
+        const shouldSend = await this.consentService.shouldSendNotification(
+          queueItem.recipient_id,
+          queueItem.recipient_email || undefined,
+          queueItem.recipient_phone || undefined,
+          queueItem.type as 'email' | 'sms',
+          consentType
+        )
+
+        if (!shouldSend.canSend) {
+          // Mark as cancelled due to consent/suppression
+          await NotificationQueueManager.markAsCancelled(queueItem.id, shouldSend.reason || 'Consent check failed')
+          
+          return {
+            success: false,
+            error: shouldSend.reason || 'Consent check failed',
+            attempts: queueItem.attempts + 1,
+            cancelled: true
+          }
+        }
+      }
+
       // Mark as sending
       await NotificationQueueManager.markAsSending(queueItem.id)
       
       // Prepare notification data
       const templateData = queueItem.template_data as NotificationTemplateData
+      
+      // Add unsubscribe link to template data
+      if (this.consentService && queueItem.recipient_id) {
+        templateData.unsubscribeLink = await this.generateUnsubscribeLink(
+          queueItem.recipient_id,
+          queueItem.recipient_email || undefined,
+          queueItem.recipient_phone || undefined,
+          queueItem.type as 'email' | 'sms',
+          queueItem.channel
+        )
+      }
       
       let result: NotificationResult
       
@@ -400,5 +445,172 @@ export class NotificationService {
     }
     
     return result
+  }
+
+  /**
+   * Get consent type from notification channel
+   */
+  private getConsentTypeFromChannel(channel: NotificationChannel): NotificationConsent['consentType'] {
+    switch (channel) {
+      case 'appointment_reminder':
+        return 'appointment_reminders'
+      case 'appointment_confirmation':
+        return 'appointment_confirmations'
+      case 'appointment_cancellation':
+      case 'appointment_reschedule':
+        return 'appointment_changes'
+      case 'staff_daily_schedule':
+        return 'daily_schedules'
+      default:
+        return 'appointment_reminders'
+    }
+  }
+
+  /**
+   * Generate unsubscribe link for notification
+   */
+  private async generateUnsubscribeLink(
+    customerId: string,
+    email?: string,
+    phone?: string,
+    channel?: 'email' | 'sms',
+    notificationChannel?: NotificationChannel
+  ): Promise<string | undefined> {
+    if (!this.consentService) {
+      return undefined
+    }
+
+    try {
+      const consentType = notificationChannel ? this.getConsentTypeFromChannel(notificationChannel) : undefined
+      const notificationTypes = consentType ? [consentType] : []
+
+      const token = await this.consentService.generateUnsubscribeToken(
+        customerId,
+        email,
+        phone,
+        channel,
+        notificationTypes
+      )
+
+      if (token) {
+        // Use site URL from environment or default
+        const siteUrl = process.env.VITE_SITE_URL || 'https://your-site.netlify.app'
+        return `${siteUrl}/.netlify/functions/unsubscribe/${token}`
+      }
+    } catch (error) {
+      console.error('Failed to generate unsubscribe link:', error)
+    }
+
+    return undefined
+  }
+
+  /**
+   * Check if notification should be sent based on quiet hours and timezone
+   */
+  async shouldSendAtTime(
+    scheduledTime: Date,
+    timezone: string = 'Europe/Zurich',
+    quietHoursStart: string = '21:00',
+    quietHoursEnd: string = '08:00'
+  ): Promise<{ shouldSend: boolean; delayUntil?: Date; reason?: string }> {
+    try {
+      // Convert to target timezone
+      const targetTime = new Date(scheduledTime.toLocaleString('en-US', { timeZone: timezone }))
+      const hours = targetTime.getHours()
+      const minutes = targetTime.getMinutes()
+      const currentTimeMinutes = hours * 60 + minutes
+
+      // Parse quiet hours
+      const [quietStartHour, quietStartMin] = quietHoursStart.split(':').map(Number)
+      const [quietEndHour, quietEndMin] = quietHoursEnd.split(':').map(Number)
+      const quietStartMinutes = quietStartHour * 60 + quietStartMin
+      const quietEndMinutes = quietEndHour * 60 + quietEndMin
+
+      // Check if we're in quiet hours
+      let inQuietHours = false
+      if (quietStartMinutes < quietEndMinutes) {
+        // Same day quiet hours (e.g., 13:00 - 17:00)
+        inQuietHours = currentTimeMinutes >= quietStartMinutes && currentTimeMinutes < quietEndMinutes
+      } else {
+        // Overnight quiet hours (e.g., 21:00 - 08:00)
+        inQuietHours = currentTimeMinutes >= quietStartMinutes || currentTimeMinutes < quietEndMinutes
+      }
+
+      if (!inQuietHours) {
+        return { shouldSend: true }
+      }
+
+      // Calculate delay until end of quiet hours
+      let delayUntil: Date
+      if (quietStartMinutes > quietEndMinutes) {
+        // Overnight quiet hours
+        if (currentTimeMinutes >= quietStartMinutes) {
+          // Same day, wait until tomorrow's end time
+          delayUntil = new Date(targetTime)
+          delayUntil.setDate(delayUntil.getDate() + 1)
+          delayUntil.setHours(quietEndHour, quietEndMin, 0, 0)
+        } else {
+          // Next day, wait until today's end time
+          delayUntil = new Date(targetTime)
+          delayUntil.setHours(quietEndHour, quietEndMin, 0, 0)
+        }
+      } else {
+        // Same day quiet hours
+        delayUntil = new Date(targetTime)
+        delayUntil.setHours(quietEndHour, quietEndMin, 0, 0)
+      }
+
+      return {
+        shouldSend: false,
+        delayUntil,
+        reason: `Delayed due to quiet hours (${quietHoursStart} - ${quietHoursEnd} ${timezone})`
+      }
+    } catch (error) {
+      console.error('Error checking quiet hours:', error)
+      // If we can't determine, err on the side of sending
+      return { shouldSend: true }
+    }
+  }
+
+  /**
+   * Handle provider feedback (bounces, complaints, delivery status)
+   */
+  async handleProviderFeedback(
+    notificationId: string,
+    feedbackType: 'bounce' | 'complaint' | 'delivery' | 'reject',
+    details: {
+      email?: string
+      phone?: string
+      reason?: string
+      timestamp?: Date
+      providerResponse?: any
+    }
+  ): Promise<void> {
+    if (!this.consentService) {
+      return
+    }
+
+    try {
+      // Add to suppression list if bounce or complaint
+      if ((feedbackType === 'bounce' || feedbackType === 'complaint') && 
+          (details.email || details.phone)) {
+        
+        await this.consentService.addSuppression({
+          email: details.email,
+          phone: details.phone,
+          suppressionType: feedbackType === 'bounce' ? 'bounce' : 'spam',
+          suppressionReason: details.reason || `Provider feedback: ${feedbackType}`,
+          suppressionSource: 'provider_feedback'
+        })
+      }
+
+      // Log audit event
+      console.log(`Provider feedback for notification ${notificationId}:`, {
+        type: feedbackType,
+        details
+      })
+    } catch (error) {
+      console.error('Error handling provider feedback:', error)
+    }
   }
 }

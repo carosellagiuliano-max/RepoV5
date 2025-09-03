@@ -102,6 +102,7 @@ export interface NotificationResult {
   messageId?: string
   error?: string
   attempts: number
+  cancelled?: boolean
 }
 
 export interface NotificationBatch {

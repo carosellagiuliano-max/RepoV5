@@ -199,6 +199,28 @@ export class NotificationQueueManager {
     // Log audit entry
     await this.addAuditEntry(notificationId, 'cancelled')
   }
+
+  /**
+   * Mark a notification as cancelled with reason
+   */
+  static async markAsCancelled(notificationId: string, reason: string): Promise<void> {
+    const { error } = await supabase
+      .from('notification_queue')
+      .update({ 
+        status: 'cancelled',
+        error_message: reason,
+        updated_at: new Date().toISOString()
+      } as NotificationQueueUpdate)
+      .eq('id', notificationId)
+      .in('status', ['pending', 'sending'])
+    
+    if (error) {
+      throw new Error(`Failed to mark notification as cancelled: ${error.message}`)
+    }
+    
+    // Log audit entry
+    await this.addAuditEntry(notificationId, 'cancelled', { reason })
+  }
   
   /**
    * Schedule a notification for a specific time

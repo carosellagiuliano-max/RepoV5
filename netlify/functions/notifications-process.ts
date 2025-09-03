@@ -120,7 +120,13 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
 
     // Initialize notification service
     const notificationService = new NotificationService()
-    await notificationService.initialize(emailSettings, smsSettings, notificationSettings)
+    await notificationService.initialize(
+      emailSettings, 
+      smsSettings, 
+      notificationSettings,
+      supabaseUrl,
+      supabaseServiceKey
+    )
 
     // Process pending notifications
     const result = await notificationService.processPendingNotifications(100)
