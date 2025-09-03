@@ -206,7 +206,7 @@ export class DataRetentionService {
     }
     
     // Check if rollback is possible (within 24 hours)
-    const executionDate = new Date(execution.startedAt)
+    const executionDate = new Date(execution.started_at)
     const now = new Date()
     const hoursSinceExecution = (now.getTime() - executionDate.getTime()) / (1000 * 60 * 60)
     
