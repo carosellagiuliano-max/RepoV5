@@ -7,6 +7,7 @@ import { FinancialOverview } from './FinancialOverview';
 import { InactiveCustomers } from './InactiveCustomers';
 import { AdminSettings } from './AdminSettings';
 import { MediaManagement } from '../../admin/media/MediaManagement';
+import { AnalyticsOverview } from '../../admin/analytics/AnalyticsOverview';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
@@ -15,7 +16,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ onLogout }: AdminDashboardProps) {
-  const [activeView, setActiveView] = useState<'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings'>('calendar-pro');
+  const [activeView, setActiveView] = useState<'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings' | 'analytics'>('calendar-pro');
 
   return (
     <div className="flex h-screen bg-background">
@@ -32,6 +33,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
             {activeView === 'inactive' && 'Inaktive Kunden'}
             {activeView === 'media' && 'Medienverwaltung'}
             {activeView === 'settings' && 'Einstellungen'}
+            {activeView === 'analytics' && 'Analytics Dashboard'}
           </h1>
           <Button variant="outline" onClick={onLogout} className="gap-2">
             <LogOut className="w-4 h-4" />
@@ -48,6 +50,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
           {activeView === 'inactive' && <InactiveCustomers />}
           {activeView === 'media' && <MediaManagement />}
           {activeView === 'settings' && <AdminSettings />}
+          {activeView === 'analytics' && <AnalyticsOverview />}
         </main>
       </div>
     </div>

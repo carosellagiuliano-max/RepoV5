@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Users, TrendingUp, Scissors, Settings, UserX, Image, CalendarDays } from 'lucide-react';
+import { Calendar, Users, TrendingUp, Scissors, Settings, UserX, Image, CalendarDays, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AdminSidebarProps {
-  activeView: 'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings';
-  onViewChange: (view: 'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings') => void;
+  activeView: 'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings' | 'analytics';
+  onViewChange: (view: 'calendar' | 'calendar-pro' | 'customers' | 'finances' | 'inactive' | 'media' | 'settings' | 'analytics') => void;
 }
 
 export function AdminSidebar({ activeView, onViewChange }: AdminSidebarProps) {
@@ -21,6 +21,12 @@ export function AdminSidebar({ activeView, onViewChange }: AdminSidebarProps) {
       label: 'Terminkalender',
       icon: Calendar,
       description: 'Einfache Terminansicht'
+    },
+    {
+      id: 'analytics' as const,
+      label: 'Analytics Dashboard',
+      icon: BarChart3,
+      description: 'Business Intelligence & Insights'
     },
     {
       id: 'customers' as const,
