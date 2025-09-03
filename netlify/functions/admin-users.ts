@@ -5,8 +5,8 @@
 
 import { Handler } from '@netlify/functions'
 import { z } from 'zod'
-import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, generateCorrelationId, createLogger } from '../../lib/auth/netlify-auth'
-import { createAdminClient } from '../../lib/auth/netlify-auth'
+import { withAuthAndRateLimit, createSuccessResponse, createErrorResponse, generateCorrelationId, createLogger } from '../../src/lib/auth/netlify-auth'
+import { createAdminClient } from '../../src/lib/auth/netlify-auth'
 
 // Validation schemas
 const UpdateRoleSchema = z.object({
