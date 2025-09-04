@@ -100,10 +100,10 @@ validate_lighthouse_scores() {
     local speed_index=$(jq -r '.audits["speed-index"].numericValue' "$json_file" 2>/dev/null || echo "0")
     
     # Convert milliseconds to seconds for readability
-    lcp=$(echo "scale=2; $lcp / 1000" | bc -l 2>/dev/null || echo "$lcp")
-    inp=$(echo "scale=0; $inp" | bc -l 2>/dev/null || echo "$inp")
-    fcp=$(echo "scale=2; $fcp / 1000" | bc -l 2>/dev/null || echo "$fcp")
-    speed_index=$(echo "scale=2; $speed_index / 1000" | bc -l 2>/dev/null || echo "$speed_index")
+    lcp=$(awk "BEGIN { printf \"%.2f\", $lcp / 1000 }" 2>/dev/null || echo "$lcp")
+    # inp is already numeric, no conversion needed
+    fcp=$(awk "BEGIN { printf \"%.2f\", $fcp / 1000 }" 2>/dev/null || echo "$fcp")
+    speed_index=$(awk "BEGIN { printf \"%.2f\", $speed_index / 1000 }" 2>/dev/null || echo "$speed_index")
     
     echo ""
     echo -e "${BLUE}Lighthouse Scores ($device):${NC}"
