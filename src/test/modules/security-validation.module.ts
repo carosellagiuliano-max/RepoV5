@@ -154,7 +154,7 @@ export class SecurityValidationModule {
       const xssPayload = '<script>alert("xss")</script>'
       const sqlInjectionPayload = "'; DROP TABLE users; --"
       
-      const response = await fetch(`${this.config.baseUrl}/api/bookings`, {
+      const response = await fetch(`${this.config.baseUrl}/api/health`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
