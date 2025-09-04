@@ -45,7 +45,7 @@ describe('Production End-to-End Validation', () => {
 
   afterAll(() => {
     console.log('\n📊 Production E2E Test Results Summary:')
-    console.log('=' .repeat(50))
+    console.log('='.repeat(50))
     
     const categories = [...new Set(testResults.map(r => r.category))]
     categories.forEach(category => {
