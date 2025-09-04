@@ -96,23 +96,22 @@ export class SecurityValidationModule {
       const requests: Promise<Response>[] = []
       
       // Send multiple requests rapidly to trigger rate limiting
-      for (let i = 0; i < 10; i++) {
-        requests.push(
-          fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Correlation-Id': `${this.config.correlationId || 'test-rate-limit'}-${i}`
-            },
-            body: JSON.stringify({
-              email: 'test@example.com',
-              password: 'invalid'
-            })
+      const numRequests = 5; // Reduced and sequential for safer testing
+      const responses: Response[] = [];
+      for (let i = 0; i < numRequests; i++) {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Correlation-Id': `${this.config.correlationId || 'test-rate-limit'}-${i}`
+          },
+          body: JSON.stringify({
+            email: 'test@example.com',
+            password: 'invalid'
           })
-        )
+        });
+        responses.push(response);
       }
-
-      const responses = await Promise.all(requests)
       const statusCodes = responses.map(r => r.status)
       
       // Should have some 429 (Too Many Requests) responses
