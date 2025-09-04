@@ -15,6 +15,7 @@ import {
   createSuccessResponse,
   createErrorResponse
 } from '../../src/lib/monitoring/middleware'
+import { Logger, MonitoringContext, HealthCheck as SharedHealthCheck } from '../../src/lib/monitoring/types'
 import nodemailer from 'nodemailer'
 
 const supabaseUrl = process.env.SUPABASE_URL!
@@ -28,7 +29,7 @@ interface HealthCheck {
   status: 'healthy' | 'warning' | 'error'
   message: string
   responseTime?: number
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }
 
 interface HealthResponse {
@@ -67,7 +68,7 @@ interface HealthResponse {
 async function healthHandler(
   event: NetlifyEvent,
   context: Context,
-  monitoring: any
+  monitoring: MonitoringContext
 ): Promise<MonitoredResponse> {
   const { logger, correlationId } = monitoring
 
@@ -221,7 +222,7 @@ function getMemoryUsage() {
   }
 }
 
-async function checkDatabase(logger: any): Promise<HealthCheck> {
+async function checkDatabase(logger: Logger): Promise<HealthCheck> {
   const startTime = Date.now()
   
   try {
@@ -298,7 +299,7 @@ async function checkDatabase(logger: any): Promise<HealthCheck> {
   }
 }
 
-async function checkSMTP(logger: any): Promise<HealthCheck> {
+async function checkSMTP(logger: Logger): Promise<HealthCheck> {
   const startTime = Date.now()
   
   try {
@@ -379,7 +380,7 @@ async function checkSMTP(logger: any): Promise<HealthCheck> {
   }
 }
 
-async function checkSMS(logger: any): Promise<HealthCheck> {
+async function checkSMS(logger: Logger): Promise<HealthCheck> {
   const startTime = Date.now()
   
   try {
@@ -450,7 +451,7 @@ async function checkSMS(logger: any): Promise<HealthCheck> {
   }
 }
 
-async function checkStorage(logger: any): Promise<HealthCheck> {
+async function checkStorage(logger: Logger): Promise<HealthCheck> {
   const startTime = Date.now()
   
   try {
@@ -477,7 +478,7 @@ async function checkStorage(logger: any): Promise<HealthCheck> {
         responseTime,
         details: {
           bucket: bucketName,
-          errorCode: (error as any).statusCode
+          errorCode: (error as unknown as { statusCode?: number }).statusCode
         }
       }
     }
@@ -527,7 +528,7 @@ async function checkStorage(logger: any): Promise<HealthCheck> {
   }
 }
 
-async function checkQueue(logger: any): Promise<HealthCheck> {
+async function checkQueue(logger: Logger): Promise<HealthCheck> {
   const startTime = Date.now()
   
   try {
@@ -572,7 +573,7 @@ async function checkQueue(logger: any): Promise<HealthCheck> {
   }
 }
 
-async function checkBudget(logger: any): Promise<HealthCheck> {
+async function checkBudget(logger: Logger): Promise<HealthCheck> {
   const startTime = Date.now()
   
   try {

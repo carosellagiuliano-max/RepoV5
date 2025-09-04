@@ -23,7 +23,7 @@ export interface LogContext {
   component?: string
   action?: string
   duration?: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface LogEntry {
@@ -146,7 +146,7 @@ class Logger {
   /**
    * Redact PII and sensitive information from any data
    */
-  private redactSensitiveData(data: any): any {
+  private redactSensitiveData(data: unknown): unknown {
     if (typeof data === 'string') {
       let redacted = data
       PII_PATTERNS.forEach(({ pattern, replacement }) => {
@@ -160,7 +160,7 @@ class Logger {
     }
 
     if (data && typeof data === 'object') {
-      const redacted: any = {}
+      const redacted: Record<string, unknown> = {}
       for (const [key, value] of Object.entries(data)) {
         const lowerKey = key.toLowerCase()
         
@@ -283,7 +283,7 @@ class Logger {
         name: error.name,
         message: this.redactSensitiveData(error.message),
         stack: error.stack ? this.redactSensitiveData(error.stack) : undefined,
-        code: (error as any).code
+        code: (error as unknown as { code?: string }).code
       }
       
       entry.error = redactedError
@@ -301,7 +301,7 @@ class Logger {
         name: error.name,
         message: this.redactSensitiveData(error.message),
         stack: error.stack ? this.redactSensitiveData(error.stack) : undefined,
-        code: (error as any).code
+        code: (error as unknown as { code?: string }).code
       }
       
       entry.error = redactedError

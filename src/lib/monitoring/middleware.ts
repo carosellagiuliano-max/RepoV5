@@ -8,6 +8,7 @@
 import { Context } from '@netlify/functions'
 import { createRequestLogger } from '../../src/lib/monitoring/logger'
 import { errorTracker } from '../../src/hooks/use-error-tracking'
+import { Logger, RequestContext, MonitoringContext as SharedMonitoringContext } from './types'
 
 export interface NetlifyEvent {
   httpMethod: string
@@ -18,7 +19,7 @@ export interface NetlifyEvent {
   multiValueQueryStringParameters?: Record<string, string[]> | null
   pathParameters?: Record<string, string> | null
   stageVariables?: Record<string, string> | null
-  requestContext?: any
+  requestContext?: RequestContext
   isBase64Encoded?: boolean
 }
 
@@ -39,7 +40,7 @@ export interface MonitoringConfig {
 
 interface MonitoringContext {
   correlationId: string
-  logger: any
+  logger: Logger
   startTime: number
   functionName: string
 }
@@ -245,7 +246,7 @@ export function validateHeaders(event: NetlifyEvent, requiredHeaders: string[]):
 /**
  * Helper function to parse JSON body safely
  */
-export function parseJsonBody<T = any>(event: NetlifyEvent): T {
+export function parseJsonBody<T = unknown>(event: NetlifyEvent): T {
   if (!event.body) {
     throw new Error('Request body is required')
   }
@@ -291,7 +292,7 @@ export function validateJWT(event: NetlifyEvent): { userId: string; role: string
 /**
  * Helper function to create standardized success response
  */
-export function createSuccessResponse<T = any>(
+export function createSuccessResponse<T = unknown>(
   data: T,
   statusCode: number = 200,
   additionalHeaders: Record<string, string> = {}
@@ -400,7 +401,10 @@ export function applyRateLimit(
     const resetTime = rateLimiter.getResetTime(clientId)
     const retryAfter = Math.ceil((resetTime - Date.now()) / 1000)
     
-    const error = new Error('Rate limit exceeded') as any
+    const error = new Error('Rate limit exceeded') as Error & {
+      statusCode: number
+      headers: Record<string, string>
+    }
     error.statusCode = 429
     error.headers = {
       'Retry-After': retryAfter.toString(),

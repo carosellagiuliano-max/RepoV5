@@ -16,7 +16,7 @@ export interface TestResult {
   category: string
   test: string
   status: 'pass' | 'fail' | 'skip'
-  details?: any
+  details?: unknown
   error?: string
 }
 
@@ -49,7 +49,7 @@ export class HealthCheckModule {
     this.config = config
   }
 
-  addResult(category: string, test: string, status: TestResult['status'], details?: any, error?: string) {
+  addResult(category: string, test: string, status: TestResult['status'], details?: unknown, error?: string) {
     this.results.push({ category, test, status, details, error })
   }
 
@@ -173,7 +173,7 @@ export class HealthCheckModule {
       
       // Check for expected dependencies
       const expectedDeps = ['database', 'stripe', 'email']
-      const depNames = data.dependencies.map((dep: any) => dep.name)
+      const depNames = data.dependencies.map((dep: { name: string }) => dep.name)
       
       expectedDeps.forEach(depName => {
         expect(depNames).toContain(depName)
@@ -185,7 +185,7 @@ export class HealthCheckModule {
         status: 'pass',
         details: {
           totalDependencies: data.dependencies.length,
-          dependencies: data.dependencies.map((dep: any) => ({
+          dependencies: data.dependencies.map((dep: { name: string; status: string }) => ({
             name: dep.name,
             status: dep.status
           }))

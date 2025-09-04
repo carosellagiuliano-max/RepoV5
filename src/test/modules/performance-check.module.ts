@@ -19,7 +19,7 @@ export interface TestResult {
   category: string
   test: string
   status: 'pass' | 'fail' | 'skip'
-  details?: any
+  details?: unknown
   error?: string
 }
 
@@ -45,7 +45,7 @@ export class PerformanceCheckModule {
     }
   }
 
-  addResult(category: string, test: string, status: TestResult['status'], details?: any, error?: string) {
+  addResult(category: string, test: string, status: TestResult['status'], details?: unknown, error?: string) {
     this.results.push({ category, test, status, details, error })
   }
 

@@ -40,7 +40,7 @@ let allTestResults: Array<{
   category: string
   test: string
   status: 'pass' | 'fail' | 'skip'
-  details?: any
+  details?: unknown
   error?: string
 }> = []
 

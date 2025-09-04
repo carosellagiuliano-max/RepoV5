@@ -18,7 +18,7 @@ export interface ErrorContext {
   action?: string
   userId?: string
   correlationId?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   severity?: 'low' | 'medium' | 'high' | 'critical'
   userFacing?: boolean
   recoverable?: boolean

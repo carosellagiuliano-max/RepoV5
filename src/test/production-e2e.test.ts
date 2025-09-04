@@ -30,11 +30,11 @@ describe('Production End-to-End Validation', () => {
     category: string
     test: string
     status: 'pass' | 'fail' | 'skip'
-    details?: any
+    details?: unknown
     error?: string
   }> = []
 
-  const addTestResult = (category: string, test: string, status: 'pass' | 'fail' | 'skip', details?: any, error?: string) => {
+  const addTestResult = (category: string, test: string, status: 'pass' | 'fail' | 'skip', details?: unknown, error?: string) => {
     testResults.push({ category, test, status, details, error })
   }
 

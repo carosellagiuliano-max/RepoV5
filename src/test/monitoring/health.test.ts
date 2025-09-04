@@ -25,9 +25,9 @@ vi.mock('../../src/lib/monitoring/logger', () => ({
 }))
 
 describe('Health Endpoint', () => {
-  let mockSupabaseClient: any
-  let mockTransporter: any
-  let handler: any
+  let mockSupabaseClient: MockSupabaseClient
+  let mockTransporter: unknown
+  let handler: unknown
 
   beforeEach(() => {
     vi.clearAllMocks()
