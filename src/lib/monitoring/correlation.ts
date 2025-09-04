@@ -6,6 +6,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid'
+import { AxiosRequestConfig, AxiosResponse } from './types'
 
 class CorrelationManager {
   private static instance: CorrelationManager
@@ -104,13 +105,13 @@ class CorrelationManager {
    */
   public createAxiosInterceptor() {
     return {
-      request: (config: any) => {
+      request: (config: AxiosRequestConfig) => {
         if (!config.headers['X-Correlation-Id']) {
           config.headers['X-Correlation-Id'] = this.getCurrentCorrelationId()
         }
         return config
       },
-      response: (response: any) => {
+      response: (response: AxiosResponse) => {
         const correlationId = response.headers['x-correlation-id']
         if (correlationId) {
           this.setCorrelationId(correlationId)

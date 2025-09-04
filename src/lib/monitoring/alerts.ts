@@ -16,7 +16,7 @@ export interface AlertContext {
   component?: string
   action?: string
   severity: 'low' | 'medium' | 'high' | 'critical'
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   timestamp?: Date
   fingerprint?: string
 }
