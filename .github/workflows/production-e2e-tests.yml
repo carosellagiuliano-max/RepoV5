@@ -1,0 +1,230 @@
+name: Production End-to-End Tests
+
+on:
+  # Run on main branch pushes
+  push:
+    branches: [main, production]
+  
+  # Run on pull requests to main
+  pull_request:
+    branches: [main]
+  
+  # Allow manual triggers
+  workflow_dispatch:
+    inputs:
+      production_url:
+        description: 'Production URL to test'
+        required: false
+        default: 'https://your-site.netlify.app'
+        type: string
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - basic
+          - security
+          - lighthouse
+          - health
+      quick_mode:
+        description: 'Run in quick mode (skip Lighthouse)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  production-e2e-tests:
+    name: Production E2E Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          sudo apt-get update
+          sudo apt-get install -y curl jq bc
+          
+      - name: Install Lighthouse
+        run: npm install -g lighthouse
+        
+      - name: Run production E2E tests
+        env:
+          PRODUCTION_URL: ${{ github.event.inputs.production_url || secrets.PRODUCTION_URL || 'https://your-site.netlify.app' }}
+          TEST_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+        run: |
+          # Set test options based on inputs
+          TEST_OPTIONS=""
+          if [ "${{ github.event.inputs.test_suite }}" != "" ] && [ "${{ github.event.inputs.test_suite }}" != "all" ]; then
+            TEST_OPTIONS="--suite ${{ github.event.inputs.test_suite }}"
+          fi
+          if [ "${{ github.event.inputs.quick_mode }}" = "true" ]; then
+            TEST_OPTIONS="$TEST_OPTIONS --quick"
+          fi
+          
+          # Run the master test suite
+          ./scripts/run-master-e2e-tests.sh $TEST_OPTIONS
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-e2e-results-${{ github.run_number }}
+          path: |
+            test-results/
+            !test-results/**/*.log
+          retention-days: 30
+          
+      - name: Upload detailed logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-e2e-logs-${{ github.run_number }}
+          path: test-results/**/*.log
+          retention-days: 7
+          
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Find the latest test results
+            const resultsDir = './test-results';
+            if (!fs.existsSync(resultsDir)) {
+              console.log('No test results found');
+              return;
+            }
+            
+            const dirs = fs.readdirSync(resultsDir)
+              .filter(d => d.startsWith('master-e2e-'))
+              .sort()
+              .reverse();
+              
+            if (dirs.length === 0) {
+              console.log('No master E2E results found');
+              return;
+            }
+            
+            const latestDir = path.join(resultsDir, dirs[0]);
+            const summaryFile = path.join(latestDir, 'master-test-summary.json');
+            
+            if (!fs.existsSync(summaryFile)) {
+              console.log('No summary file found');
+              return;
+            }
+            
+            const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+            
+            const statusIcon = summary.summary.failedSuites === 0 ? '✅' : '❌';
+            const statusText = summary.summary.failedSuites === 0 ? 'PASSED' : 'FAILED';
+            
+            const comment = `## ${statusIcon} Production E2E Test Results
+            
+            **Status:** ${statusText}
+            **Success Rate:** ${summary.summary.successRate}%
+            
+            | Metric | Value |
+            |--------|-------|
+            | Total Suites | ${summary.summary.totalSuites} |
+            | Passed | ✅ ${summary.summary.passedSuites} |
+            | Failed | ❌ ${summary.summary.failedSuites} |
+            
+            ### Test Categories
+            ${summary.requirements.map(req => `- ${summary.suites.find(s => s.name.includes(req.split(' ')[0]))?.status === 'PASS' ? '✅' : '❌'} ${req}`).join('\n')}
+            
+            <details>
+            <summary>Detailed Results</summary>
+            
+            ${summary.suites.map(suite => 
+              `- ${suite.status === 'PASS' ? '✅' : suite.status === 'FAIL' ? '❌' : '⏭️'} **${suite.name}** ${suite.details ? `- ${suite.details}` : ''}`
+            ).join('\n')}
+            
+            </details>
+            
+            **Correlation ID:** \`${summary.testRun.correlationId}\`
+            **Test URL:** ${summary.testRun.productionUrl}
+            **Environment:** ${summary.testRun.environment}
+            `;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Separate job for Lighthouse-only runs (faster feedback)
+  lighthouse-check:
+    name: Lighthouse Performance Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install Lighthouse
+        run: npm install -g lighthouse
+        
+      - name: Run Lighthouse tests
+        env:
+          PRODUCTION_URL: ${{ secrets.STAGING_URL || 'https://staging.netlify.app' }}
+        run: |
+          chmod +x ./scripts/run-lighthouse-tests.sh
+          ./scripts/run-lighthouse-tests.sh
+          
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-results-${{ github.run_number }}
+          path: test-results/lighthouse-*/
+          retention-days: 14
+
+  # Security-only check for faster security feedback
+  security-check:
+    name: Security Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y curl jq
+        
+      - name: Run security tests
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL || 'https://your-site.netlify.app' }}
+        run: |
+          chmod +x ./scripts/run-security-tests.sh
+          ./scripts/run-security-tests.sh
+          
+      - name: Upload security results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-results-${{ github.run_number }}
+          path: test-results/security-*/
+          retention-days: 30
