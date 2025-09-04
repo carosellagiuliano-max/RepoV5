@@ -178,38 +178,47 @@ test_idempotency() {
     echo -e "${BLUE}🔄 Testing Idempotency System${NC}"
     echo "============================"
     
-    # Test idempotency key validation format
+    # Test idempotency key validation by sending real requests to the API endpoint
+    # NOTE: Update ENDPOINT and BODY as appropriate for your API
+    local ENDPOINT="$PRODUCTION_URL/api/test-idempotency"
+    local BODY='{"test": "idempotency"}'
     local valid_keys=(
         "booking_$(date +%s)_abcdef123456"
         "payment-$(date +%s)-valid-key"
         "$(printf 'a%.0s' {1..32})" # 32 character key
     )
-    
     local invalid_keys=(
         "short"
         "invalid@key"
         "spaces in key"
         "$(printf 'a%.0s' {1..129})" # Too long
     )
-    
-    # Since we can't directly test the validation function in bash,
-    # we'll simulate the test based on the patterns
+
     for key in "${valid_keys[@]}"; do
-        if [[ ${#key} -ge 8 && ${#key} -le 128 && "$key" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-            log_security_result "Idempotency Key Validation (Valid)" "PASS" "Key format accepted: ${key:0:20}..."
+        # Send request with valid key
+        response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$ENDPOINT" \
+            -H "Content-Type: application/json" \
+            -H "Idempotency-Key: $key" \
+            -d "$BODY")
+        if [[ "$response" =~ ^2 ]]; then
+            log_security_result "Idempotency Key Validation (Valid)" "PASS" "Key accepted: ${key:0:20}..."
         else
-            log_security_result "Idempotency Key Validation (Valid)" "FAIL" "Valid key rejected: ${key:0:20}..."
+            log_security_result "Idempotency Key Validation (Valid)" "FAIL" "Valid key rejected: ${key:0:20}... (HTTP $response)"
         fi
     done
-    
+
     for key in "${invalid_keys[@]}"; do
-        if [[ ${#key} -lt 8 || ${#key} -gt 128 || ! "$key" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-            log_security_result "Idempotency Key Validation (Invalid)" "PASS" "Invalid key correctly rejected: ${key:0:20}..."
+        # Send request with invalid key
+        response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$ENDPOINT" \
+            -H "Content-Type: application/json" \
+            -H "Idempotency-Key: $key" \
+            -d "$BODY")
+        if [[ "$response" =~ ^4 ]]; then
+            log_security_result "Idempotency Key Validation (Invalid)" "PASS" "Invalid key correctly rejected: ${key:0:20}... (HTTP $response)"
         else
-            log_security_result "Idempotency Key Validation (Invalid)" "FAIL" "Invalid key incorrectly accepted: ${key:0:20}..."
+            log_security_result "Idempotency Key Validation (Invalid)" "FAIL" "Invalid key incorrectly accepted: ${key:0:20}... (HTTP $response)"
         fi
     done
-    
     # Test idempotency behavior (simulated)
     echo "Testing idempotency behavior..."
     local idempotency_key="security-test-$(date +%s)-$(openssl rand -hex 16)"
