@@ -10,7 +10,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:modular": "vitest run src/test/modular-production-e2e.test.ts",
+    "test:e2e": "scripts/run-enhanced-e2e-tests.sh",
+    "test:e2e:modular": "scripts/run-enhanced-e2e-tests.sh --modular",
+    "test:e2e:quick": "scripts/run-enhanced-e2e-tests.sh --quick"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

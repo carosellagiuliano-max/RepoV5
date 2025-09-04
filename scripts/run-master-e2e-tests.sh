@@ -54,7 +54,7 @@ OPTIONS:
     -e, --env ENV           Test environment (default: production)
     -o, --output DIR        Output directory for results (default: ./test-results)
     -s, --suite SUITE       Run specific test suite only
-                           Options: basic, security, lighthouse, health, all
+                           Options: basic, modular, security, lighthouse, health, all
     -q, --quick             Run quick tests only (skip Lighthouse)
     -v, --verbose           Verbose output
     -h, --help              Show this help message
@@ -553,6 +553,17 @@ case $SPECIFIC_SUITE in
     "basic")
         run_basic_tests
         ;;
+    "modular")
+        echo -e "${MAGENTA}🧩 Running Modular Test Components${NC}"
+        echo "=================================="
+        
+        # Run modular tests using npm/vitest
+        if npm run test src/test/modular-production-e2e.test.ts &> "$MASTER_RESULTS_DIR/modular-tests.log"; then
+            log_suite_result "Modular Test Components" "PASS" "All modular components passed"
+        else
+            log_suite_result "Modular Test Components" "FAIL" "Some modular tests failed"
+        fi
+        ;;
     "security")
         run_security_tests
         ;;
@@ -569,6 +580,16 @@ case $SPECIFIC_SUITE in
             run_lighthouse_tests
         fi
         run_health_tests
+        
+        # Also run modular tests as part of "all"
+        echo -e "${MAGENTA}🧩 Running Modular Test Components${NC}"
+        echo "=================================="
+        
+        if npm run test src/test/modular-production-e2e.test.ts &> "$MASTER_RESULTS_DIR/modular-tests.log"; then
+            log_suite_result "Modular Test Components" "PASS" "All modular components passed"
+        else
+            log_suite_result "Modular Test Components" "FAIL" "Some modular tests failed"
+        fi
         ;;
     *)
         echo -e "${RED}Unknown test suite: $SPECIFIC_SUITE${NC}"
