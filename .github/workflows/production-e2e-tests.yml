@@ -413,7 +413,7 @@ jobs:
           
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: production-e2e-results-${{ github.run_number }}
           path: |
@@ -423,7 +423,7 @@ jobs:
           
       - name: Upload detailed logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: production-e2e-logs-${{ github.run_number }}
           path: test-results/**/*.log
@@ -593,7 +593,7 @@ jobs:
           
       - name: Upload Lighthouse results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: lighthouse-results-${{ github.run_number }}
           path: test-results/lighthouse-*/
@@ -671,7 +671,7 @@ jobs:
           
       - name: Upload security results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: security-results-${{ github.run_number }}
           path: test-results/security-*/
