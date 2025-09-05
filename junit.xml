@@ -1,14 +1,57 @@
-<testsuites id="" name="" tests="3" failures="0" skipped="0" errors="0" time="8.962204">
-<testsuite name="basic.spec.ts" timestamp="2025-09-05T13:52:52.481Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.43" errors="0">
-<testcase name="basic test" classname="basic.spec.ts" time="0.43">
-</testcase>
-</testsuite>
-<testsuite name="basic.spec.ts" timestamp="2025-09-05T13:52:52.481Z" hostname="firefox" tests="1" failures="0" skipped="0" time="2.493" errors="0">
-<testcase name="basic test" classname="basic.spec.ts" time="2.493">
-</testcase>
-</testsuite>
-<testsuite name="basic.spec.ts" timestamp="2025-09-05T13:52:52.481Z" hostname="webkit" tests="1" failures="0" skipped="0" time="1.171" errors="0">
-<testcase name="basic test" classname="basic.spec.ts" time="1.171">
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="1.9712379999999998">
+<testsuite name="basic.spec.ts" timestamp="2025-09-05T14:15:10.918Z" hostname="chromium" tests="1" failures="1" skipped="0" time="0.021" errors="0">
+<testcase name="basic test" classname="basic.spec.ts" time="0.021">
+<failure message="basic.spec.ts:3:1 basic test" type="FAILURE">
+<![CDATA[  [chromium] › basic.spec.ts:3:1 › basic test ──────────────────────────────────────────────────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/basic-basic-test-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/basic-basic-test-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/basic-basic-test-chromium-retry1/trace.zip]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

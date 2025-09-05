@@ -13,5 +13,28 @@ Allow: /
 User-agent: *
 Allow: /
 
+# Disallow admin sections from search engines
+Disallow: /admin/
+Disallow: /admin/*
+
+# Disallow user-specific pages
+Disallow: /my-bookings
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+
+# Disallow API endpoints
+Disallow: /api/
+Disallow: /.netlify/
+
+# Allow important pages explicitly
+Allow: /booking
+Allow: /services
+Allow: /about
+Allow: /contact
+
 # Sitemap location
 Sitemap: https://schnittwerk.netlify.app/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
