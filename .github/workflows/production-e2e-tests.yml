@@ -8,13 +8,23 @@ permissions:
   statuses: write
   issues: write
 
+# Concurrency control to cancel in-progress runs for the same PR/branch
+concurrency:
+  group: production-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 'on':
   # Run on main branch pushes
   push:
     branches: [main, production]
   
-  # Run on pull requests to main - use pull_request_target for fork support
+  # Run on pull requests for build/test jobs with hardened checkout
+  pull_request:
+    branches: [main]
+  
+  # Run on pull requests from forks - use pull_request_target for reporting only
   pull_request_target:
+    types: [opened, synchronize, reopened]
     branches: [main]
   
   # Allow manual triggers
@@ -49,6 +59,7 @@ jobs:
     name: Prepare - Install & Validate
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     outputs:
       is-fork: ${{ steps.check-fork.outputs.is-fork }}
       github-token: ${{ steps.token-selection.outputs.github-token }}
@@ -84,7 +95,7 @@ jobs:
       - name: Hardened checkout for security
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
           
@@ -118,12 +129,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare]
     timeout-minutes: 15
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     
     steps:
       - name: Hardened checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
           
@@ -150,43 +162,42 @@ jobs:
             netlify/functions/
           retention-days: 1
 
-  # Unit tests and linting for forked PRs (no secrets access)
-  forked-pr-tests:
-    name: Forked PR - Limited Testing
+  # Reporting job for pull_request_target events (fork PRs) - no checkout needed
+  fork-pr-status:
+    name: Fork PR Status Report
     runs-on: ubuntu-latest
-    needs: [prepare]
-    if: ${{ needs.prepare.outputs.is-fork == 'true' }}
-    timeout-minutes: 10
+    if: github.event_name == 'pull_request_target'
+    timeout-minutes: 5
     
     steps:
-      - name: Comment on forked PR
+      - name: Report fork PR status
         uses: actions/github-script@v7
         with:
-          github-token: ${{ needs.prepare.outputs.github-token }}
+          github-token: ${{ github.token }}
           script: |
-            const comment = `## 🔒 Forked PR - Limited Testing
+            const isFork = ${{ github.event.pull_request.head.repo.fork }};
             
-            **Security Notice:** This PR originates from a forked repository, so it runs with limited permissions.
-            
-            **Tests Run:**
-            - ✅ ESLint code quality checks
-            - ✅ TypeScript type checking  
-            - ✅ Unit tests
-            - ✅ Dependency vulnerability scan
-            
-            **Tests Skipped:** 
-            - 🔒 Preview environment deployment (requires secrets)
-            - 🔒 End-to-end tests against deployed environment
-            - 🔒 Lighthouse performance audits
-            - 🔒 Security validation tests
-            
-            **Next Steps:**
-            Once this PR is merged or the branch is pushed to the main repository, the full test suite including preview environment deployment and comprehensive E2E tests will run.
-            
-            **For maintainers:** To run the full test suite, you can:
-            1. Check out this branch locally and push it to the main repository
-            2. Or merge this PR and the full tests will run on the main branch
-            `;
+            const comment = isFork 
+              ? `## 🔒 Forked PR - Security Notice
+              
+              **This PR originates from a forked repository and runs with limited permissions for security.**
+              
+              **Available Actions:**
+              - ✅ Basic validation will run on internal builds
+              - ✅ Code review by maintainers
+              - 🔒 Full E2E tests require maintainer approval or merge
+              
+              **For maintainers:** To run full tests, checkout this branch locally and push to main repository.`
+              : `## 🚀 PR Testing Status
+              
+              **This PR is from the main repository and will run full test suite:**
+              - ✅ ESLint, TypeScript, and unit tests
+              - ✅ Application and function builds
+              - ✅ Preview environment deployment
+              - ✅ End-to-end tests (Playwright matrix)
+              - ✅ Security validation
+              - ✅ Lighthouse performance checks
+              - ✅ Design lock validation`;
             
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -200,7 +211,7 @@ jobs:
     name: Deploy Preview Environment
     runs-on: ubuntu-latest
     needs: [prepare, build]
-    if: ${{ needs.prepare.outputs.is-fork == 'false' && github.event_name == 'pull_request_target' }}
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 20
     outputs:
       preview-url: ${{ steps.preview-server.outputs.preview-url }}
@@ -210,7 +221,7 @@ jobs:
       - name: Hardened checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
         
@@ -284,15 +295,11 @@ jobs:
           
           echo "✅ Preview server verified and ready for testing"
       
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
       - name: Comment preview URL on PR
-        if: always()
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ needs.prepare.outputs.github-token }}
+          github-token: ${{ github.token }}
           script: |
             const previewUrl = '${{ steps.preview-server.outputs.preview-url }}';
             const deployStatus = '${{ steps.preview-server.outputs.deploy-status }}';
@@ -346,7 +353,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: [prepare, build, deploy-preview]
-    if: always() && needs.prepare.outputs.is-fork == 'false' # Run even if preview deployment fails
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     strategy:
       fail-fast: false
       matrix:
@@ -357,7 +364,7 @@ jobs:
       - name: Hardened checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
         
@@ -379,7 +386,7 @@ jobs:
           PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
           PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
           
-          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
             TEST_URL="$PREVIEW_URL"
             TEST_ENV="preview"
             echo "✅ Using preview environment URL: $TEST_URL"
@@ -460,13 +467,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [prepare, build, deploy-preview]
-    if: always() && needs.prepare.outputs.is-fork == 'false'
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     
     steps:
       - name: Hardened checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
         
@@ -488,7 +495,7 @@ jobs:
           PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
           PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
           
-          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
             # Verify preview URL is still accessible
             echo "Verifying preview URL accessibility: $PREVIEW_URL"
             
@@ -577,10 +584,10 @@ jobs:
           retention-days: 7
           
       - name: Comment PR with enhanced results
-        if: github.event_name == 'pull_request_target' && always()
+        if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
-          github-token: ${{ needs.prepare.outputs.github-token }}
+          github-token: ${{ github.token }}
           script: |
             const fs = require('fs');
             const path = require('path');
@@ -619,14 +626,14 @@ jobs:
     name: Security Validation
     runs-on: ubuntu-latest
     needs: [prepare, build, deploy-preview]
-    if: always() && needs.prepare.outputs.is-fork == 'false'
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     timeout-minutes: 15
     
     steps:
       - name: Hardened checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
         
@@ -639,7 +646,7 @@ jobs:
           PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
           PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
           
-          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
             TEST_URL="$PREVIEW_URL"
             echo "✅ Using verified preview URL for security tests: $TEST_URL"
           else
@@ -673,14 +680,14 @@ jobs:
     name: Lighthouse Performance Check
     runs-on: ubuntu-latest
     needs: [prepare, build, deploy-preview]
-    if: always() && needs.prepare.outputs.is-fork == 'false'
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     timeout-minutes: 15
     
     steps:
       - name: Hardened checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
         
@@ -698,7 +705,7 @@ jobs:
           PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
           PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
           
-          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
             TEST_URL="$PREVIEW_URL"
             echo "✅ Using preview URL for Lighthouse: $TEST_URL"
           else
@@ -753,14 +760,14 @@ jobs:
     name: Design Lock Validation
     runs-on: ubuntu-latest
     needs: [prepare, build, e2e, production-e2e-tests, security-check, lighthouse-check]
-    if: always() && needs.prepare.outputs.is-fork == 'false'
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     timeout-minutes: 5
     
     steps:
       - name: Hardened checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
         
