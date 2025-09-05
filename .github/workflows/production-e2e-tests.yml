@@ -459,6 +459,14 @@ jobs:
             test-results/
           retention-days: 30
           
+      - name: Upload JUnit XML results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-xml-${{ matrix.browser }}-${{ matrix.shard }}-${{ github.run_number }}
+          path: test-results/junit.xml
+          retention-days: 30
+          
       - name: Upload Playwright traces
         if: failure()
         uses: actions/upload-artifact@v4
@@ -582,6 +590,14 @@ jobs:
           path: |
             test-results/
             !test-results/**/*.log
+          retention-days: 30
+          
+      - name: Upload JUnit XML results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-xml-${{ github.run_number }}
+          path: test-results/junit.xml
           retention-days: 30
           
       - name: Upload detailed logs
