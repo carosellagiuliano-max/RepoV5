@@ -60,9 +60,7 @@ export class SecurityValidationModule {
             mode: 'mocked',
             message: 'Security headers validated in mock mode'
           }
-        }
-        
-        this.addResult(result.category, result.test, result.status, result.details)
+        this.addResult(result.category, result.test, result.status, result.details);
         return result
       }
 
