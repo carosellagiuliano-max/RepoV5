@@ -1,0 +1,1002 @@
+<testsuites id="" name="" tests="240" failures="0" skipped="240" errors="0" time="0.5311089999999999">
+<testsuite name="admin-crud.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="chromium" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Admin Portal CRUD Operations › Staff Management › should display staff list with pagination and filtering" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should create new staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should edit staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should delete staff member with confirmation" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Services Management › should manage services with CRUD operations" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should display customer list with GDPR compliance" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should handle customer soft delete (GDPR)" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Appointments Management › should manage appointments with conflict detection" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Media Management › should handle media upload and management" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Settings Management › should manage business settings" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="booking.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="chromium" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Customer Booking Flow › should display booking page correctly" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should allow service selection and filtering" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle staff selection" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should display and select available time slots" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking confirmation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking cancellation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle edge cases and errors gracefully" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="health_seo_pwa.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="chromium" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should have accessible health endpoint" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should provide detailed health status" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should handle health check failures gracefully" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper SEO meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have robots.txt" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have sitemap.xml" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have structured data (JSON-LD)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper heading structure" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have accessible images" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have web app manifest" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have service worker" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have proper PWA meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should be installable" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should work offline (basic)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have good Core Web Vitals" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have basic accessibility features" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Security Headers › should have security headers" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="rbac.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="chromium" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should have full access to all admin functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should be able to change user roles" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should have limited access to staff functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should not be able to modify other staff members" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Receptionist Role Access › should have appointment management permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should only access own data" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should have limited profile access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should prevent privilege escalation" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce field-level permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should audit role changes" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce session timeouts per role" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect admin APIs from non-admin access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect customer data APIs" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should validate JWT tokens and role claims" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="admin-crud.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="firefox" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Admin Portal CRUD Operations › Staff Management › should display staff list with pagination and filtering" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should create new staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should edit staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should delete staff member with confirmation" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Services Management › should manage services with CRUD operations" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should display customer list with GDPR compliance" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should handle customer soft delete (GDPR)" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Appointments Management › should manage appointments with conflict detection" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Media Management › should handle media upload and management" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Settings Management › should manage business settings" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="booking.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="firefox" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Customer Booking Flow › should display booking page correctly" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should allow service selection and filtering" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle staff selection" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should display and select available time slots" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking confirmation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking cancellation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle edge cases and errors gracefully" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="health_seo_pwa.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="firefox" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should have accessible health endpoint" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should provide detailed health status" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should handle health check failures gracefully" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper SEO meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have robots.txt" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have sitemap.xml" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have structured data (JSON-LD)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper heading structure" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have accessible images" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have web app manifest" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have service worker" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have proper PWA meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should be installable" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should work offline (basic)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have good Core Web Vitals" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have basic accessibility features" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Security Headers › should have security headers" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="rbac.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="firefox" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should have full access to all admin functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should be able to change user roles" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should have limited access to staff functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should not be able to modify other staff members" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Receptionist Role Access › should have appointment management permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should only access own data" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should have limited profile access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should prevent privilege escalation" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce field-level permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should audit role changes" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce session timeouts per role" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect admin APIs from non-admin access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect customer data APIs" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should validate JWT tokens and role claims" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="admin-crud.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="webkit" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Admin Portal CRUD Operations › Staff Management › should display staff list with pagination and filtering" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should create new staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should edit staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should delete staff member with confirmation" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Services Management › should manage services with CRUD operations" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should display customer list with GDPR compliance" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should handle customer soft delete (GDPR)" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Appointments Management › should manage appointments with conflict detection" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Media Management › should handle media upload and management" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Settings Management › should manage business settings" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="booking.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="webkit" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Customer Booking Flow › should display booking page correctly" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should allow service selection and filtering" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle staff selection" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should display and select available time slots" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking confirmation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking cancellation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle edge cases and errors gracefully" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="health_seo_pwa.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="webkit" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should have accessible health endpoint" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should provide detailed health status" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should handle health check failures gracefully" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper SEO meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have robots.txt" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have sitemap.xml" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have structured data (JSON-LD)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper heading structure" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have accessible images" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have web app manifest" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have service worker" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have proper PWA meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should be installable" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should work offline (basic)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have good Core Web Vitals" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have basic accessibility features" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Security Headers › should have security headers" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="rbac.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="webkit" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should have full access to all admin functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should be able to change user roles" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should have limited access to staff functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should not be able to modify other staff members" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Receptionist Role Access › should have appointment management permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should only access own data" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should have limited profile access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should prevent privilege escalation" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce field-level permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should audit role changes" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce session timeouts per role" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect admin APIs from non-admin access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect customer data APIs" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should validate JWT tokens and role claims" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="admin-crud.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Chrome" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Admin Portal CRUD Operations › Staff Management › should display staff list with pagination and filtering" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should create new staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should edit staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should delete staff member with confirmation" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Services Management › should manage services with CRUD operations" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should display customer list with GDPR compliance" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should handle customer soft delete (GDPR)" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Appointments Management › should manage appointments with conflict detection" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Media Management › should handle media upload and management" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Settings Management › should manage business settings" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="booking.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Chrome" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Customer Booking Flow › should display booking page correctly" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should allow service selection and filtering" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle staff selection" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should display and select available time slots" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking confirmation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking cancellation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle edge cases and errors gracefully" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="health_seo_pwa.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Chrome" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should have accessible health endpoint" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should provide detailed health status" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should handle health check failures gracefully" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper SEO meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have robots.txt" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have sitemap.xml" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have structured data (JSON-LD)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper heading structure" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have accessible images" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have web app manifest" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have service worker" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have proper PWA meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should be installable" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should work offline (basic)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have good Core Web Vitals" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have basic accessibility features" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Security Headers › should have security headers" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="rbac.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Chrome" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should have full access to all admin functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should be able to change user roles" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should have limited access to staff functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should not be able to modify other staff members" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Receptionist Role Access › should have appointment management permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should only access own data" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should have limited profile access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should prevent privilege escalation" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce field-level permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should audit role changes" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce session timeouts per role" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect admin APIs from non-admin access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect customer data APIs" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should validate JWT tokens and role claims" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="admin-crud.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Safari" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Admin Portal CRUD Operations › Staff Management › should display staff list with pagination and filtering" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should create new staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should edit staff member" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Staff Management › should delete staff member with confirmation" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Services Management › should manage services with CRUD operations" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should display customer list with GDPR compliance" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Customer Management › should handle customer soft delete (GDPR)" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Appointments Management › should manage appointments with conflict detection" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Media Management › should handle media upload and management" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin Portal CRUD Operations › Settings Management › should manage business settings" classname="admin-crud.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="booking.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Safari" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Customer Booking Flow › should display booking page correctly" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should allow service selection and filtering" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle staff selection" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should display and select available time slots" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking confirmation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle booking cancellation flow" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Customer Booking Flow › should handle edge cases and errors gracefully" classname="booking.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="health_seo_pwa.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Safari" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should have accessible health endpoint" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should provide detailed health status" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Health Endpoints › should handle health check failures gracefully" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper SEO meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have robots.txt" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have sitemap.xml" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have structured data (JSON-LD)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have proper heading structure" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › SEO Validation › should have accessible images" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have web app manifest" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have service worker" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should have proper PWA meta tags" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should be installable" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › PWA (Progressive Web App) › should work offline (basic)" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have good Core Web Vitals" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Performance &amp; Accessibility › should have basic accessibility features" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Health, SEO &amp; PWA Validation › Security Headers › should have security headers" classname="health_seo_pwa.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="rbac.spec.ts" timestamp="2025-09-05T07:33:42.643Z" hostname="Mobile Safari" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should have full access to all admin functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Admin Role Access › should be able to change user roles" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should have limited access to staff functions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Staff Role Access › should not be able to modify other staff members" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Receptionist Role Access › should have appointment management permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should only access own data" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Customer Role Access › should have limited profile access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should prevent privilege escalation" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce field-level permissions" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should audit role changes" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › Cross-Role Boundary Tests › should enforce session timeouts per role" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect admin APIs from non-admin access" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should protect customer data APIs" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="RBAC (Role-Based Access Control) › API Endpoint Protection › should validate JWT tokens and role claims" classname="rbac.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

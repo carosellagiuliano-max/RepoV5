@@ -1,0 +1,5142 @@
+{
+  "config": {
+    "configFile": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/playwright.config.ts",
+    "rootDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e",
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e/global-setup.ts",
+    "globalTeardown": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/junit.xml"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {},
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {},
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {},
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {},
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/home/runner/work/schnittwerk-your-style-34/schnittwerk-your-style-34/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run preview",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "admin-crud.spec.ts",
+      "file": "admin-crud.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin Portal CRUD Operations",
+          "file": "admin-crud.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Staff Management",
+              "file": "admin-crud.spec.ts",
+              "line": 29,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should display staff list with pagination and filtering",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-56ee3fc1bcc64f1e821a",
+                  "file": "admin-crud.spec.ts",
+                  "line": 30,
+                  "column": 5
+                },
+                {
+                  "title": "should create new staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-cdb4fc8de10bdc49fa23",
+                  "file": "admin-crud.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should edit staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-85f1b635f9fbe44a206b",
+                  "file": "admin-crud.spec.ts",
+                  "line": 106,
+                  "column": 5
+                },
+                {
+                  "title": "should delete staff member with confirmation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-ca465adbe44e2f0ba455",
+                  "file": "admin-crud.spec.ts",
+                  "line": 146,
+                  "column": 5
+                },
+                {
+                  "title": "should display staff list with pagination and filtering",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-9a6273f0f92605afb9da",
+                  "file": "admin-crud.spec.ts",
+                  "line": 30,
+                  "column": 5
+                },
+                {
+                  "title": "should create new staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-7b8950516cc78603a39f",
+                  "file": "admin-crud.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should edit staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-1d9ae46866e9d8236718",
+                  "file": "admin-crud.spec.ts",
+                  "line": 106,
+                  "column": 5
+                },
+                {
+                  "title": "should delete staff member with confirmation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-299dd3bfb8801a14c4f4",
+                  "file": "admin-crud.spec.ts",
+                  "line": 146,
+                  "column": 5
+                },
+                {
+                  "title": "should display staff list with pagination and filtering",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-7f158f8d116ff4813b2d",
+                  "file": "admin-crud.spec.ts",
+                  "line": 30,
+                  "column": 5
+                },
+                {
+                  "title": "should create new staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-ae12df915dbe32e9dc4e",
+                  "file": "admin-crud.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should edit staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-3151ff2f7efd22f4922d",
+                  "file": "admin-crud.spec.ts",
+                  "line": 106,
+                  "column": 5
+                },
+                {
+                  "title": "should delete staff member with confirmation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-88917586fec501c99db4",
+                  "file": "admin-crud.spec.ts",
+                  "line": 146,
+                  "column": 5
+                },
+                {
+                  "title": "should display staff list with pagination and filtering",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-de659ff5aefbdc761fbb",
+                  "file": "admin-crud.spec.ts",
+                  "line": 30,
+                  "column": 5
+                },
+                {
+                  "title": "should create new staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-c373eecdf734c2f68746",
+                  "file": "admin-crud.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should edit staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-f6a7c83c660c56c19ea3",
+                  "file": "admin-crud.spec.ts",
+                  "line": 106,
+                  "column": 5
+                },
+                {
+                  "title": "should delete staff member with confirmation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-6ca1a7d7bc8cb59bccac",
+                  "file": "admin-crud.spec.ts",
+                  "line": 146,
+                  "column": 5
+                },
+                {
+                  "title": "should display staff list with pagination and filtering",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-e59588c3dce6b91e5b73",
+                  "file": "admin-crud.spec.ts",
+                  "line": 30,
+                  "column": 5
+                },
+                {
+                  "title": "should create new staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-4e096f0b73de8c6445f5",
+                  "file": "admin-crud.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should edit staff member",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-411f1ca1a0d58c4ecb13",
+                  "file": "admin-crud.spec.ts",
+                  "line": 106,
+                  "column": 5
+                },
+                {
+                  "title": "should delete staff member with confirmation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-b68e693bb1082ce73d7d",
+                  "file": "admin-crud.spec.ts",
+                  "line": 146,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Services Management",
+              "file": "admin-crud.spec.ts",
+              "line": 172,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should manage services with CRUD operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-0e82fe71e9bc454ebc4d",
+                  "file": "admin-crud.spec.ts",
+                  "line": 173,
+                  "column": 5
+                },
+                {
+                  "title": "should manage services with CRUD operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-713c0e45830d34d4b3c6",
+                  "file": "admin-crud.spec.ts",
+                  "line": 173,
+                  "column": 5
+                },
+                {
+                  "title": "should manage services with CRUD operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-15de7e1ff89fb3dc9201",
+                  "file": "admin-crud.spec.ts",
+                  "line": 173,
+                  "column": 5
+                },
+                {
+                  "title": "should manage services with CRUD operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-a46a4b13149563885692",
+                  "file": "admin-crud.spec.ts",
+                  "line": 173,
+                  "column": 5
+                },
+                {
+                  "title": "should manage services with CRUD operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-e3ace74635b8daddb4a8",
+                  "file": "admin-crud.spec.ts",
+                  "line": 173,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Customer Management",
+              "file": "admin-crud.spec.ts",
+              "line": 222,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should display customer list with GDPR compliance",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-17bac250ab71363cd00c",
+                  "file": "admin-crud.spec.ts",
+                  "line": 223,
+                  "column": 5
+                },
+                {
+                  "title": "should handle customer soft delete (GDPR)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-de25fcf8cd0cff135cf6",
+                  "file": "admin-crud.spec.ts",
+                  "line": 252,
+                  "column": 5
+                },
+                {
+                  "title": "should display customer list with GDPR compliance",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-c68bff70b106fa4bcf10",
+                  "file": "admin-crud.spec.ts",
+                  "line": 223,
+                  "column": 5
+                },
+                {
+                  "title": "should handle customer soft delete (GDPR)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-f6a97d1e2bf947cd3809",
+                  "file": "admin-crud.spec.ts",
+                  "line": 252,
+                  "column": 5
+                },
+                {
+                  "title": "should display customer list with GDPR compliance",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-cfc884c7bc3327035b45",
+                  "file": "admin-crud.spec.ts",
+                  "line": 223,
+                  "column": 5
+                },
+                {
+                  "title": "should handle customer soft delete (GDPR)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-d8c34fb0593e339b5ee5",
+                  "file": "admin-crud.spec.ts",
+                  "line": 252,
+                  "column": 5
+                },
+                {
+                  "title": "should display customer list with GDPR compliance",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-ea3d2cfe7def51ea35ae",
+                  "file": "admin-crud.spec.ts",
+                  "line": 223,
+                  "column": 5
+                },
+                {
+                  "title": "should handle customer soft delete (GDPR)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-03993a05942e93152b8f",
+                  "file": "admin-crud.spec.ts",
+                  "line": 252,
+                  "column": 5
+                },
+                {
+                  "title": "should display customer list with GDPR compliance",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-279c1fbeb443da8e6821",
+                  "file": "admin-crud.spec.ts",
+                  "line": 223,
+                  "column": 5
+                },
+                {
+                  "title": "should handle customer soft delete (GDPR)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-6d27b4c218cfbdc5930c",
+                  "file": "admin-crud.spec.ts",
+                  "line": 252,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Appointments Management",
+              "file": "admin-crud.spec.ts",
+              "line": 271,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should manage appointments with conflict detection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-624faa02799ff824ed54",
+                  "file": "admin-crud.spec.ts",
+                  "line": 272,
+                  "column": 5
+                },
+                {
+                  "title": "should manage appointments with conflict detection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-bf934659f69effa91d11",
+                  "file": "admin-crud.spec.ts",
+                  "line": 272,
+                  "column": 5
+                },
+                {
+                  "title": "should manage appointments with conflict detection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-e8d74dd3263be63483fd",
+                  "file": "admin-crud.spec.ts",
+                  "line": 272,
+                  "column": 5
+                },
+                {
+                  "title": "should manage appointments with conflict detection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-a24d8c122a07b3a33dc3",
+                  "file": "admin-crud.spec.ts",
+                  "line": 272,
+                  "column": 5
+                },
+                {
+                  "title": "should manage appointments with conflict detection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-11584cfe3f1f6b9c4b63",
+                  "file": "admin-crud.spec.ts",
+                  "line": 272,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Media Management",
+              "file": "admin-crud.spec.ts",
+              "line": 322,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle media upload and management",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-a5352a5e4c462e08aa08",
+                  "file": "admin-crud.spec.ts",
+                  "line": 323,
+                  "column": 5
+                },
+                {
+                  "title": "should handle media upload and management",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-8d47d4bcb58edf0bd975",
+                  "file": "admin-crud.spec.ts",
+                  "line": 323,
+                  "column": 5
+                },
+                {
+                  "title": "should handle media upload and management",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-91870a1d3ce299850cae",
+                  "file": "admin-crud.spec.ts",
+                  "line": 323,
+                  "column": 5
+                },
+                {
+                  "title": "should handle media upload and management",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-56e7cf0882b616a48a26",
+                  "file": "admin-crud.spec.ts",
+                  "line": 323,
+                  "column": 5
+                },
+                {
+                  "title": "should handle media upload and management",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-60374739c6881c27f214",
+                  "file": "admin-crud.spec.ts",
+                  "line": 323,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Settings Management",
+              "file": "admin-crud.spec.ts",
+              "line": 347,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should manage business settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-fc5b7c84e296a97340aa",
+                  "file": "admin-crud.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should manage business settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-095a07319f18a43a80a4",
+                  "file": "admin-crud.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should manage business settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-81c72637f9b459358344",
+                  "file": "admin-crud.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should manage business settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-c88a7db37c540eb86b6b",
+                  "file": "admin-crud.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should manage business settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "fd8ad0f406f90b8c1a36-ae27b70b55ce908f6a08",
+                  "file": "admin-crud.spec.ts",
+                  "line": 348,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "booking.spec.ts",
+      "file": "booking.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Customer Booking Flow",
+          "file": "booking.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display booking page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-7861f3e200d8ba5b1e71",
+              "file": "booking.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should allow service selection and filtering",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-a1c68597d57f9ea96ac1",
+              "file": "booking.spec.ts",
+              "line": 40,
+              "column": 3
+            },
+            {
+              "title": "should handle staff selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-84fee9a8d0e01114fa64",
+              "file": "booking.spec.ts",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "should display and select available time slots",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-24ba819595dbb61cb40c",
+              "file": "booking.spec.ts",
+              "line": 111,
+              "column": 3
+            },
+            {
+              "title": "should handle booking confirmation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-0dff9843d70cb0172452",
+              "file": "booking.spec.ts",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "should handle booking cancellation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-b35457c07f0828a6dfdd",
+              "file": "booking.spec.ts",
+              "line": 197,
+              "column": 3
+            },
+            {
+              "title": "should handle edge cases and errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-f9d3097a7f37b74684e4",
+              "file": "booking.spec.ts",
+              "line": 226,
+              "column": 3
+            },
+            {
+              "title": "should display booking page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-923693f10fcbce345bb6",
+              "file": "booking.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should allow service selection and filtering",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-007af9e5609767ad9472",
+              "file": "booking.spec.ts",
+              "line": 40,
+              "column": 3
+            },
+            {
+              "title": "should handle staff selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-9be947f3fe42b5f53c80",
+              "file": "booking.spec.ts",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "should display and select available time slots",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-781b7c0ecbeadd8905f8",
+              "file": "booking.spec.ts",
+              "line": 111,
+              "column": 3
+            },
+            {
+              "title": "should handle booking confirmation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-fd105b4c822246cc8763",
+              "file": "booking.spec.ts",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "should handle booking cancellation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-70063729e099a786712c",
+              "file": "booking.spec.ts",
+              "line": 197,
+              "column": 3
+            },
+            {
+              "title": "should handle edge cases and errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-434aec0a625ea68b45aa",
+              "file": "booking.spec.ts",
+              "line": 226,
+              "column": 3
+            },
+            {
+              "title": "should display booking page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-9ffea7b803742286465d",
+              "file": "booking.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should allow service selection and filtering",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-e2f6058d2d305c3bcc9e",
+              "file": "booking.spec.ts",
+              "line": 40,
+              "column": 3
+            },
+            {
+              "title": "should handle staff selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-f4da347d453270b932d9",
+              "file": "booking.spec.ts",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "should display and select available time slots",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-9e19dc83e6eff59538a7",
+              "file": "booking.spec.ts",
+              "line": 111,
+              "column": 3
+            },
+            {
+              "title": "should handle booking confirmation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-b45596da4baca10f232e",
+              "file": "booking.spec.ts",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "should handle booking cancellation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-4bbc005bd4f888c35a0e",
+              "file": "booking.spec.ts",
+              "line": 197,
+              "column": 3
+            },
+            {
+              "title": "should handle edge cases and errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-1714c5363ca7586b09af",
+              "file": "booking.spec.ts",
+              "line": 226,
+              "column": 3
+            },
+            {
+              "title": "should display booking page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-65f7e68664940e2956db",
+              "file": "booking.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should allow service selection and filtering",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-61042508770dfb4fcaab",
+              "file": "booking.spec.ts",
+              "line": 40,
+              "column": 3
+            },
+            {
+              "title": "should handle staff selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-0f6be52ed4c4c31cee6d",
+              "file": "booking.spec.ts",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "should display and select available time slots",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-2746becd65c4a1b2f875",
+              "file": "booking.spec.ts",
+              "line": 111,
+              "column": 3
+            },
+            {
+              "title": "should handle booking confirmation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-199de04ef6c2beb69847",
+              "file": "booking.spec.ts",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "should handle booking cancellation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-3891cacd99e44fdfbd43",
+              "file": "booking.spec.ts",
+              "line": 197,
+              "column": 3
+            },
+            {
+              "title": "should handle edge cases and errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-191764884f57b544a62b",
+              "file": "booking.spec.ts",
+              "line": 226,
+              "column": 3
+            },
+            {
+              "title": "should display booking page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-0d9f1e8310a72bf62130",
+              "file": "booking.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should allow service selection and filtering",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-6c44308ad50990dd4f6f",
+              "file": "booking.spec.ts",
+              "line": 40,
+              "column": 3
+            },
+            {
+              "title": "should handle staff selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-357f2b41d706d507504f",
+              "file": "booking.spec.ts",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "should display and select available time slots",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-1c292a5672067f269bbe",
+              "file": "booking.spec.ts",
+              "line": 111,
+              "column": 3
+            },
+            {
+              "title": "should handle booking confirmation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-595ab56668ad0a51468b",
+              "file": "booking.spec.ts",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "should handle booking cancellation flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-2181d0972b8bfef503c0",
+              "file": "booking.spec.ts",
+              "line": 197,
+              "column": 3
+            },
+            {
+              "title": "should handle edge cases and errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-9ffb0c748327b44d7b8d",
+              "file": "booking.spec.ts",
+              "line": 226,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "health_seo_pwa.spec.ts",
+      "file": "health_seo_pwa.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Health, SEO & PWA Validation",
+          "file": "health_seo_pwa.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Health Endpoints",
+              "file": "health_seo_pwa.spec.ts",
+              "line": 4,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have accessible health endpoint",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-253f3f4271ecd28bed33",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 5,
+                  "column": 5
+                },
+                {
+                  "title": "should provide detailed health status",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-784bf8e85d97cc7520a2",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 25,
+                  "column": 5
+                },
+                {
+                  "title": "should handle health check failures gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-2474300a141a9517b90b",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 44,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible health endpoint",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-45b3887bebcf3005bc75",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 5,
+                  "column": 5
+                },
+                {
+                  "title": "should provide detailed health status",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-9ea69f4439c61eaca8ff",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 25,
+                  "column": 5
+                },
+                {
+                  "title": "should handle health check failures gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-802b5f79b53a07a2c499",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 44,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible health endpoint",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-2a32a0d08ea97de4eea9",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 5,
+                  "column": 5
+                },
+                {
+                  "title": "should provide detailed health status",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-7dcd22bcc04b619012e4",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 25,
+                  "column": 5
+                },
+                {
+                  "title": "should handle health check failures gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-fd35e14670823863d6d7",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 44,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible health endpoint",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-5fff1340e483af06a520",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 5,
+                  "column": 5
+                },
+                {
+                  "title": "should provide detailed health status",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-62844cb73e37657ac666",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 25,
+                  "column": 5
+                },
+                {
+                  "title": "should handle health check failures gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-e657fd9fc8fef423d7df",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 44,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible health endpoint",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-db474e8af0312bcbc399",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 5,
+                  "column": 5
+                },
+                {
+                  "title": "should provide detailed health status",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-f960ec7d96bd8a40ef5b",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 25,
+                  "column": 5
+                },
+                {
+                  "title": "should handle health check failures gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-61ee93e341aaa19f2436",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 44,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "SEO Validation",
+              "file": "health_seo_pwa.spec.ts",
+              "line": 58,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have proper SEO meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-da9174f6f68777fad24b",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 59,
+                  "column": 5
+                },
+                {
+                  "title": "should have robots.txt",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-ad39e3e9c1daaea582ed",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 104,
+                  "column": 5
+                },
+                {
+                  "title": "should have sitemap.xml",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-7ae4210cb11cabe2923d",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 129,
+                  "column": 5
+                },
+                {
+                  "title": "should have structured data (JSON-LD)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-4b63230a08ecefdb6c56",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 155,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper heading structure",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-3dd8b553b958c0ed91dd",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 193,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible images",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-ef00e998390aa9dab653",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper SEO meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-7b03411e264935a902b5",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 59,
+                  "column": 5
+                },
+                {
+                  "title": "should have robots.txt",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-e9512ad8b9b1d40b1d1b",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 104,
+                  "column": 5
+                },
+                {
+                  "title": "should have sitemap.xml",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-6840f103a8daa61f9aec",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 129,
+                  "column": 5
+                },
+                {
+                  "title": "should have structured data (JSON-LD)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-359b9b3526d7207bcc23",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 155,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper heading structure",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-5b9c3dbeeab559cd2263",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 193,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible images",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-5cffe72541c0cd139a81",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper SEO meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-4b48d3cc25c2752fa83f",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 59,
+                  "column": 5
+                },
+                {
+                  "title": "should have robots.txt",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-aadd9b910856c8c5be46",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 104,
+                  "column": 5
+                },
+                {
+                  "title": "should have sitemap.xml",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-fff4c5a9e02c87a11a3d",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 129,
+                  "column": 5
+                },
+                {
+                  "title": "should have structured data (JSON-LD)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-8ab56460dd240ed8b119",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 155,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper heading structure",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-eb17b069a05db0e1e307",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 193,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible images",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-dd63cfeac0a1b24dd0df",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper SEO meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-cc43b5bee66c0386a313",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 59,
+                  "column": 5
+                },
+                {
+                  "title": "should have robots.txt",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-8e01e3000ca19f05cf90",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 104,
+                  "column": 5
+                },
+                {
+                  "title": "should have sitemap.xml",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-36f7bf770c6f548ae591",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 129,
+                  "column": 5
+                },
+                {
+                  "title": "should have structured data (JSON-LD)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-5f8503ebbedc8b64ed54",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 155,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper heading structure",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-31143ba8c43f4715cb10",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 193,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible images",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-b43a3b0f2b09b35dc5a4",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper SEO meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-ebf6f90a9a56fcb1d9cf",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 59,
+                  "column": 5
+                },
+                {
+                  "title": "should have robots.txt",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-4569406535506f731f0c",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 104,
+                  "column": 5
+                },
+                {
+                  "title": "should have sitemap.xml",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-8c2af47a3db0403da233",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 129,
+                  "column": 5
+                },
+                {
+                  "title": "should have structured data (JSON-LD)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-d0d44da39d67d739a8bf",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 155,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper heading structure",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-466bc6291f6824b55de3",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 193,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible images",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-0e8dc262908ea6be2f2e",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 214,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "PWA (Progressive Web App)",
+              "file": "health_seo_pwa.spec.ts",
+              "line": 239,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have web app manifest",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-124146e0e648ed7457b2",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 240,
+                  "column": 5
+                },
+                {
+                  "title": "should have service worker",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-609dfea132d2ad9605b7",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 283,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper PWA meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-67d266cf8fc1c8dda12f",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 318,
+                  "column": 5
+                },
+                {
+                  "title": "should be installable",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-21804a5c67783926b97d",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 343,
+                  "column": 5
+                },
+                {
+                  "title": "should work offline (basic)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-e90275bb5939e9e95235",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 364,
+                  "column": 5
+                },
+                {
+                  "title": "should have web app manifest",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-4e270a606b62981fc733",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 240,
+                  "column": 5
+                },
+                {
+                  "title": "should have service worker",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-be6ff8e718a9313df4f0",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 283,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper PWA meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-e59f730c449493cb5128",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 318,
+                  "column": 5
+                },
+                {
+                  "title": "should be installable",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-172daf475f5cb7c3949c",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 343,
+                  "column": 5
+                },
+                {
+                  "title": "should work offline (basic)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-30ba9bc656c6722fbce3",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 364,
+                  "column": 5
+                },
+                {
+                  "title": "should have web app manifest",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-db88e903d68d08b5fd0a",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 240,
+                  "column": 5
+                },
+                {
+                  "title": "should have service worker",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-b54face67c9b4717cd75",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 283,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper PWA meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-74c372f73a272415477b",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 318,
+                  "column": 5
+                },
+                {
+                  "title": "should be installable",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-fecdc65caf3c4b3bf400",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 343,
+                  "column": 5
+                },
+                {
+                  "title": "should work offline (basic)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-80928219247e060b7928",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 364,
+                  "column": 5
+                },
+                {
+                  "title": "should have web app manifest",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-0ef739912f9f74b1fe1e",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 240,
+                  "column": 5
+                },
+                {
+                  "title": "should have service worker",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-055aae76a6caa34637d4",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 283,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper PWA meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-77076ab147ece522a010",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 318,
+                  "column": 5
+                },
+                {
+                  "title": "should be installable",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-ba3adc28fa379cbd4a95",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 343,
+                  "column": 5
+                },
+                {
+                  "title": "should work offline (basic)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-f847ed2b53647f99ed68",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 364,
+                  "column": 5
+                },
+                {
+                  "title": "should have web app manifest",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-faf85db525273f579579",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 240,
+                  "column": 5
+                },
+                {
+                  "title": "should have service worker",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-cebc5d8eff89bc4d2d67",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 283,
+                  "column": 5
+                },
+                {
+                  "title": "should have proper PWA meta tags",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-ebf643b2bc0c2508b3d4",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 318,
+                  "column": 5
+                },
+                {
+                  "title": "should be installable",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-c3f5949b60af48b8fe08",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 343,
+                  "column": 5
+                },
+                {
+                  "title": "should work offline (basic)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-c9906e9f9ba54ac26303",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 364,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Performance & Accessibility",
+              "file": "health_seo_pwa.spec.ts",
+              "line": 385,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have good Core Web Vitals",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-9a7360278178b509a5a9",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 386,
+                  "column": 5
+                },
+                {
+                  "title": "should have basic accessibility features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-25e58ed5d278349a6cee",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 420,
+                  "column": 5
+                },
+                {
+                  "title": "should have good Core Web Vitals",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-68705d58492ef8a36d00",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 386,
+                  "column": 5
+                },
+                {
+                  "title": "should have basic accessibility features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-cd2097d8e1c4f75f824f",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 420,
+                  "column": 5
+                },
+                {
+                  "title": "should have good Core Web Vitals",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-d35be5d440d09aca1435",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 386,
+                  "column": 5
+                },
+                {
+                  "title": "should have basic accessibility features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-59873314c08a4bac1636",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 420,
+                  "column": 5
+                },
+                {
+                  "title": "should have good Core Web Vitals",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-28d604e8038783278eb5",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 386,
+                  "column": 5
+                },
+                {
+                  "title": "should have basic accessibility features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-7b08986cbfc30176e42b",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 420,
+                  "column": 5
+                },
+                {
+                  "title": "should have good Core Web Vitals",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-21b732db8914642e3aff",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 386,
+                  "column": 5
+                },
+                {
+                  "title": "should have basic accessibility features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-0f7930978f62ba2b3d69",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 420,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Security Headers",
+              "file": "health_seo_pwa.spec.ts",
+              "line": 478,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have security headers",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-deeb470db21b7bf7ca83",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 479,
+                  "column": 5
+                },
+                {
+                  "title": "should have security headers",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-f2896771a04e83d6f94f",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 479,
+                  "column": 5
+                },
+                {
+                  "title": "should have security headers",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-c13f202978eb6a8c159f",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 479,
+                  "column": 5
+                },
+                {
+                  "title": "should have security headers",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-4f05c71b38af37191ab1",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 479,
+                  "column": 5
+                },
+                {
+                  "title": "should have security headers",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "6dd7f71e90f9f88ac109-4e1f3078045e0e44b79f",
+                  "file": "health_seo_pwa.spec.ts",
+                  "line": 479,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "rbac.spec.ts",
+      "file": "rbac.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "RBAC (Role-Based Access Control)",
+          "file": "rbac.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Admin Role Access",
+              "file": "rbac.spec.ts",
+              "line": 56,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have full access to all admin functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-e486cfb4fa8d75a0bd63",
+                  "file": "rbac.spec.ts",
+                  "line": 57,
+                  "column": 5
+                },
+                {
+                  "title": "should be able to change user roles",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-626c7955abbf1f5d4c85",
+                  "file": "rbac.spec.ts",
+                  "line": 110,
+                  "column": 5
+                },
+                {
+                  "title": "should have full access to all admin functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-168b6a60fe1a48ad331b",
+                  "file": "rbac.spec.ts",
+                  "line": 57,
+                  "column": 5
+                },
+                {
+                  "title": "should be able to change user roles",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-47444b552919670b4328",
+                  "file": "rbac.spec.ts",
+                  "line": 110,
+                  "column": 5
+                },
+                {
+                  "title": "should have full access to all admin functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-0bafb2ed959533096d20",
+                  "file": "rbac.spec.ts",
+                  "line": 57,
+                  "column": 5
+                },
+                {
+                  "title": "should be able to change user roles",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-2713c583e86b39f4b869",
+                  "file": "rbac.spec.ts",
+                  "line": 110,
+                  "column": 5
+                },
+                {
+                  "title": "should have full access to all admin functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-c9e41fb1874f21f221c2",
+                  "file": "rbac.spec.ts",
+                  "line": 57,
+                  "column": 5
+                },
+                {
+                  "title": "should be able to change user roles",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-61de64d27afd27ceee65",
+                  "file": "rbac.spec.ts",
+                  "line": 110,
+                  "column": 5
+                },
+                {
+                  "title": "should have full access to all admin functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-61074edf0fa8aad98a32",
+                  "file": "rbac.spec.ts",
+                  "line": 57,
+                  "column": 5
+                },
+                {
+                  "title": "should be able to change user roles",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-22e842784878d1acfd39",
+                  "file": "rbac.spec.ts",
+                  "line": 110,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Staff Role Access",
+              "file": "rbac.spec.ts",
+              "line": 131,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have limited access to staff functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-aa96ec6a18c3c9257a99",
+                  "file": "rbac.spec.ts",
+                  "line": 132,
+                  "column": 5
+                },
+                {
+                  "title": "should not be able to modify other staff members",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-37d6bcaf9ce3431f5de0",
+                  "file": "rbac.spec.ts",
+                  "line": 177,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited access to staff functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-8689e5fda01ab52bd188",
+                  "file": "rbac.spec.ts",
+                  "line": 132,
+                  "column": 5
+                },
+                {
+                  "title": "should not be able to modify other staff members",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-dd9dd04895d9de59f429",
+                  "file": "rbac.spec.ts",
+                  "line": 177,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited access to staff functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-e55e9e82789ac737f62e",
+                  "file": "rbac.spec.ts",
+                  "line": 132,
+                  "column": 5
+                },
+                {
+                  "title": "should not be able to modify other staff members",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-972edeffd0e259b9b430",
+                  "file": "rbac.spec.ts",
+                  "line": 177,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited access to staff functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-f5009997571c8b58b2dc",
+                  "file": "rbac.spec.ts",
+                  "line": 132,
+                  "column": 5
+                },
+                {
+                  "title": "should not be able to modify other staff members",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-fe6da379bb09c1328309",
+                  "file": "rbac.spec.ts",
+                  "line": 177,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited access to staff functions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-f388a5754c7bd44c00a8",
+                  "file": "rbac.spec.ts",
+                  "line": 132,
+                  "column": 5
+                },
+                {
+                  "title": "should not be able to modify other staff members",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-eccab3969da8e2a4fa08",
+                  "file": "rbac.spec.ts",
+                  "line": 177,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Receptionist Role Access",
+              "file": "rbac.spec.ts",
+              "line": 186,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have appointment management permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-ac3933b73a24204d63d7",
+                  "file": "rbac.spec.ts",
+                  "line": 187,
+                  "column": 5
+                },
+                {
+                  "title": "should have appointment management permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-f9788dfb6e1b0ed927af",
+                  "file": "rbac.spec.ts",
+                  "line": 187,
+                  "column": 5
+                },
+                {
+                  "title": "should have appointment management permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-bfc53b72964471ed82be",
+                  "file": "rbac.spec.ts",
+                  "line": 187,
+                  "column": 5
+                },
+                {
+                  "title": "should have appointment management permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-246831e1ec83e6d63eef",
+                  "file": "rbac.spec.ts",
+                  "line": 187,
+                  "column": 5
+                },
+                {
+                  "title": "should have appointment management permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-72c68f33cd43b781c395",
+                  "file": "rbac.spec.ts",
+                  "line": 187,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Customer Role Access",
+              "file": "rbac.spec.ts",
+              "line": 240,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should only access own data",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-30c8ce0759b1f428c16b",
+                  "file": "rbac.spec.ts",
+                  "line": 241,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited profile access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-df2d26d34ea32c14ad10",
+                  "file": "rbac.spec.ts",
+                  "line": 279,
+                  "column": 5
+                },
+                {
+                  "title": "should only access own data",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-407227d3c4cbd08bd996",
+                  "file": "rbac.spec.ts",
+                  "line": 241,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited profile access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-d1ce8b31156f97557ecb",
+                  "file": "rbac.spec.ts",
+                  "line": 279,
+                  "column": 5
+                },
+                {
+                  "title": "should only access own data",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-9850cd0e280a1ac22e17",
+                  "file": "rbac.spec.ts",
+                  "line": 241,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited profile access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-c70cf25daf7507b05b2c",
+                  "file": "rbac.spec.ts",
+                  "line": 279,
+                  "column": 5
+                },
+                {
+                  "title": "should only access own data",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-8ecb9012874c1be60243",
+                  "file": "rbac.spec.ts",
+                  "line": 241,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited profile access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-524d03f118acfea7cee9",
+                  "file": "rbac.spec.ts",
+                  "line": 279,
+                  "column": 5
+                },
+                {
+                  "title": "should only access own data",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-8b241b3812bfe35f9fae",
+                  "file": "rbac.spec.ts",
+                  "line": 241,
+                  "column": 5
+                },
+                {
+                  "title": "should have limited profile access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-cdc2faa4da5f779499bb",
+                  "file": "rbac.spec.ts",
+                  "line": 279,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Cross-Role Boundary Tests",
+              "file": "rbac.spec.ts",
+              "line": 311,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should prevent privilege escalation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-b29a83e0de4dca72f8ef",
+                  "file": "rbac.spec.ts",
+                  "line": 312,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce field-level permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-c40f105d3458bb5156c1",
+                  "file": "rbac.spec.ts",
+                  "line": 330,
+                  "column": 5
+                },
+                {
+                  "title": "should audit role changes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-9908d3eceb032dca7026",
+                  "file": "rbac.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce session timeouts per role",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-47c7a716eaf213a4a62e",
+                  "file": "rbac.spec.ts",
+                  "line": 369,
+                  "column": 5
+                },
+                {
+                  "title": "should prevent privilege escalation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-8868c78d9d65f982699c",
+                  "file": "rbac.spec.ts",
+                  "line": 312,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce field-level permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-f95d010488a01311c44c",
+                  "file": "rbac.spec.ts",
+                  "line": 330,
+                  "column": 5
+                },
+                {
+                  "title": "should audit role changes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-0081fb04eef501500f3d",
+                  "file": "rbac.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce session timeouts per role",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-a9f680c599a8c38fe75d",
+                  "file": "rbac.spec.ts",
+                  "line": 369,
+                  "column": 5
+                },
+                {
+                  "title": "should prevent privilege escalation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-ba658da10fad1dffe170",
+                  "file": "rbac.spec.ts",
+                  "line": 312,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce field-level permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-89719f4c4bad07369072",
+                  "file": "rbac.spec.ts",
+                  "line": 330,
+                  "column": 5
+                },
+                {
+                  "title": "should audit role changes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-e7aed7b794abc659c107",
+                  "file": "rbac.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce session timeouts per role",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-d04a2cf4cd865c5ed138",
+                  "file": "rbac.spec.ts",
+                  "line": 369,
+                  "column": 5
+                },
+                {
+                  "title": "should prevent privilege escalation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-ecf5b4be55d269782bc0",
+                  "file": "rbac.spec.ts",
+                  "line": 312,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce field-level permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-88502e406a8ec01a66cc",
+                  "file": "rbac.spec.ts",
+                  "line": 330,
+                  "column": 5
+                },
+                {
+                  "title": "should audit role changes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-3b38d303ae4d94e968cc",
+                  "file": "rbac.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce session timeouts per role",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-011d5d6df41d61d949bd",
+                  "file": "rbac.spec.ts",
+                  "line": 369,
+                  "column": 5
+                },
+                {
+                  "title": "should prevent privilege escalation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-6c4d647a1883a78c7f48",
+                  "file": "rbac.spec.ts",
+                  "line": 312,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce field-level permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-f7f4d1749667a0591e5f",
+                  "file": "rbac.spec.ts",
+                  "line": 330,
+                  "column": 5
+                },
+                {
+                  "title": "should audit role changes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-7c645355c4620817d871",
+                  "file": "rbac.spec.ts",
+                  "line": 348,
+                  "column": 5
+                },
+                {
+                  "title": "should enforce session timeouts per role",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-ab6b276bfa674226554d",
+                  "file": "rbac.spec.ts",
+                  "line": 369,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "API Endpoint Protection",
+              "file": "rbac.spec.ts",
+              "line": 390,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should protect admin APIs from non-admin access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-c280fe20a61c74a3eab3",
+                  "file": "rbac.spec.ts",
+                  "line": 391,
+                  "column": 5
+                },
+                {
+                  "title": "should protect customer data APIs",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-58afdd371fdf3c9a99b0",
+                  "file": "rbac.spec.ts",
+                  "line": 409,
+                  "column": 5
+                },
+                {
+                  "title": "should validate JWT tokens and role claims",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-68d6084d3f134ff8cc7d",
+                  "file": "rbac.spec.ts",
+                  "line": 422,
+                  "column": 5
+                },
+                {
+                  "title": "should protect admin APIs from non-admin access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-9b5ba5ece6c6b8502ead",
+                  "file": "rbac.spec.ts",
+                  "line": 391,
+                  "column": 5
+                },
+                {
+                  "title": "should protect customer data APIs",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-3299b3e2612b0d2b8de8",
+                  "file": "rbac.spec.ts",
+                  "line": 409,
+                  "column": 5
+                },
+                {
+                  "title": "should validate JWT tokens and role claims",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-108833fe89230d26787a",
+                  "file": "rbac.spec.ts",
+                  "line": 422,
+                  "column": 5
+                },
+                {
+                  "title": "should protect admin APIs from non-admin access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-0908c4dccd7b90723ba2",
+                  "file": "rbac.spec.ts",
+                  "line": 391,
+                  "column": 5
+                },
+                {
+                  "title": "should protect customer data APIs",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-e26c8eec1ad3c005c1ea",
+                  "file": "rbac.spec.ts",
+                  "line": 409,
+                  "column": 5
+                },
+                {
+                  "title": "should validate JWT tokens and role claims",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-49ac0ebd184dbcf9a35a",
+                  "file": "rbac.spec.ts",
+                  "line": 422,
+                  "column": 5
+                },
+                {
+                  "title": "should protect admin APIs from non-admin access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-922f24c719e850ff7a20",
+                  "file": "rbac.spec.ts",
+                  "line": 391,
+                  "column": 5
+                },
+                {
+                  "title": "should protect customer data APIs",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-1c8e5762ccad58853f24",
+                  "file": "rbac.spec.ts",
+                  "line": 409,
+                  "column": 5
+                },
+                {
+                  "title": "should validate JWT tokens and role claims",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-1056adf474f5b8ea83cb",
+                  "file": "rbac.spec.ts",
+                  "line": 422,
+                  "column": 5
+                },
+                {
+                  "title": "should protect admin APIs from non-admin access",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-e592ab377e96ff8be82a",
+                  "file": "rbac.spec.ts",
+                  "line": 391,
+                  "column": 5
+                },
+                {
+                  "title": "should protect customer data APIs",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-b9ee61b90bab5caa7d52",
+                  "file": "rbac.spec.ts",
+                  "line": 409,
+                  "column": 5
+                },
+                {
+                  "title": "should validate JWT tokens and role claims",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "f2d4bd4479eae63a7f57-41a11c1464335589f64a",
+                  "file": "rbac.spec.ts",
+                  "line": 422,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-05T07:33:42.112Z",
+    "duration": 531.1089999999999,
+    "expected": 0,
+    "skipped": 240,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

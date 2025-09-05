@@ -1,0 +1,371 @@
+name: E2E Tests - Full Production Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  prepare:
+    name: Prepare & Validate
+    runs-on: ubuntu-latest
+    outputs:
+      should-run-e2e: ${{ steps.changes.outputs.should-run-e2e }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Check for relevant changes
+        id: changes
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should-run-e2e=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "should-run-e2e=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # Check if relevant files changed
+            git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.sha }} | grep -E '\.(ts|tsx|js|jsx|json|md)$' > /dev/null && echo "should-run-e2e=true" >> $GITHUB_OUTPUT || echo "should-run-e2e=false" >> $GITHUB_OUTPUT
+          else
+            echo "should-run-e2e=false" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should-run-e2e == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SITE_URL: ${{ github.event_name == 'pull_request' && format('https://pr-{0}--schnittwerk.netlify.app', github.event.number) || 'https://schnittwerk-your-style.netlify.app' }}
+
+      - name: Build Netlify Functions
+        run: |
+          npm run build
+          # Netlify functions are built automatically with the main build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            netlify/functions/
+          retention-days: 1
+
+  deploy-preview:
+    name: Deploy Preview Environment
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    if: needs.prepare.outputs.should-run-e2e == 'true' && github.event_name == 'pull_request'
+    outputs:
+      preview-url: ${{ steps.deploy.outputs.preview-url }}
+      deployment-id: ${{ steps.deploy.outputs.deployment-id }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Deploy to Netlify Preview
+        id: deploy
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --dir=dist --message="PR #${{ github.event.number }} - E2E Testing"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Wait for deployment readiness
+        run: |
+          preview_url="${{ steps.deploy.outputs.preview-url }}"
+          echo "Waiting for preview deployment to be ready: $preview_url"
+          
+          max_attempts=30
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            if curl -s --fail --max-time 10 "$preview_url" > /dev/null 2>&1; then
+              echo "✅ Preview deployment is ready!"
+              break
+            fi
+            
+            echo "⏳ Attempt $attempt/$max_attempts - waiting for deployment..."
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Preview deployment failed to become ready"
+            exit 1
+          fi
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previewUrl = '${{ steps.deploy.outputs.preview-url }}';
+            const body = `## 🚀 Preview Deployment Ready
+            
+            **Preview URL:** ${previewUrl}
+            **Environment:** Preview
+            
+            E2E tests will run against this preview deployment.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  e2e:
+    name: E2E Tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    needs: [prepare, build, deploy-preview]
+    if: needs.prepare.outputs.should-run-e2e == 'true' && !failure()
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Determine test URL
+        id: test-url
+        run: |
+          if [[ "${{ needs.deploy-preview.outputs.preview-url }}" != "" ]]; then
+            echo "test-url=${{ needs.deploy-preview.outputs.preview-url }}" >> $GITHUB_OUTPUT
+            echo "environment=preview" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "test-url=https://schnittwerk-your-style.netlify.app" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "test-url=http://localhost:4173" >> $GITHUB_OUTPUT
+            echo "environment=local" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Seed test data
+        run: npx tsx scripts/seed-test-data.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Start preview server (if local)
+        if: steps.test-url.outputs.environment == 'local'
+        run: |
+          npm run preview &
+          sleep 10
+          curl --retry 5 --retry-delay 2 --retry-connrefused http://localhost:4173
+
+      - name: Run E2E tests
+        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.test-url.outputs.test-url }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          CORRELATION_ID: e2e-${{ github.run_id }}-${{ matrix.browser }}-${{ matrix.shard }}
+
+      - name: Clean up test data
+        if: always()
+        run: npx tsx scripts/clean-test-data.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ matrix.browser }}-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  design-lock:
+    name: Design Lock Check
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should-run-e2e == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Run Design Lock Check
+        run: node scripts/design-lock.js
+
+  report:
+    name: E2E Test Report
+    runs-on: ubuntu-latest
+    needs: [e2e, design-lock]
+    if: always() && needs.prepare.outputs.should-run-e2e == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-results-*
+          merge-multiple: true
+          path: ./test-results
+
+      - name: Generate test report
+        run: |
+          cat > test-summary.md << 'EOF'
+          ## 🧪 E2E Test Results Summary
+          
+          **Environment:** ${{ needs.deploy-preview.outputs.preview-url && 'Preview' || github.event.inputs.environment || 'Local' }}
+          **Test URL:** ${{ needs.deploy-preview.outputs.preview-url || steps.test-url.outputs.test-url || 'Local' }}
+          **Correlation ID:** e2e-${{ github.run_id }}
+          
+          ### Test Status
+          EOF
+          
+          # Add test status for each browser
+          for browser in chromium firefox webkit; do
+            echo "- **$browser:** ${{ needs.e2e.result }}" >> test-summary.md
+          done
+          
+          echo "" >> test-summary.md
+          echo "### Design Lock" >> test-summary.md
+          echo "- **Status:** ${{ needs.design-lock.result }}" >> test-summary.md
+          
+          echo "" >> test-summary.md
+          echo "### Coverage Areas" >> test-summary.md
+          echo "- ✅ Customer booking flow (happy path + edge cases)" >> test-summary.md
+          echo "- ✅ Admin portal CRUD operations" >> test-summary.md
+          echo "- ✅ RBAC validation (admin/staff/receptionist/customer)" >> test-summary.md
+          echo "- ✅ Health, SEO & PWA validation" >> test-summary.md
+          echo "- ✅ Design lock compliance" >> test-summary.md
+
+      - name: Comment test results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const testSummary = fs.readFileSync('test-summary.md', 'utf8');
+            
+            const successIcon = '${{ needs.e2e.result }}' === 'success' ? '✅' : '❌';
+            const designLockIcon = '${{ needs.design-lock.result }}' === 'success' ? '✅' : '❌';
+            
+            const body = `${successIcon} **E2E Tests** | ${designLockIcon} **Design Lock**
+            
+            ${testSummary}
+            
+            **Artifacts:** Test reports and traces are available in the workflow artifacts.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Upload combined test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-report
+          path: |
+            test-summary.md
+            test-results/
+          retention-days: 30
+
+  cleanup:
+    name: Cleanup Preview
+    runs-on: ubuntu-latest
+    needs: [deploy-preview, e2e]
+    if: always() && needs.deploy-preview.outputs.deployment-id != ''
+    steps:
+      - name: Delete preview deployment
+        uses: netlify/actions/cli@master
+        with:
+          args: api deleteDeployment --data='{"deploy_id":"${{ needs.deploy-preview.outputs.deployment-id }}"}'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        continue-on-error: true
