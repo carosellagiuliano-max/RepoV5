@@ -17,7 +17,11 @@
     "test:e2e:modular": "scripts/run-enhanced-e2e-tests.sh --modular",
     "test:e2e:quick": "scripts/run-enhanced-e2e-tests.sh --quick",
     "test:seed": "tsx scripts/seed-test-data.ts",
-    "test:clean": "tsx scripts/clean-test-data.ts"
+    "test:clean": "tsx scripts/clean-test-data.ts",
+    "db:migrate": "supabase db push",
+    "db:seed": "npm run test:seed",
+    "db:reset": "npm run test:clean && npm run db:migrate && npm run db:seed",
+    "setup": "./setup.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
