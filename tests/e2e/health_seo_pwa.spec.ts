@@ -290,7 +290,7 @@ test.describe('Health, SEO & PWA Validation', () => {
           expect(swContent).toContain('service worker');
         } else {
           // Service worker might be generated at runtime or not implemented yet
-          console.log('Service worker not found - may be generated at runtime');
+          test.info().log('Service worker not found - may be generated at runtime');
         }
       });
 
