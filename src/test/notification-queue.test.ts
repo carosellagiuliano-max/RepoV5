@@ -3,51 +3,39 @@ import { NotificationQueueManager } from '../lib/notifications/notification-queu
 import { NotificationData } from '../lib/notifications/types'
 import { createClient } from '@supabase/supabase-js'
 
+// Mock environment variables
+vi.mock('import.meta', () => ({
+  env: {
+    VITE_SUPABASE_URL: 'https://test.supabase.co',
+    VITE_SUPABASE_ANON_KEY: 'test-anon-key'
+  }
+}))
+
 // Mock Supabase
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn()
 }))
 
-const mockSupabase = {
-  from: vi.fn(),
-  select: vi.fn(),
-  insert: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-  eq: vi.fn(),
-  in: vi.fn(),
-  lte: vi.fn(),
-  gte: vi.fn(),
-  order: vi.fn(),
-  limit: vi.fn(),
-  single: vi.fn()
-}
-
-// Set up the chain for fluent API
-const setupMockChain = (data: unknown = [], error: unknown = null) => {
-  const chain = {
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    in: vi.fn().mockReturnThis(),
-    lte: vi.fn().mockReturnThis(),
-    lt: vi.fn().mockReturnThis(),
-    gte: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: data[0] || data, error })
-  }
-  
-  // Make the promise return the expected data structure
-  Object.assign(chain, Promise.resolve({ data, error }))
-  
-  return chain
+const mockSupabaseClient = {
+  from: vi.fn(() => mockSupabaseClient),
+  select: vi.fn(() => mockSupabaseClient),
+  insert: vi.fn(() => mockSupabaseClient),
+  update: vi.fn(() => mockSupabaseClient),
+  delete: vi.fn(() => mockSupabaseClient),
+  eq: vi.fn(() => mockSupabaseClient),
+  in: vi.fn(() => mockSupabaseClient),
+  lte: vi.fn(() => mockSupabaseClient),
+  gte: vi.fn(() => mockSupabaseClient),
+  order: vi.fn(() => mockSupabaseClient),
+  limit: vi.fn(() => mockSupabaseClient),
+  single: vi.fn(() => Promise.resolve({ data: { id: 'test-id' }, error: null }))
 }
 
 describe('NotificationQueueManager', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
+    ;(createClient as Mock).mockReturnValue(mockSupabaseClient)
+  })
     vi.clearAllMocks()
     ;(createClient as Mock).mockReturnValue(mockSupabase)
     mockSupabase.from.mockReturnValue(mockSupabase)
@@ -56,8 +44,10 @@ describe('NotificationQueueManager', () => {
   describe('enqueue', () => {
     it('should successfully enqueue a notification', async () => {
       const mockNotificationId = 'notification-123'
-      const mockChain = setupMockChain({ id: mockNotificationId })
-      mockSupabase.from.mockReturnValue(mockChain)
+      mockSupabaseClient.single.mockResolvedValue({ 
+        data: { id: mockNotificationId }, 
+        error: null 
+      })
 
       const notification: NotificationData = {
         id: '',
@@ -82,8 +72,8 @@ describe('NotificationQueueManager', () => {
       const result = await NotificationQueueManager.enqueue(notification)
 
       expect(result).toBe(mockNotificationId)
-      expect(mockSupabase.from).toHaveBeenCalledWith('notification_queue')
-      expect(mockChain.insert).toHaveBeenCalledWith(
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('notification_queue')
+      expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'email',
           channel: 'appointment_reminder',
@@ -99,7 +89,10 @@ describe('NotificationQueueManager', () => {
 
     it('should handle database errors', async () => {
       const mockError = new Error('Database error')
-      const mockChain = setupMockChain(null, mockError)
+      mockSupabaseClient.single.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      })
       mockSupabase.from.mockReturnValue(mockChain)
 
       const notification: NotificationData = {
