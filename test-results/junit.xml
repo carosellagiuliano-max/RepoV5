@@ -1,0 +1,20 @@
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="1.5902539999999998">
+<testsuite name="basic.spec.ts" timestamp="2025-09-05T12:44:06.380Z" hostname="chromium" tests="2" failures="0" skipped="0" time="0.015" errors="0">
+<testcase name="Basic Validation Tests › should validate configuration" classname="basic.spec.ts" time="0.009">
+<system-out>
+<![CDATA[🧪 Running basic configuration validation
+✅ Configuration validation passed
+]]>
+</system-out>
+</testcase>
+<testcase name="Basic Validation Tests › should validate environment" classname="basic.spec.ts" time="0.006">
+<system-out>
+<![CDATA[🌍 Checking environment variables
+Mock mode: true
+Node environment: test
+✅ Environment validation passed
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>
