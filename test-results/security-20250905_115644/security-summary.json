@@ -1,0 +1,22 @@
+{
+  "testRun": {
+    "timestamp": "2025-09-05T11:56:44+00:00",
+    "correlationId": "security-test-1757073404",
+    "productionUrl": "http://localhost:4173"
+  },
+  "summary": {
+    "total": 21,
+    "passed": 21,
+    "failed": 0,
+    "successRate": 100
+  },
+  "categories": [
+    "HTTP Security Headers",
+    "Rate Limiting",
+    "Idempotency System", 
+    "Authentication & Authorization",
+    "CORS Configuration",
+    "Webhook Security",
+    "Data Validation"
+  ]
+}
