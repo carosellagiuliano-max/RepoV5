@@ -1,12 +1,33 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
+
+interface UserProfile {
+  full_name: string
+  role: string
+}
+
+interface StaffData {
+  position: string
+  phone: string
+  is_active: boolean
+  specialties: string[]
+}
+
+interface CustomerData {
+  phone: string
+  preferences: Record<string, unknown>
+  gdpr_consent: boolean
+}
 
 interface TestUser {
   email: string
   password: string
   role: 'admin' | 'staff' | 'customer'
-  profile: any
-  additionalData?: any
+  profile: UserProfile
+  additionalData?: {
+    staff?: StaffData
+    customer?: CustomerData
+  }
 }
 
 const testUsers: TestUser[] = [
@@ -50,7 +71,8 @@ const testUsers: TestUser[] = [
         preferences: {
           communication: 'email',
           language: 'de'
-        }
+        },
+        gdpr_consent: true
       }
     }
   }
@@ -188,7 +210,7 @@ async function seedTestData() {
   }
 }
 
-async function cleanTestUsers(supabase: any) {
+async function cleanTestUsers(supabase: SupabaseClient) {
   const testEmails = testUsers.map(u => u.email)
   
   // Delete from profiles (cascades to other tables due to foreign keys)
@@ -198,7 +220,7 @@ async function cleanTestUsers(supabase: any) {
     .in('email', testEmails)
   
   if (existingUsers && existingUsers.length > 0) {
-    const userIds = existingUsers.map((u: any) => u.id)
+    const userIds = existingUsers.map((u: { id: string }) => u.id)
     
     // Clean up related data
     await supabase.from('appointments').delete().in('customer_id', userIds)
@@ -218,7 +240,7 @@ async function cleanTestUsers(supabase: any) {
   await supabase.from('services').delete().ilike('name', '%test%')
 }
 
-async function createTestUsers(supabase: any) {
+async function createTestUsers(supabase: SupabaseClient) {
   const userIds: Array<{id: string, role: string}> = []
   
   for (const user of testUsers) {
@@ -273,7 +295,7 @@ async function createTestUsers(supabase: any) {
   return userIds
 }
 
-async function createTestServices(supabase: any) {
+async function createTestServices(supabase: SupabaseClient) {
   const serviceIds: string[] = []
   
   for (const service of testServices) {
@@ -294,7 +316,7 @@ async function createTestServices(supabase: any) {
   return serviceIds
 }
 
-async function createStaffAvailability(supabase: any, staffId: string) {
+async function createStaffAvailability(supabase: SupabaseClient, staffId: string) {
   for (const availability of testAvailability) {
     await supabase
       .from('staff_availability')
@@ -305,7 +327,7 @@ async function createStaffAvailability(supabase: any, staffId: string) {
   }
 }
 
-async function linkStaffToServices(supabase: any, staffId: string, serviceIds: string[]) {
+async function linkStaffToServices(supabase: SupabaseClient, staffId: string, serviceIds: string[]) {
   for (const serviceId of serviceIds) {
     await supabase
       .from('staff_services')
@@ -316,7 +338,7 @@ async function linkStaffToServices(supabase: any, staffId: string, serviceIds: s
   }
 }
 
-async function createSampleMedia(supabase: any, userIds: Array<{id: string, role: string}>) {
+async function createSampleMedia(supabase: SupabaseClient, userIds: Array<{id: string, role: string}>) {
   const adminUserId = userIds.find(u => u.role === 'admin')?.id
   
   if (!adminUserId) return

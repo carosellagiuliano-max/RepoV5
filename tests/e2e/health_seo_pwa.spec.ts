@@ -9,7 +9,7 @@ import { test, expect, Page } from '@playwright/test'
 class HealthSEOPWAHelper {
   constructor(private page: Page) {}
 
-  async checkAPIHealth(endpoint: string): Promise<{ success: boolean, statusCode: number, response?: any }> {
+  async checkAPIHealth(endpoint: string): Promise<{ success: boolean, statusCode: number, response?: unknown }> {
     try {
       const response = await this.page.evaluate(async (url) => {
         const res = await fetch(url)

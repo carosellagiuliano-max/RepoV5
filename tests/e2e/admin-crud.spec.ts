@@ -29,7 +29,7 @@ class AdminCRUDHelper {
   }
 
   // Generic CRUD operations
-  async createRecord(data: Record<string, any>, formSelector = '[data-testid="create-form"]') {
+  async createRecord(data: Record<string, unknown>, formSelector = '[data-testid="create-form"]') {
     await this.page.click('[data-testid="create-button"]')
     await this.page.waitForSelector(formSelector)
     
@@ -54,7 +54,7 @@ class AdminCRUDHelper {
     await this.page.waitForSelector('[data-testid="success-message"]', { timeout: 10000 })
   }
 
-  async updateRecord(recordId: string, data: Record<string, any>) {
+  async updateRecord(recordId: string, data: Record<string, unknown>) {
     await this.page.click(`[data-testid="edit-${recordId}"]`)
     await this.page.waitForSelector('[data-testid="edit-form"]')
     
