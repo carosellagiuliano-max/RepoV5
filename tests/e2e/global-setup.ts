@@ -18,16 +18,7 @@ async function globalSetup(config: FullConfig) {
     await page.waitForSelector('[data-testid="app-root"], #root, body', { timeout: 10000 });
     console.log('✅ Application is accessible');
     
-    // Check if Supabase client is initialized (if available)
-    const hasSupabaseClient = await page.evaluate(() => {
-      return typeof window !== 'undefined' && 'supabaseClient' in window;
-    });
-    
-    if (hasSupabaseClient) {
-      console.log('✅ Supabase client detected');
-    } else {
-      console.log('ℹ️ Supabase client not detected (may be expected in test mode)');
-    }
+    // (Removed check for Supabase client to avoid coupling to implementation details)
     
   } catch (error) {
     console.error('❌ Application accessibility check failed:', error);
