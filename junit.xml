@@ -1,0 +1,14 @@
+<testsuites id="" name="" tests="3" failures="0" skipped="0" errors="0" time="8.962204">
+<testsuite name="basic.spec.ts" timestamp="2025-09-05T13:52:52.481Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.43" errors="0">
+<testcase name="basic test" classname="basic.spec.ts" time="0.43">
+</testcase>
+</testsuite>
+<testsuite name="basic.spec.ts" timestamp="2025-09-05T13:52:52.481Z" hostname="firefox" tests="1" failures="0" skipped="0" time="2.493" errors="0">
+<testcase name="basic test" classname="basic.spec.ts" time="2.493">
+</testcase>
+</testsuite>
+<testsuite name="basic.spec.ts" timestamp="2025-09-05T13:52:52.481Z" hostname="webkit" tests="1" failures="0" skipped="0" time="1.171" errors="0">
+<testcase name="basic test" classname="basic.spec.ts" time="1.171">
+</testcase>
+</testsuite>
+</testsuites>
