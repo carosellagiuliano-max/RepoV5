@@ -132,7 +132,7 @@ test.describe('Customer Booking Flow', () => {
 
     await test.step('Select time slot', async () => {
       // Wait for time slots to load
-      await page.waitForTimeout(2000);
+      await page.waitForSelector('.time-slot, .slot, [data-testid*="time"]');
       
       // Look for available time slots
       const timeSlots = page.locator('.time-slot, .slot, [data-testid*="time"], button').filter({ hasText: /\d{1,2}:\d{2}/ });
