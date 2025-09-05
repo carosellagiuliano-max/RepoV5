@@ -80,7 +80,6 @@ test.describe('Customer Booking Flow', () => {
       } else {
         console.log('ℹ️ No search input found (may not be implemented yet)');
       }
-      }
       
       // Look for category filters
       const categoryButtons = page.locator('button, .category, [data-testid*="category"]').filter({ hasText: /kategorie|category/i });

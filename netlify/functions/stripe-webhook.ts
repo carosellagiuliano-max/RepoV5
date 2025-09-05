@@ -72,8 +72,9 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         signature,
         webhookSecret
       )
-    } catch (err: any) {
-      console.log('Webhook signature verification failed:', err.message)
+    } catch (err: unknown) {
+      const error = err as Error
+      console.log('Webhook signature verification failed:', error.message)
       return {
         statusCode: 400,
         headers,
@@ -127,7 +128,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       body: JSON.stringify({ received: true, eventType: stripeEvent.type }),
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Webhook processing error:', error)
     
     return {
