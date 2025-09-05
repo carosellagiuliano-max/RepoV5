@@ -135,8 +135,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
-        error: 'Internal server error processing webhook',
-        message: error.message 
+        message: error instanceof Error ? error.message : 'Unknown error'
       }),
     }
   }
