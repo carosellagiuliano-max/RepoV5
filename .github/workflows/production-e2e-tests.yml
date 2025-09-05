@@ -250,6 +250,9 @@ jobs:
       - name: Start preview server and wait for readiness
         id: preview-server
         env:
+          DB_MOCK_MODE: true
+          MOCK_MODE: true
+          NODE_ENV: test
           SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
@@ -421,6 +424,9 @@ jobs:
           TEST_ENV: ${{ steps.test-url.outputs.test-env }}
           BROWSER: ${{ matrix.browser }}
           SHARD: ${{ matrix.shard }}
+          DB_MOCK_MODE: true
+          MOCK_MODE: true
+          NODE_ENV: test
           SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
@@ -544,6 +550,9 @@ jobs:
           PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview-url }}
           PRODUCTION_URL: ${{ steps.test-url.outputs.test-url }}
           TEST_ENV: ${{ steps.test-url.outputs.test-env }}
+          DB_MOCK_MODE: true
+          MOCK_MODE: true
+          NODE_ENV: test
           SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}

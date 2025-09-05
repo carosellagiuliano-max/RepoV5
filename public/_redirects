@@ -1,6 +1,9 @@
 # Stripe webhook redirect
 /api/webhooks/stripe  /.netlify/functions/stripe-webhook  200
 
+# Health endpoint redirects
+/api/health  /.netlify/functions/health  200
+
 # Netlify function redirects
 /api/*  /.netlify/functions/:splat  200
 

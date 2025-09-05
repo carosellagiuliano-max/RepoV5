@@ -2,52 +2,84 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Customer Booking Flow', () => {
   test.beforeEach(async ({ page }) => {
+    console.log('🏠 Navigating to home page...');
     // Navigate to the booking page
     await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
+    console.log('✅ Home page loaded successfully');
   });
 
   test('should display booking page correctly', async ({ page }) => {
     await test.step('Navigate to booking page', async () => {
+      console.log('📅 Testing booking page navigation...');
       // Check if we're on the home page first
       await expect(page).toHaveTitle(/Schnittwerk|Hair|Salon/i);
+      
+      // Take screenshot of customer portal home
+      await page.screenshot({
+        path: 'test-results/screenshots/customer-portal-home.png',
+        fullPage: true
+      });
+      console.log('📸 Captured customer portal home screenshot');
       
       // Navigate to booking if not already there
       const bookingButton = page.locator('text=/buchen|book|termin/i').first();
       if (await bookingButton.isVisible()) {
+        console.log('🎯 Found booking button, clicking...');
         await bookingButton.click();
       } else {
+        console.log('🚀 Navigating directly to booking page...');
         await page.goto('/booking');
       }
       
       await page.waitForLoadState('networkidle');
+      console.log('✅ Successfully navigated to booking page');
     });
 
     await test.step('Verify booking page elements', async () => {
+      console.log('🔍 Verifying booking page elements...');
       // Check for key booking elements
       await expect(page.locator('h1, h2, h3').filter({ hasText: /buchen|book|termin/i }).first()).toBeVisible();
+      console.log('✅ Booking page header is visible');
+      
+      // Take screenshot of booking page
+      await page.screenshot({
+        path: 'test-results/screenshots/customer-portal-booking.png',
+        fullPage: true
+      });
+      console.log('📸 Captured customer booking page screenshot');
       
       // Check for service selection
       const serviceElements = page.locator('[data-testid*="service"], .service, text=/dienstleistung|service/i');
       if (await serviceElements.first().isVisible()) {
         await expect(serviceElements.first()).toBeVisible();
+        console.log('✅ Service selection elements are visible');
+      } else {
+        console.log('ℹ️ Service selection elements not found (may be loaded dynamically)');
       }
     });
   });
 
   test('should allow service selection and filtering', async ({ page }) => {
+    console.log('🔍 Testing service selection and filtering...');
     await page.goto('/booking');
     await page.waitForLoadState('networkidle');
 
     await test.step('Search and filter services', async () => {
+      console.log('🔎 Testing service search functionality...');
       // Look for search/filter inputs
       const searchInput = page.locator('input[type="search"], input[placeholder*="search"], input[placeholder*="suchen"]').first();
       
       if (await searchInput.isVisible()) {
+        console.log('📝 Found search input, testing search...');
         await searchInput.fill('Haarschnitt');
         await page.waitForTimeout(1000); // Wait for filter results
+        console.log('✅ Search functionality tested');
+      } else {
+        console.log('ℹ️ No search input found (may not be implemented yet)');
+      }
       }
       
       // Look for category filters

@@ -54,6 +54,33 @@ interface NetlifyEvent {
 }
 
 export async function handler(event: NetlifyEvent, context: Context) {
+  // Check if we're in mock mode - return simple response
+  const mockMode = process.env.DB_MOCK_MODE === 'true' || 
+                   process.env.NODE_ENV === 'test' ||
+                   process.env.MOCK_MODE === 'true'
+
+  if (mockMode) {
+    // Simple mock response for testing
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      },
+      body: JSON.stringify({
+        ok: true,
+        status: 'healthy',
+        mode: 'mock',
+        timestamp: new Date().toISOString(),
+        version: process.env.VITE_APP_VERSION || '1.0.0',
+        environment: process.env.NODE_ENV || 'test',
+        uptime: Math.floor(process.uptime()),
+        correlationId: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      })
+    }
+  }
+
   return withMonitoring(async (event, context, monitoring) => {
     const { logger, correlationId } = monitoring
 

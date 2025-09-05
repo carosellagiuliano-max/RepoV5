@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Portal CRUD Operations', () => {
   // Mock admin authentication for tests
   test.beforeEach(async ({ page }) => {
+    console.log('🔐 Setting up admin authentication...');
     // Mock admin login - this would typically set up authentication
     await page.goto('/admin/login');
     
@@ -12,39 +13,64 @@ test.describe('Admin Portal CRUD Operations', () => {
     const loginButton = page.locator('button[type="submit"], button').filter({ hasText: /login|anmelden/i }).first();
 
     if (await usernameInput.isVisible()) {
+      console.log('📝 Filling in admin credentials...');
       await usernameInput.fill('admin@test.com');
       await passwordInput.fill('testpassword');
       await loginButton.click();
+      console.log('🚀 Submitted login form');
       
       // Wait for redirect to admin dashboard
       await page.waitForURL('**/admin**', { timeout: 10000 });
+      console.log('✅ Successfully redirected to admin dashboard');
     } else {
       // Navigate directly to admin if already authenticated
+      console.log('🏃 Navigating directly to admin dashboard...');
       await page.goto('/admin');
     }
     
     await page.waitForLoadState('networkidle');
+    
+    // Take screenshot of admin portal
+    await page.screenshot({
+      path: 'test-results/screenshots/admin-portal-dashboard.png',
+      fullPage: true
+    });
+    console.log('📸 Captured admin portal dashboard screenshot');
   });
 
   test.describe('Staff Management', () => {
     test('should display staff list with pagination and filtering', async ({ page }) => {
       await test.step('Navigate to staff management', async () => {
+        console.log('👥 Navigating to staff management...');
         await page.goto('/admin/staff');
         await page.waitForLoadState('networkidle');
         
         // Verify we're on the staff page
         await expect(page.locator('h1, h2').filter({ hasText: /mitarbeiter|staff/i }).first()).toBeVisible();
+        console.log('✅ Successfully navigated to staff management page');
       });
 
       await test.step('Test staff listing', async () => {
+        console.log('📋 Testing staff listing display...');
         // Check for staff table or cards
         const staffTable = page.locator('table, .staff-list, [data-testid*="staff"]').first();
         await expect(staffTable).toBeVisible();
+        console.log('✅ Staff list is visible');
+        
+        // Take screenshot of staff management
+        await page.screenshot({
+          path: 'test-results/screenshots/admin-portal-staff-management.png',
+          fullPage: true
+        });
+        console.log('📸 Captured staff management screenshot');
         
         // Check for pagination if present
         const pagination = page.locator('.pagination, [data-testid*="pagination"]').first();
         if (await pagination.isVisible()) {
           await expect(pagination).toBeVisible();
+          console.log('✅ Pagination controls are present');
+        } else {
+          console.log('ℹ️ No pagination controls found (may be expected for small datasets)');
         }
       });
 

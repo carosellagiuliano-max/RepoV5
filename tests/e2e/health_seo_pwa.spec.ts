@@ -4,10 +4,16 @@ test.describe('Health, SEO & PWA Validation', () => {
   test.describe('Health Endpoints', () => {
     test('should have accessible health endpoint', async ({ page }) => {
       await test.step('Check /api/health endpoint', async () => {
+        console.log('🏥 Testing health endpoint...');
         const response = await page.request.get('/api/health');
+        console.log(`Health endpoint response status: ${response.status()}`);
+        console.log(`Health endpoint response headers:`, response.headers());
+        
         expect(response.status()).toBe(200);
         
         const healthData = await response.json();
+        console.log('Health endpoint response data:', JSON.stringify(healthData, null, 2));
+        
         expect(healthData).toHaveProperty('status');
         expect(healthData.status).toBe('healthy');
         
@@ -19,13 +25,17 @@ test.describe('Health, SEO & PWA Validation', () => {
         if (healthData.correlationId) {
           expect(healthData.correlationId).toMatch(/^[a-z0-9-]+$/);
         }
+
+        console.log('✅ Health endpoint test completed successfully');
       });
     });
 
     test('should provide detailed health status', async ({ page }) => {
       await test.step('Verify health endpoint details', async () => {
+        console.log('🔍 Testing detailed health status...');
         const response = await page.request.get('/api/health');
         const healthData = await response.json();
+        console.log('Detailed health data:', JSON.stringify(healthData, null, 2));
         
         // Check for service dependencies
         if (healthData.services) {
@@ -34,23 +44,31 @@ test.describe('Health, SEO & PWA Validation', () => {
         }
         
         // Check for build information
-        if (healthData.build) {
-          expect(healthData.build).toHaveProperty('version');
-          expect(healthData.build).toHaveProperty('environment');
+        if (healthData.build || healthData.buildInfo) {
+          const buildInfo = healthData.build || healthData.buildInfo;
+          expect(buildInfo).toHaveProperty('version');
+          expect(buildInfo).toHaveProperty('environment');
         }
+
+        console.log('✅ Detailed health status test completed successfully');
       });
     });
 
     test('should handle health check failures gracefully', async ({ page }) => {
       await test.step('Test health endpoint resilience', async () => {
+        console.log('🔄 Testing health endpoint resilience...');
         // Even if some services are down, health endpoint should respond
         const response = await page.request.get('/api/health');
+        console.log(`Resilience test response status: ${response.status()}`);
         
         // Should get a response even if status is degraded
         expect([200, 503]).toContain(response.status());
         
         const healthData = await response.json();
+        console.log('Resilience test response data:', JSON.stringify(healthData, null, 2));
         expect(['healthy', 'degraded', 'unhealthy']).toContain(healthData.status);
+
+        console.log('✅ Health endpoint resilience test completed successfully');
       });
     });
   });
@@ -363,11 +381,20 @@ test.describe('Health, SEO & PWA Validation', () => {
 
     test('should work offline (basic)', async ({ page }) => {
       await test.step('Test offline functionality', async () => {
+        console.log('🌐 Testing offline functionality...');
         await page.goto('/');
         await page.waitForLoadState('networkidle');
         
+        // Take screenshot of main page before going offline
+        await page.screenshot({
+          path: 'test-results/screenshots/customer-portal-online.png',
+          fullPage: true
+        });
+        console.log('📸 Captured customer portal screenshot (online)');
+        
         // Go offline
         await page.context().setOffline(true);
+        console.log('📡 Going offline...');
         
         // Try to navigate to a cached page
         await page.reload();
@@ -376,8 +403,17 @@ test.describe('Health, SEO & PWA Validation', () => {
         const body = page.locator('body');
         await expect(body).toBeVisible();
         
+        // Take screenshot of offline state
+        await page.screenshot({
+          path: 'test-results/screenshots/customer-portal-offline.png',
+          fullPage: true
+        });
+        console.log('📸 Captured customer portal screenshot (offline)');
+        
         // Restore online
         await page.context().setOffline(false);
+        console.log('📡 Back online');
+        console.log('✅ Offline functionality test completed');
       });
     });
   });
