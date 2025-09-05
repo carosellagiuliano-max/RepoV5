@@ -141,121 +141,228 @@ describe('Modular Production End-to-End Validation', () => {
 
   describe('🔐 Authentication & Authorization', () => {
     it('should validate JWT protection on admin endpoints', async () => {
+      console.log(`🔒 Testing JWT protection on admin endpoints...`)
       const result = await authModule.testJWTProtection()
+      console.log(`JWT Protection Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ JWT Protection failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should enforce role-based access control (RBAC)', async () => {
+      console.log(`🔐 Testing RBAC enforcement...`)
       const result = await authModule.testRBACEnforcement()
+      console.log(`RBAC Enforcement Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ RBAC Enforcement failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate session management', async () => {
+      console.log(`🔑 Testing session management...`)
       const result = await authModule.testSessionManagement()
+      console.log(`Session Management Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Session Management failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
   })
 
   describe('📅 Booking Flow Validation', () => {
     it('should validate service availability API', async () => {
+      console.log(`📋 Testing service availability API...`)
       const result = await bookingModule.testServiceAvailability()
+      console.log(`Service Availability Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Service Availability failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate staff availability checking', async () => {
+      console.log(`👥 Testing staff availability checking...`)
       const result = await bookingModule.testStaffAvailability()
+      console.log(`Staff Availability Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Staff Availability failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate booking input validation', async () => {
+      console.log(`✅ Testing booking input validation...`)
       const result = await bookingModule.testBookingValidation()
+      console.log(`Booking Validation Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Booking Validation failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate booking conflict detection', async () => {
+      console.log(`⚠️ Testing booking conflict detection...`)
       const result = await bookingModule.testConflictDetection()
+      console.log(`Conflict Detection Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Conflict Detection failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
   })
 
   describe('🏥 Health & Monitoring', () => {
     it('should validate basic health endpoint', async () => {
+      console.log(`💓 Testing basic health endpoint...`)
       const result = await healthModule.testBasicHealth()
+      console.log(`Basic Health Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Basic Health failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate detailed health metrics', async () => {
+      console.log(`📊 Testing detailed health metrics...`)
       const result = await healthModule.testHealthMetrics()
+      console.log(`Health Metrics Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Health Metrics failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate dependency health checks', async () => {
+      console.log(`🔗 Testing dependency health checks...`)
       const result = await healthModule.testDependencyHealth()
+      console.log(`Dependency Health Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Dependency Health failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate health check response times', async () => {
+      console.log(`⏱️ Testing health check response times...`)
       const result = await healthModule.testResponseTime()
+      console.log(`Response Time Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Response Time failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
   })
 
   describe('🔒 Security & Compliance', () => {
     it('should validate HTTP security headers', async () => {
+      console.log(`🛡️ Testing HTTP security headers...`)
       const result = await securityModule.testSecurityHeaders()
+      console.log(`Security Headers Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Security Headers failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate rate limiting enforcement', async () => {
+      console.log(`🚫 Testing rate limiting enforcement...`)
       const result = await securityModule.testRateLimiting()
+      console.log(`Rate Limiting Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Rate Limiting failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate input validation and XSS protection', async () => {
+      console.log(`🔍 Testing input validation and XSS protection...`)
       const result = await securityModule.testInputValidation()
+      console.log(`Input Validation Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Input Validation failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate CORS configuration', async () => {
+      console.log(`🌐 Testing CORS configuration...`)
       const result = await securityModule.testCORSConfiguration()
+      console.log(`CORS Configuration Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ CORS Configuration failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate webhook signature validation', async () => {
+      console.log(`🔐 Testing webhook signature validation...`)
       const result = await securityModule.testWebhookSecurity()
+      console.log(`Webhook Security Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Webhook Security failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
   })
 
   describe('⚡ Performance & Optimization', () => {
     it('should validate page load performance', async () => {
+      console.log(`🚀 Testing page load performance...`)
       const result = await performanceModule.testPageLoadPerformance()
+      console.log(`Page Load Performance Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Page Load Performance failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate API response performance', async () => {
+      console.log(`⚡ Testing API response performance...`)
       const result = await performanceModule.testAPIPerformance()
+      console.log(`API Performance Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ API Performance failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate resource optimization', async () => {
+      console.log(`📦 Testing resource optimization...`)
       const result = await performanceModule.testResourceOptimization()
+      console.log(`Resource Optimization Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Resource Optimization failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
 
     it('should validate asset delivery performance', async () => {
+      console.log(`🌍 Testing asset delivery performance...`)
       const result = await performanceModule.testAssetDelivery()
+      console.log(`Asset Delivery Result:`, { status: result.status, details: result.details })
+      if (result.status !== 'pass') {
+        console.error(`❌ Asset Delivery failed:`, result.error)
+      }
       expect(result.status).toBe('pass')
     }, TEST_TIMEOUT)
   })
 
   describe('🌐 Frontend & Infrastructure', () => {
     it('should validate frontend accessibility', async () => {
+      console.log(`🌐 Testing frontend accessibility at ${PRODUCTION_URL}...`)
       try {
         const response = await fetch(PRODUCTION_URL, {
           headers: {
             'X-Correlation-Id': `${CORRELATION_ID}-frontend`
           }
+        })
+        
+        console.log(`Frontend Response:`, { 
+          status: response.status, 
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
         })
         
         expect(response.ok).toBe(true)
@@ -271,6 +378,7 @@ describe('Modular Production End-to-End Validation', () => {
           }
         })
       } catch (error) {
+        console.error(`❌ Frontend accessibility test failed:`, error)
         allTestResults.push({
           category: 'Frontend',
           test: 'Frontend Accessibility',

@@ -1,6 +1,6 @@
 # E2E Testing Guide - Schnittwerk Your Style
 
-This document provides comprehensive guidance for running and maintaining the End-to-End test suite using Playwright.
+This document provides comprehensive guidance for running and maintaining the End-to-End test suite using Playwright and modular production E2E tests.
 
 ## 🎯 Overview
 
@@ -10,16 +10,19 @@ The E2E test suite provides complete validation of the hair salon booking system
 - **Admin Portal CRUD**: Staff, Services, Customers, Appointments, Media, Settings management
 - **RBAC Validation**: Role-based access control for admin, staff, receptionist, and customer roles
 - **Health/SEO/PWA**: API health endpoints, SEO meta tags, Progressive Web App features
+- **Security Validation**: HTTP security headers, rate limiting, CORS, input validation
+- **Performance Testing**: Page load times, API response times, resource optimization
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 1. **Node.js 18+** installed
-2. **Supabase project** configured
+2. **Supabase project** configured (production and test environments)
 3. **Environment variables** set up (see `.env.example`)
+4. **Stripe test credentials** configured
 
-### Local Setup
+### Local Development Setup
 
 ```bash
 # 1. Install dependencies
@@ -30,22 +33,277 @@ npx playwright install --with-deps
 
 # 3. Set up environment variables
 cp .env.example .env.local
-# Edit .env.local with your Supabase credentials
+# Edit .env.local with your credentials
 
 # 4. Seed test data
-npx tsx scripts/seed-test-data.ts
+node scripts/seed-test-data.ts
 
 # 5. Build the application
 npm run build
 
-# 6. Start preview server
+# 6. Start preview server on port 4173
 npm run preview
 
 # 7. Run E2E tests (in another terminal)
 npx playwright test
 
-# 8. Clean up test data
-npx tsx scripts/clean-test-data.ts
+# 8. Run modular production E2E tests
+npm run test src/test/modular-production-e2e.test.ts
+
+# 9. Clean up test data
+node scripts/clean-test-data.ts
+```
+
+### CI/CD Integration
+
+The production E2E tests run automatically in GitHub Actions with enhanced security and fork handling:
+
+```bash
+# Manual trigger with options
+gh workflow run production-e2e-tests.yml \
+  -f production_url="https://your-preview-url.netlify.app" \
+  -f test_suite="all" \
+  -f quick_mode=false
+```
+
+## 🛠️ Test Environment Configuration
+
+### Required Secrets (GitHub Actions)
+
+**Core Infrastructure:**
+- `SUPABASE_URL_TEST`: Test Supabase project URL
+- `SUPABASE_ANON_KEY_TEST`: Test Supabase anonymous key  
+- `SUPABASE_SERVICE_ROLE_TEST`: Test Supabase service role key
+- `PRODUCTION_URL`: Production deployment URL
+
+**Payment Integration:**
+- `STRIPE_SECRET_KEY`: Stripe test secret key
+- `STRIPE_WEBHOOK_SECRET`: Stripe test webhook secret
+
+**Fork PR Handling:**
+- `BOT_PAT`: GitHub Bot Personal Access Token (fine-grained, minimal permissions)
+
+**Enhanced Security:**
+- `SECURITY_TEST_TIMEOUT`: Security test timeout (default: 30000ms)
+- `SECURITY_HEADERS_REQUIRED`: Enable strict security header validation
+
+### Local Environment Setup
+
+1. **Create test Supabase project** (separate from production)
+2. **Configure test database** with same schema as production
+3. **Set up test environment variables** in `.env.local`
+4. **Configure Stripe test mode** with test keys
+
+## 📋 Test Categories
+
+### 1. Playwright E2E Tests (`tests/e2e/`)
+
+- **Multi-browser**: Chromium, Firefox, WebKit support
+- **Mobile viewports**: iPhone, iPad, Android device simulation
+- **Test sharding**: Parallel execution with 2-shard matrix
+- **Retry mechanism**: 2 retries for flaky tests
+
+```bash
+# Run specific browser
+npx playwright test --project=chromium
+
+# Run with sharding
+npx playwright test --shard=1/2
+
+# Run with UI mode
+npx playwright test --ui
+
+# Debug mode
+npx playwright test --debug
+```
+
+### 2. Modular Production E2E (`src/test/modular-production-e2e.test.ts`)
+
+Enhanced modular testing with detailed logging:
+
+- **Authentication & Authorization**: JWT protection, RBAC enforcement, session management
+- **Booking Flow Validation**: Service/staff availability, input validation, conflict detection
+- **Health & Monitoring**: Health endpoints, metrics, dependency checks, response times
+- **Security & Compliance**: Security headers, rate limiting, input validation, CORS, webhook security
+- **Performance & Optimization**: Page load, API performance, resource optimization, asset delivery
+
+```bash
+# Run with enhanced logging
+DEBUG_MODULAR_TESTS=true npm run test src/test/modular-production-e2e.test.ts
+
+# Run with specific correlation ID
+CORRELATION_ID=debug-session-123 npm run test src/test/modular-production-e2e.test.ts
+```
+
+### 3. Security Validation (`scripts/run-security-tests.sh`)
+
+Comprehensive security testing:
+
+- **HTTP Security Headers**: X-Frame-Options (DENY), X-Content-Type-Options (nosniff), HSTS, CSP
+- **Rate Limiting**: API endpoint protection, abuse prevention
+- **Input Validation**: XSS protection, SQL injection prevention
+- **CORS Configuration**: Cross-origin request validation
+- **Webhook Security**: Stripe signature validation, invalid signature handling
+
+```bash
+# Run security tests against specific URL
+PRODUCTION_URL=http://localhost:4173 ./scripts/run-security-tests.sh
+
+# Save results to custom directory
+RESULTS_DIR=./custom-results ./scripts/run-security-tests.sh
+```
+
+### 4. Performance Testing (`scripts/run-lighthouse-tests.sh`)
+
+- **Lighthouse audits**: Desktop and mobile presets
+- **Performance metrics**: LCP, FID, CLS, FCP, TTI
+- **Accessibility validation**: WCAG compliance
+- **SEO optimization**: Meta tags, structured data
+- **PWA features**: Manifest, service worker, installability
+
+## 🔧 Test Data Management
+
+### Automated Seeding (`scripts/seed-test-data.ts`)
+
+```bash
+# Seed test data
+node scripts/seed-test-data.ts
+
+# Seed with custom prefix
+E2E_TEST_USER_PREFIX=custom-test- node scripts/seed-test-data.ts
+```
+
+**Creates:**
+- RBAC test users (admin, staff, receptionist, customer)
+- Sample services with different categories
+- Staff availability schedules
+- Business settings and configurations
+
+### Automated Cleanup (`scripts/clean-test-data.ts`)
+
+```bash
+# Clean all test data
+node scripts/clean-test-data.ts
+
+# Clean specific user prefix
+E2E_TEST_USER_PREFIX=custom-test- node scripts/clean-test-data.ts
+```
+
+**Removes:**
+- All test users and related data
+- Test bookings and appointments
+- Test media uploads
+- Temporary configurations
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**Preview Server Not Starting:**
+```bash
+# Check if port 4173 is available
+lsof -i :4173
+
+# Kill existing process
+kill $(lsof -t -i:4173)
+
+# Start with custom port
+PORT=4174 npm run preview
+BASE_URL=http://localhost:4174 npx playwright test
+```
+
+**Database Connection Issues:**
+```bash
+# Verify Supabase connection
+curl -H "apikey: $SUPABASE_ANON_KEY_TEST" "$SUPABASE_URL_TEST/rest/v1/"
+
+# Check service role permissions
+curl -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_TEST" "$SUPABASE_URL_TEST/rest/v1/"
+```
+
+**Security Header Failures:**
+```bash
+# Test headers locally
+curl -I http://localhost:4173
+
+# Verify _headers file deployment
+curl -I https://your-site.netlify.app
+
+# Check CSP violations in browser console
+```
+
+**Stripe Webhook Issues:**
+```bash
+# Test webhook endpoint
+curl -X POST http://localhost:4173/api/webhooks/stripe \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'
+
+# Verify signature validation
+curl -X POST http://localhost:4173/api/webhooks/stripe \
+  -H "Stripe-Signature: invalid" \
+  -d '{"test": "data"}'
+```
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+DEBUG=pw:* npx playwright test
+
+# Run with trace viewer
+npx playwright test --trace on
+
+# Generate test report
+npx playwright show-report
+```
+
+### Artifact Analysis
+
+After CI runs, download artifacts:
+- `playwright-results-*`: Test results, traces, videos, screenshots
+- `security-results-*`: Security validation reports and headers
+- `lighthouse-results-*`: Performance audit reports
+- `design-lock-results-*`: Design compliance validation
+
+## 📊 Test Metrics & Reporting
+
+### Success Criteria
+
+- **E2E Tests**: 100% pass rate across all browsers
+- **Security Tests**: 0 failures for critical security headers
+- **Performance**: Lighthouse scores >90 for all categories
+- **Lighthouse**: Desktop >95, Mobile >85 performance scores
+- **Test Coverage**: All user journeys and edge cases validated
+
+### Correlation IDs
+
+All tests use correlation IDs for tracing:
+- Format: `{test-type}-{timestamp}` or `{test-type}-{session-id}`
+- Useful for debugging distributed systems
+- Included in all API calls and logs
+
+## 🔄 Maintenance
+
+### Regular Tasks
+
+1. **Update test data** monthly to reflect business changes
+2. **Review security headers** after infrastructure updates  
+3. **Update Playwright browsers** with `npx playwright install`
+4. **Validate test environment** separation from production
+5. **Audit test secrets** and rotate as needed
+
+### Version Updates
+
+```bash
+# Update Playwright
+npm update @playwright/test
+
+# Update test dependencies  
+npm update --save-dev
+
+# Reinstall browsers after Playwright update
+npx playwright install --with-deps
 ```
 
 ### Quick Test Commands

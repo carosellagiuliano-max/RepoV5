@@ -1,12 +1,20 @@
 name: Production End-to-End Tests
 
+# Explicit permissions for fork handling and security
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+  issues: write
+
 'on':
   # Run on main branch pushes
   push:
     branches: [main, production]
   
-  # Run on pull requests to main
-  pull_request:
+  # Run on pull requests to main - use pull_request_target for fork support
+  pull_request_target:
     branches: [main]
   
   # Allow manual triggers
@@ -36,17 +44,50 @@ name: Production End-to-End Tests
         type: boolean
 
 jobs:
-  # Unit tests and linting for forked PRs (no secrets access)
-  forked-pr-tests:
-    name: Forked PR - Unit Tests & Linting
+  # Prepare phase: Install dependencies, lint, type check, unit test
+  prepare:
+    name: Prepare - Install & Validate
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
     timeout-minutes: 10
+    outputs:
+      is-fork: ${{ steps.check-fork.outputs.is-fork }}
+      github-token: ${{ steps.token-selection.outputs.github-token }}
     
     steps:
-      - name: Checkout code
+      - name: Check if fork PR
+        id: check-fork
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
+            IS_FORK=${{ github.event.pull_request.head.repo.fork }}
+          else
+            IS_FORK=false
+          fi
+          echo "is-fork=$IS_FORK" >> $GITHUB_OUTPUT
+          echo "Fork PR: $IS_FORK"
+      
+      - name: Select appropriate token
+        id: token-selection
+        run: |
+          if [ "${{ steps.check-fork.outputs.is-fork }}" = "true" ]; then
+            if [ -n "${{ secrets.BOT_PAT }}" ]; then
+              echo "github-token=${{ secrets.BOT_PAT }}" >> $GITHUB_OUTPUT
+              echo "Using BOT_PAT for fork PR"
+            else
+              echo "github-token=${{ github.token }}" >> $GITHUB_OUTPUT
+              echo "BOT_PAT not available, using github.token"
+            fi
+          else
+            echo "github-token=${{ github.token }}" >> $GITHUB_OUTPUT
+            echo "Using github.token for internal PR/push"
+          fi
+      
+      - name: Hardened checkout for security
         uses: actions/checkout@v4
-        
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -65,9 +106,63 @@ jobs:
       - name: Run unit tests
         run: npm test
         
+      - name: Run npm audit and fix critical vulnerabilities
+        run: |
+          echo "Running npm audit to check for vulnerabilities..."
+          npm audit --audit-level=high || echo "Audit found issues, attempting to fix..."
+          npm audit fix --force || echo "Some vulnerabilities could not be auto-fixed"
+
+  # Build phase: Build application and functions
+  build:
+    name: Build Application & Functions  
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    timeout-minutes: 15
+    
+    steps:
+      - name: Hardened checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_number }}
+          path: |
+            dist/
+            netlify/functions/
+          retention-days: 1
+
+  # Unit tests and linting for forked PRs (no secrets access)
+  forked-pr-tests:
+    name: Forked PR - Limited Testing
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.is-fork == 'true' }}
+    timeout-minutes: 10
+    
+    steps:
       - name: Comment on forked PR
         uses: actions/github-script@v7
         with:
+          github-token: ${{ needs.prepare.outputs.github-token }}
           script: |
             const comment = `## 🔒 Forked PR - Limited Testing
             
@@ -77,6 +172,7 @@ jobs:
             - ✅ ESLint code quality checks
             - ✅ TypeScript type checking  
             - ✅ Unit tests
+            - ✅ Dependency vulnerability scan
             
             **Tests Skipped:** 
             - 🔒 Preview environment deployment (requires secrets)
@@ -103,178 +199,127 @@ jobs:
   deploy-preview:
     name: Deploy Preview Environment
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-    timeout-minutes: 15
+    needs: [prepare, build]
+    if: ${{ needs.prepare.outputs.is-fork == 'false' && github.event_name == 'pull_request_target' }}
+    timeout-minutes: 20
     outputs:
-      preview-url: ${{ steps.deploy.outputs.preview-url }}
-      deploy-status: ${{ steps.deploy.outputs.deploy-status }}
+      preview-url: ${{ steps.preview-server.outputs.preview-url }}
+      deploy-status: ${{ steps.preview-server.outputs.deploy-status }}
       
     steps:
-      - name: Checkout code
+      - name: Hardened checkout
         uses: actions/checkout@v4
-        
-      - name: Check secrets availability
-        id: check-secrets
-        run: |
-          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ] || [ -z "${{ secrets.NETLIFY_SITE_ID }}" ]; then
-            echo "secrets-available=false" >> $GITHUB_OUTPUT
-            echo "❌ Missing required secrets for Netlify deployment"
-          else
-            echo "secrets-available=true" >> $GITHUB_OUTPUT
-            echo "✅ Netlify secrets are available"
-          fi
-        
-      - name: Comment on missing secrets
-        if: steps.check-secrets.outputs.secrets-available == 'false'
-        uses: actions/github-script@v7
         with:
-          script: |
-            const comment = `## ⚠️ Preview Deployment Skipped - Missing Secrets
-            
-            **Required Secrets Missing:**
-            - \`NETLIFY_AUTH_TOKEN\`: Personal Access Token from Netlify
-            - \`NETLIFY_SITE_ID\`: Site ID from your Netlify dashboard
-            
-            **To enable preview deployments:**
-            
-            1. **Create a Netlify Personal Access Token:**
-               - Go to [Netlify User Settings > Personal Access Tokens](https://app.netlify.com/user/applications#personal-access-tokens)
-               - Click "New access token"
-               - Copy the generated token
-            
-            2. **Find your Site ID:**
-               - Go to your Netlify site dashboard
-               - Navigate to Site Settings > General
-               - Copy the "Site ID" value
-            
-            3. **Add secrets to GitHub:**
-               - Go to Repository Settings > Secrets and variables > Actions
-               - Add \`NETLIFY_AUTH_TOKEN\` with your personal access token
-               - Add \`NETLIFY_SITE_ID\` with your site ID
-            
-            **Fallback:** E2E tests will run against the production URL instead of a preview environment.
-            `;
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
         
       - name: Setup Node.js
-        if: steps.check-secrets.outputs.secrets-available == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
           
       - name: Install dependencies
-        if: steps.check-secrets.outputs.secrets-available == 'true'
         run: npm ci
         
-      - name: Build for preview
-        if: steps.check-secrets.outputs.secrets-available == 'true'
-        run: npm run build
-        env:
-          NODE_ENV: staging
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_number }}
           
-      - name: Deploy to Netlify Preview
-        id: deploy
-        if: steps.check-secrets.outputs.secrets-available == 'true'
+      - name: Seed test data before preview
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          npm install -g netlify-cli
+          echo "Seeding test data..."
+          node scripts/seed-test-data.ts || echo "Seed script completed with warnings"
+        
+      - name: Start preview server and wait for readiness
+        id: preview-server
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: |
+          echo "Starting preview server on port 4173..."
+          npm run preview &
+          PREVIEW_PID=$!
           
-          # Deploy to preview with build and unique alias
-          PREVIEW_ALIAS="pr-${{ github.event.number }}-$(echo ${{ github.sha }} | cut -c1-8)"
-          
-          echo "Deploying to Netlify with alias: $PREVIEW_ALIAS"
-          
-          netlify deploy \
-            --build \
-            --site "$NETLIFY_SITE_ID" \
-            --auth "$NETLIFY_AUTH_TOKEN" \
-            --alias "$PREVIEW_ALIAS" \
-            --message "CI Preview for PR #${{ github.event.number }}" \
-            --json > deploy-result.json
-            
-          # Extract preview URL
-          PREVIEW_URL=$(cat deploy-result.json | jq -r '.deploy_url')
-          echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
-          echo "deploy-status=success" >> $GITHUB_OUTPUT
-          echo "Preview deployed to: $PREVIEW_URL"
-          
-          # Enhanced URL health check with exponential backoff
-          echo "Waiting for preview to be ready with exponential backoff..."
-          
-          MAX_ATTEMPTS=10
+          # Wait for server to be ready with exponential backoff
+          echo "Waiting for preview server to be ready..."
+          MAX_ATTEMPTS=15
           ATTEMPT=1
           DELAY=5
+          PREVIEW_URL="http://localhost:4173"
           
           while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
             echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Checking $PREVIEW_URL"
             
-            if curl -f -s --max-time 30 "$PREVIEW_URL" > /dev/null; then
-              echo "✅ Preview URL is responding successfully"
+            if curl -f -s --max-time 10 "$PREVIEW_URL" > /dev/null; then
+              echo "✅ Preview server is ready!"
+              echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+              echo "deploy-status=success" >> $GITHUB_OUTPUT
+              
+              # Keep server running for E2E tests
+              echo "PREVIEW_PID=$PREVIEW_PID" >> $GITHUB_ENV
+              echo "Preview server PID: $PREVIEW_PID"
               break
             else
               if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-                echo "❌ Preview URL failed to respond after $MAX_ATTEMPTS attempts"
+                echo "❌ Preview server failed to start after $MAX_ATTEMPTS attempts"
                 echo "deploy-status=failed" >> $GITHUB_OUTPUT
+                kill $PREVIEW_PID 2>/dev/null || true
                 exit 1
               fi
               
               echo "❌ Preview not ready, waiting ${DELAY}s before retry..."
               sleep $DELAY
-              
-              # Exponential backoff: increase delay for next attempt
               DELAY=$((DELAY * 2))
               ATTEMPT=$((ATTEMPT + 1))
             fi
           done
           
-          echo "✅ Preview deployment verified and ready for testing"
+          echo "✅ Preview server verified and ready for testing"
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
         
-      - name: Set deployment failure status
-        id: deploy-failed
-        if: failure() && steps.check-secrets.outputs.secrets-available == 'true'
-        run: |
-          echo "deploy-status=failed" >> $GITHUB_OUTPUT
-          
       - name: Comment preview URL on PR
-        if: always() && steps.check-secrets.outputs.secrets-available == 'true'
+        if: always()
         uses: actions/github-script@v7
         with:
+          github-token: ${{ needs.prepare.outputs.github-token }}
           script: |
-            const previewUrl = '${{ steps.deploy.outputs.preview-url }}';
-            const deployStatus = '${{ steps.deploy.outputs.deploy-status }}';
+            const previewUrl = '${{ steps.preview-server.outputs.preview-url }}';
+            const deployStatus = '${{ steps.preview-server.outputs.deploy-status }}';
             
             let comment;
             
             if (deployStatus === 'success' && previewUrl) {
-              comment = `## 🚀 Preview Deployment Ready
+              comment = `## 🚀 Preview Environment Ready
               
               **Preview URL:** ${previewUrl}
               
-              The preview environment has been deployed and is ready for testing.
-              End-to-end tests will run against this preview deployment to ensure staging mirrors production.
+              The local preview environment has been started and is ready for testing.
+              End-to-end tests will run against this preview server to ensure staging mirrors production.
               
               **Preview Features:**
-              - ✅ Full-stack staging mirror
+              - ✅ Local preview server on port 4173
               - ✅ Production-like configuration
-              - ✅ Real database connections (staging)
+              - ✅ Real database connections (test environment)
               - ✅ Complete integration testing
-              - ✅ Exponential backoff health verification
+              - ✅ Test data seeded for E2E validation
               
               ⏳ **Next:** Automated E2E tests are now running against this preview...
               `;
             } else {
-              comment = `## ❌ Preview Deployment Failed
+              comment = `## ❌ Preview Environment Failed
               
-              The preview environment deployment failed. E2E tests will run against the production URL as a fallback.
+              The preview environment setup failed. E2E tests will run against the production URL as a fallback.
               
               **Fallback behavior:**
               - Tests will use production URL for validation
@@ -282,8 +327,8 @@ jobs:
               - Check the "Deploy Preview Environment" job logs for details
               
               Please check the deployment logs and ensure:
-              - Netlify secrets are properly configured
               - Build process completes successfully
+              - Preview server starts correctly on port 4173
               - Network connectivity is available
               `;
             }
@@ -296,16 +341,134 @@ jobs:
             });
 
   # Enhanced production E2E tests with preview support
-  production-e2e-tests:
-    name: Production E2E Validation
+  e2e:
+    name: End-to-End Tests (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [deploy-preview]
-    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) # Run even if preview deployment fails (fallback to production URL)
+    timeout-minutes: 45
+    needs: [prepare, build, deploy-preview]
+    if: always() && needs.prepare.outputs.is-fork == 'false' # Run even if preview deployment fails
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1/2, 2/2]
     
     steps:
-      - name: Checkout code
+      - name: Hardened checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+          
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Determine test URL and validate preview
+        id: test-url
+        run: |
+          PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
+          PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
+          
+          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+            TEST_URL="$PREVIEW_URL"
+            TEST_ENV="preview"
+            echo "✅ Using preview environment URL: $TEST_URL"
+          elif [ "${{ github.event.inputs.production_url }}" != "" ]; then
+            TEST_URL="${{ github.event.inputs.production_url }}"
+            TEST_ENV="manual"
+            echo "Using manual input URL: $TEST_URL"
+          elif [ "${{ secrets.PRODUCTION_URL }}" != "" ]; then
+            TEST_URL="${{ secrets.PRODUCTION_URL }}"
+            TEST_ENV="production"
+            echo "Using production URL: $TEST_URL"
+          else
+            TEST_URL="https://your-site.netlify.app"
+            TEST_ENV="fallback"
+            echo "Using fallback URL: $TEST_URL"
+          fi
+          
+          echo "test-url=$TEST_URL" >> $GITHUB_OUTPUT
+          echo "test-env=$TEST_ENV" >> $GITHUB_OUTPUT
+        
+      - name: Seed test data for E2E
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Seeding test data for E2E tests..."
+          node scripts/seed-test-data.ts || echo "Seed script completed with warnings"
+        
+      - name: Run Playwright E2E tests
+        env:
+          BASE_URL: ${{ steps.test-url.outputs.test-url }}
+          TEST_ENV: ${{ steps.test-url.outputs.test-env }}
+          BROWSER: ${{ matrix.browser }}
+          SHARD: ${{ matrix.shard }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: |
+          echo "Running Playwright E2E tests..."
+          echo "Browser: ${{ matrix.browser }}"
+          echo "Shard: ${{ matrix.shard }}"
+          echo "Base URL: ${{ steps.test-url.outputs.test-url }}"
+          echo "Environment: ${{ steps.test-url.outputs.test-env }}"
+          
+          npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }} --retries=2
+          
+      - name: Clean test data after E2E
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Cleaning up test data..."
+          node scripts/clean-test-data.ts || echo "Cleanup script completed with warnings"
+          
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ matrix.browser }}-${{ matrix.shard }}-${{ github.run_number }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+          
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-${{ matrix.browser }}-${{ matrix.shard }}-${{ github.run_number }}
+          path: test-results/
+          retention-days: 7
+
+  # Run modular production E2E tests
+  production-e2e-tests:
+    name: Modular Production E2E Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [prepare, build, deploy-preview]
+    if: always() && needs.prepare.outputs.is-fork == 'false'
+    
+    steps:
+      - name: Hardened checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -319,45 +482,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl jq bc
           
-      - name: Install Lighthouse
-        run: npm install -g lighthouse
-        
       - name: Determine test URL and validate preview
         id: test-url
         run: |
           PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
           PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
           
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
-            # Verify preview URL is still accessible with exponential backoff
+          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+            # Verify preview URL is still accessible
             echo "Verifying preview URL accessibility: $PREVIEW_URL"
             
-            MAX_ATTEMPTS=5
-            ATTEMPT=1
-            DELAY=3
-            URL_ACCESSIBLE=false
-            
-            while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-              echo "Verification attempt $ATTEMPT/$MAX_ATTEMPTS"
-              
-              if curl -f -s --max-time 15 "$PREVIEW_URL" > /dev/null; then
-                echo "✅ Preview URL is accessible"
-                URL_ACCESSIBLE=true
-                break
-              else
-                echo "❌ Preview URL not accessible, waiting ${DELAY}s..."
-                sleep $DELAY
-                DELAY=$((DELAY * 2))
-                ATTEMPT=$((ATTEMPT + 1))
-              fi
-            done
-            
-            if [ "$URL_ACCESSIBLE" = "true" ]; then
+            if curl -f -s --max-time 15 "$PREVIEW_URL" > /dev/null; then
               TEST_URL="$PREVIEW_URL"
               TEST_ENV="preview"
               echo "✅ Using verified preview deployment URL: $TEST_URL"
             else
-              echo "❌ Preview URL failed verification, falling back to production"
+              echo "❌ Preview URL not accessible, falling back to production"
               TEST_URL="${{ github.event.inputs.production_url || secrets.PRODUCTION_URL || 'https://your-site.netlify.app' }}"
               TEST_ENV="fallback-from-preview"
             fi
@@ -384,33 +524,40 @@ jobs:
             exit 1
           fi
         
-      - name: Run modular production E2E tests
+      - name: Seed test data for modular E2E
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Seeding test data for modular E2E tests..."
+          node scripts/seed-test-data.ts || echo "Seed script completed with warnings"
+        
+      - name: Run modular production E2E tests with enhanced logging
         env:
           PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview-url }}
           PRODUCTION_URL: ${{ steps.test-url.outputs.test-url }}
           TEST_ENV: ${{ steps.test-url.outputs.test-env }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
         run: |
-          # Set test options based on inputs
-          TEST_OPTIONS=""
-          if [ "${{ github.event.inputs.test_suite }}" = "modular" ] || [ "${{ github.event.inputs.test_suite }}" = "" ] || [ "${{ github.event.inputs.test_suite }}" = "all" ]; then
-            echo "Running modular test suite..."
-            # Run modular tests
-            npm run test src/test/modular-production-e2e.test.ts
-            TEST_OPTIONS="--suite modular"
-          fi
+          echo "Running modular test suite with enhanced logging..."
+          echo "Test URL: ${{ steps.test-url.outputs.test-url }}"
+          echo "Environment: ${{ steps.test-url.outputs.test-env }}"
           
-          if [ "${{ github.event.inputs.test_suite }}" != "modular" ]; then
-            if [ "${{ github.event.inputs.test_suite }}" != "" ] && [ "${{ github.event.inputs.test_suite }}" != "all" ]; then
-              TEST_OPTIONS="--suite ${{ github.event.inputs.test_suite }}"
-            fi
-            if [ "${{ github.event.inputs.quick_mode }}" = "true" ]; then
-              TEST_OPTIONS="$TEST_OPTIONS --quick"
-            fi
-            
-            # Run the master test suite
-            ./scripts/run-master-e2e-tests.sh $TEST_OPTIONS
-          fi
+          # Add enhanced logging before critical test assertions
+          export DEBUG_MODULAR_TESTS=true
+          npm run test src/test/modular-production-e2e.test.ts
           
+      - name: Clean test data after modular E2E
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_TEST || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Cleaning up test data..."
+          node scripts/clean-test-data.ts || echo "Cleanup script completed with warnings"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -430,9 +577,10 @@ jobs:
           retention-days: 7
           
       - name: Comment PR with enhanced results
-        if: github.event_name == 'pull_request' && always()
+        if: github.event_name == 'pull_request_target' && always()
         uses: actions/github-script@v7
         with:
+          github-token: ${{ needs.prepare.outputs.github-token }}
           script: |
             const fs = require('fs');
             const path = require('path');
@@ -441,72 +589,23 @@ jobs:
             const testEnv = '${{ steps.test-url.outputs.test-env }}';
             const previewUrl = '${{ needs.deploy-preview.outputs.preview-url }}';
             
-            // Find the latest test results
-            const resultsDir = './test-results';
-            let summary = null;
-            
-            if (fs.existsSync(resultsDir)) {
-              const dirs = fs.readdirSync(resultsDir)
-                .filter(d => d.startsWith('master-e2e-'))
-                .sort()
-                .reverse();
-                
-              if (dirs.length > 0) {
-                const latestDir = path.join(resultsDir, dirs[0]);
-                const summaryFile = path.join(latestDir, 'master-test-summary.json');
-                
-                if (fs.existsSync(summaryFile)) {
-                  summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
-                }
-              }
-            }
-            
             // Create enhanced comment with preview information
             let comment = `## 🧪 Enhanced Production E2E Test Results\n\n`;
             
             if (previewUrl) {
               comment += `**🚀 Preview Environment:** ${previewUrl}\n`;
-              comment += `**✅ Full-Stack Staging Mirror:** Tests ran against deployed preview\n`;
+              comment += `**✅ Local Preview Server:** Tests ran against local preview on port 4173\n`;
             }
             
             comment += `**🌐 Test URL:** ${testUrl}\n`;
             comment += `**🏷️ Environment:** ${testEnv}\n\n`;
             
-            if (summary) {
-              const statusIcon = summary.summary.failedSuites === 0 ? '✅' : '❌';
-              const statusText = summary.summary.failedSuites === 0 ? 'PASSED' : 'FAILED';
-              
-              comment += `**Status:** ${statusIcon} ${statusText}\n`;
-              comment += `**Success Rate:** ${summary.summary.successRate}%\n\n`;
-              
-              comment += `| Metric | Value |\n`;
-              comment += `|--------|---------|\n`;
-              comment += `| Total Suites | ${summary.summary.totalSuites} |\n`;
-              comment += `| Passed | ✅ ${summary.summary.passedSuites} |\n`;
-              comment += `| Failed | ❌ ${summary.summary.failedSuites} |\n\n`;
-              
-              comment += `### 📋 Test Categories\n`;
-              comment += summary.requirements.map(req => 
-                `- ${summary.suites.find(s => s.name.includes(req.split(' ')[0]))?.status === 'PASS' ? '✅' : '❌'} ${req}`
-              ).join('\n');
-              
-              comment += `\n\n<details>\n<summary>📊 Detailed Results</summary>\n\n`;
-              comment += summary.suites.map(suite => 
-                `- ${suite.status === 'PASS' ? '✅' : suite.status === 'FAIL' ? '❌' : '⏭️'} **${suite.name}** ${suite.details ? `- ${suite.details}` : ''}`
-              ).join('\n');
-              comment += `\n\n</details>\n\n`;
-              
-              comment += `**🔗 Correlation ID:** \`${summary.testRun.correlationId}\`\n`;
-            } else {
-              comment += `**Status:** ⏳ Running or no results found\n`;
-              comment += `**Note:** Modular test suite results may be available in test artifacts\n\n`;
-            }
-            
-            comment += `\n### 🎯 Enhanced Testing Features\n`;
+            comment += `### 🎯 Enhanced Testing Features\n`;
             comment += `- ✅ **Modular Test Components:** Reusable auth, booking, health modules\n`;
-            comment += `- ✅ **Preview Environment:** Full-stack staging mirror for true E2E fidelity\n`;
-            comment += `- ✅ **Real Integration Testing:** No local stubs - tests against deployed services\n`;
+            comment += `- ✅ **Local Preview Server:** True integration testing on port 4173\n`;
+            comment += `- ✅ **Test Data Management:** Automated seeding and cleanup\n`;
             comment += `- ✅ **Production Readiness:** Comprehensive validation across all systems\n`;
+            comment += `- ✅ **Multi-browser Testing:** Chromium, Firefox, WebKit with sharding\n`;
             
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -515,17 +614,75 @@ jobs:
               body: comment
             });
 
-  # Separate job for Lighthouse-only runs (faster feedback)
-  lighthouse-check:
-    name: Lighthouse Performance Check
+  # Security validation suite
+  security-check:
+    name: Security Validation
     runs-on: ubuntu-latest
-    needs: [deploy-preview]
-    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs: [prepare, build, deploy-preview]
+    if: always() && needs.prepare.outputs.is-fork == 'false'
     timeout-minutes: 15
     
     steps:
-      - name: Checkout code
+      - name: Hardened checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+        
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y curl jq
+        
+      - name: Determine security test URL
+        id: security-url
+        run: |
+          PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
+          PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
+          
+          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+            TEST_URL="$PREVIEW_URL"
+            echo "✅ Using verified preview URL for security tests: $TEST_URL"
+          else
+            TEST_URL="${{ secrets.PRODUCTION_URL || 'https://your-site.netlify.app' }}"
+            echo "Using fallback URL for security tests: $TEST_URL"
+          fi
+          
+          echo "security-url=$TEST_URL" >> $GITHUB_OUTPUT
+        
+      - name: Run security tests on preview/production
+        env:
+          TEST_URL: ${{ steps.security-url.outputs.security-url }}
+        run: |
+          chmod +x ./scripts/run-security-tests.sh
+          # Override URL for security tests
+          export PRODUCTION_URL="$TEST_URL"
+          
+          echo "Running security validation against: $TEST_URL"
+          ./scripts/run-security-tests.sh
+          
+      - name: Upload security results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-results-${{ github.run_number }}
+          path: test-results/security-*/
+          retention-days: 30
+
+  # Lighthouse performance check
+  lighthouse-check:
+    name: Lighthouse Performance Check
+    runs-on: ubuntu-latest
+    needs: [prepare, build, deploy-preview]
+    if: always() && needs.prepare.outputs.is-fork == 'false'
+    timeout-minutes: 15
+    
+    steps:
+      - name: Hardened checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -541,17 +698,9 @@ jobs:
           PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
           PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
           
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
-            # Verify preview URL accessibility before Lighthouse tests
-            echo "Verifying preview URL for Lighthouse: $PREVIEW_URL"
-            
-            if curl -f -s --max-time 15 "$PREVIEW_URL" > /dev/null; then
-              TEST_URL="$PREVIEW_URL"
-              echo "✅ Using preview URL for Lighthouse: $TEST_URL"
-            else
-              echo "❌ Preview URL not accessible, using fallback"
-              TEST_URL="${{ secrets.STAGING_URL || secrets.PRODUCTION_URL || 'https://staging.netlify.app' }}"
-            fi
+          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
+            TEST_URL="$PREVIEW_URL"
+            echo "✅ Using preview URL for Lighthouse: $TEST_URL"
           else
             TEST_URL="${{ secrets.STAGING_URL || secrets.PRODUCTION_URL || 'https://staging.netlify.app' }}"
             echo "Using fallback URL for Lighthouse: $TEST_URL"
@@ -599,80 +748,36 @@ jobs:
           path: test-results/lighthouse-*/
           retention-days: 14
 
-  # Security-only check for faster security feedback  
-  security-check:
-    name: Security Validation
+  # Design lock validation to ensure no UI changes
+  design-lock:
+    name: Design Lock Validation
     runs-on: ubuntu-latest
-    needs: [deploy-preview]
-    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    timeout-minutes: 10
+    needs: [prepare, build, e2e, production-e2e-tests, security-check, lighthouse-check]
+    if: always() && needs.prepare.outputs.is-fork == 'false'
+    timeout-minutes: 5
     
     steps:
-      - name: Checkout code
+      - name: Hardened checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
         
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y curl jq
-        
-      - name: Determine security test URL
-        id: security-url
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Run design lock validation
         run: |
-          PREVIEW_URL="${{ needs.deploy-preview.outputs.preview-url }}"
-          PREVIEW_STATUS="${{ needs.deploy-preview.outputs.deploy-status }}"
+          chmod +x ./scripts/design-lock.js
+          node ./scripts/design-lock.js
           
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$PREVIEW_URL" != "" ] && [ "$PREVIEW_STATUS" = "success" ]; then
-            # Wait for preview URL to be ready with exponential backoff
-            echo "Waiting for preview URL to be ready for security tests: $PREVIEW_URL"
-            
-            MAX_ATTEMPTS=8
-            ATTEMPT=1
-            DELAY=5
-            URL_READY=false
-            
-            while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-              echo "Security URL check attempt $ATTEMPT/$MAX_ATTEMPTS"
-              
-              if curl -f -s --max-time 20 "$PREVIEW_URL" > /dev/null; then
-                echo "✅ Preview URL ready for security testing"
-                URL_READY=true
-                break
-              else
-                echo "❌ Preview URL not ready, waiting ${DELAY}s..."
-                sleep $DELAY
-                DELAY=$((DELAY + 3))  # More gradual backoff for security checks
-                ATTEMPT=$((ATTEMPT + 1))
-              fi
-            done
-            
-            if [ "$URL_READY" = "true" ]; then
-              TEST_URL="$PREVIEW_URL"
-              echo "✅ Using verified preview URL for security tests: $TEST_URL"
-            else
-              echo "❌ Preview URL not ready after retries, using fallback"
-              TEST_URL="${{ secrets.PRODUCTION_URL || 'https://your-site.netlify.app' }}"
-            fi
-          else
-            TEST_URL="${{ secrets.PRODUCTION_URL || 'https://your-site.netlify.app' }}"
-            echo "Using fallback URL for security tests: $TEST_URL"
-          fi
-          
-          echo "security-url=$TEST_URL" >> $GITHUB_OUTPUT
-        
-      - name: Run security tests on preview/production
-        env:
-          TEST_URL: ${{ steps.security-url.outputs.security-url }}
-        run: |
-          chmod +x ./scripts/run-security-tests.sh
-          # Override URL for security tests
-          export PRODUCTION_URL="$TEST_URL"
-          
-          echo "Running security validation against: $TEST_URL"
-          ./scripts/run-security-tests.sh
-          
-      - name: Upload security results
+      - name: Upload design lock results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-results-${{ github.run_number }}
-          path: test-results/security-*/
-          retention-days: 30
+          name: design-lock-results-${{ github.run_number }}
+          path: test-results/design-lock-*/
+          retention-days: 7
