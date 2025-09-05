@@ -25,7 +25,8 @@ test.describe('RBAC (Role-Based Access Control)', () => {
       await loginButton.click();
       
       // Wait for authentication to complete
-      await page.waitForTimeout(2000);
+      // Replace the selector below with a unique element that appears after successful login
+      await page.waitForSelector('nav, [data-testid="dashboard"], [data-testid="user-menu"], text=Logout', { timeout: 5000 });
     }
   }
 
