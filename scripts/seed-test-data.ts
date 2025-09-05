@@ -252,8 +252,7 @@ async function createTestUsers(supabase: SupabaseClient) {
     })
     
     if (authError) {
-      console.error(`❌ Failed to create auth user ${user.email}:`, authError)
-      continue
+      throw new Error(`❌ Failed to create auth user ${user.email}: ${authError.message || authError}`);
     }
     
     const userId = authUser.user.id
