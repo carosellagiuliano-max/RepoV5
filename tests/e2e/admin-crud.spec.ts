@@ -117,7 +117,7 @@ test.describe('Admin Portal CRUD Operations', () => {
           await staffRow.click();
         }
         
-        await page.waitForTimeout(1000);
+        await page.waitForSelector('input[name="name"], input[value*=""]', { state: 'visible', timeout: 5000 });
       });
 
       await test.step('Update staff information', async () => {
