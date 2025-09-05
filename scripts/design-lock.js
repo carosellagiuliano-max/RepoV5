@@ -23,6 +23,11 @@ const PROTECTED_PATTERNS = [
 
 // Patterns for allowed new files only
 const ALLOWED_NEW_ONLY_PATTERNS = [
+  'public/lovable-uploads/**',
+];
+
+// Patterns for allowed modifications (specific public files mentioned in constraints)
+const ALLOWED_MODIFICATION_PATTERNS = [
   'public/robots.txt',
   'public/sitemap.xml', 
   'public/manifest.webmanifest',
@@ -82,6 +87,12 @@ function checkDesignLock() {
       continue;
     }
     
+    // Check if it's an allowed modification
+    if (matchesPattern(file, ALLOWED_MODIFICATION_PATTERNS)) {
+      console.log(`✅ Design Lock: Allowed modification - ${file}`);
+      continue;
+    }
+    
     // Check if it's a new file in allowed locations
     if (matchesPattern(file, ALLOWED_NEW_ONLY_PATTERNS)) {
       try {
@@ -89,7 +100,7 @@ function checkDesignLock() {
         execSync(`git cat-file -e HEAD:${file}`, { stdio: 'ignore' });
         violations.push({
           file,
-          reason: 'File exists - only new files allowed in public/'
+          reason: 'File exists - only new files allowed in this location'
         });
       } catch {
         // File doesn't exist in git history, so it's new - allowed

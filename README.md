@@ -1,53 +1,150 @@
-# Welcome to your Lovable project
+# Schnittwerk Your Style
 
-## Project info
+Ein vollständiges Hair Salon Booking System mit React Frontend und Supabase Backend.
 
-**URL**: https://lovable.dev/projects/af61227d-37d6-4d60-be1b-2001fe1ba413
+## 🚀 Schnellstart
 
-## How can I edit this code?
+### Automatische Einrichtung
 
-There are several ways of editing your application.
+```bash
+git clone <repository-url>
+cd schnittwerk-your-style-34
+npm run setup
+```
 
-**Use Lovable**
+Folge dann der Schritt-für-Schritt Anleitung in `docs/setup.md`.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/af61227d-37d6-4d60-be1b-2001fe1ba413) and start prompting.
+### Manuelle Einrichtung
 
-Changes made via Lovable will be committed automatically to this repo.
+```bash
+# Dependencies installieren
+npm ci
 
-**Use your preferred IDE**
+# Entwicklungsserver starten (mit Mocks)
+DB_MOCK_MODE=true npm run dev
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Mit echter Datenbank
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📋 Voraussetzungen
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Node.js 18+
+- Supabase-Konto (kostenlos)
+- Netlify-Konto (kostenlos)
+- Stripe-Konto (für Zahlungen)
 
-**Use GitHub Codespaces**
+## 🏗️ Architektur
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
+- **Frontend**: React + TypeScript + Vite + Shadcn/UI
+- **Backend**: Netlify Functions + Supabase
+- **Datenbank**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth mit RBAC
+- **Zahlungen**: Stripe
+- **Email**: SMTP (SendGrid/Gmail)
+- **Tests**: Playwright E2E-Tests
+
+## 📁 Projekt-Struktur
+
+```
+├── src/
+│   ├── admin/          # Admin-Panel
+│   ├── components/     # UI-Komponenten
+│   ├── hooks/          # Custom React Hooks
+│   ├── lib/            # Utilities & Supabase Client
+│   └── test/           # Unit Tests
+├── netlify/functions/  # Serverless Functions
+├── tests/e2e/          # E2E-Tests
+├── docs/db/            # Datenbank-Schema
+└── docs/               # Dokumentation
+```
+
+## 🧪 Tests
+
+```bash
+# Unit Tests
+npm run test
+
+# E2E Tests (mit Mocks)
+DB_MOCK_MODE=true npm run test:e2e
+
+# E2E Tests (mit echter DB)
+npm run test:e2e
+```
+
+## 🚀 Deployment
+
+### Netlify
+
+1. Repository mit Netlify verbinden
+2. Build Settings:
+   - **Build command**: `npm run build`
+   - **Publish directory**: `dist`
+3. ENV-Variablen setzen (siehe `.env.example`)
+
+### Lokale Entwicklung
+
+```bash
+# Mit Supabase Local
+npx supabase start
+npm run dev
+
+# Mit Cloud Supabase
+npm run dev
+```
+
+## 📚 Dokumentation
+
+- [Vollständige Einrichtung](docs/setup.md)
+- [Testing Guide](docs/testing.md)
+- [API Dokumentation](docs/booking-engine-api.md)
+- [Security](docs/security-implementation-summary.md)
+
+## 🔧 Verfügbare Scripts
+
+```bash
+npm run dev          # Entwicklungsserver
+npm run build        # Produktions-Build
+npm run preview      # Build-Vorschau
+npm run lint         # Code-Linting
+npm run test         # Unit Tests
+npm run test:e2e     # E2E Tests
+npm run db:migrate   # DB Migration
+npm run db:seed      # Test-Daten laden
+npm run setup        # Vollständige Einrichtung
+```
+
+## 🎯 Features
+
+- ✅ Kunden-Buchungssystem
+- ✅ Admin-Panel mit CRUD
+- ✅ RBAC (Role-Based Access Control)
+- ✅ Stripe-Zahlungen
+- ✅ Email-Benachrichtigungen
+- ✅ PWA-Unterstützung
+- ✅ SEO-optimiert
+- ✅ Responsive Design
+- ✅ Vollständige E2E-Testabdeckung
+
+## 🤝 Beitragen
+
+1. Fork das Repository
+2. Erstelle einen Feature-Branch
+3. Commit deine Änderungen
+4. Push zum Branch
+5. Erstelle einen Pull Request
+
+## 📄 Lizenz
+
+Dieses Projekt ist privat und nur für den internen Gebrauch bestimmt.
+
+## 🆘 Support
+
+Bei Problemen:
+1. Prüfe `docs/setup.md`
+2. Schaue in die Logs: `npm run build`
+3. Teste lokal: `npm run dev`
+4. Erstelle ein Issue im Repository
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
 ## What technologies are used for this project?

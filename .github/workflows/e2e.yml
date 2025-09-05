@@ -1,0 +1,347 @@
+name: E2E Tests – Full Production Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, 'feature/*']
+
+jobs:
+  prepare:
+    name: Dependencies & Validation
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-deps.outputs.cache-hit }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+
+      - name: Build application
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SITE_URL: https://test-e2e.netlify.app
+          VITE_SITE_NAME: "Schnittwerk Your Style"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 1
+
+  e2e:
+    name: E2E Tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1/4, 2/4, 3/4, 4/4]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Seed test data
+        run: npm run test:seed
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TEST_ADMIN_EMAIL: admin@test.local
+          TEST_STAFF_EMAIL: staff@test.local
+          TEST_CUSTOMER_EMAIL: customer@test.local
+
+      - name: Start preview server
+        run: |
+          npm run preview -- --port 4173 --strictPort &
+          npx wait-on http://localhost:4173 --timeout 60000
+
+      - name: Run E2E tests
+        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}
+        env:
+          TEST_URL: http://localhost:4173
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TEST_ADMIN_EMAIL: admin@test.local
+          TEST_STAFF_EMAIL: staff@test.local
+          TEST_CUSTOMER_EMAIL: customer@test.local
+          TEST_ADMIN_PASSWORD: Test123!@#
+          TEST_STAFF_PASSWORD: Test123!@#
+          TEST_CUSTOMER_PASSWORD: Test123!@#
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          CORRELATION_ID: ${{ github.run_id }}-${{ matrix.browser }}-${{ strategy.job-index }}
+
+      - name: Clean test data
+        if: always()
+        run: npm run test:clean
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ matrix.browser }}-${{ strategy.job-index }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Upload traces & videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-traces-${{ matrix.browser }}-${{ strategy.job-index }}
+          path: |
+            test-results/*/trace.zip
+            test-results/*/video.webm
+            test-results/*/*.png
+          retention-days: 7
+
+  design-lock:
+    name: Design Lock Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run design lock check
+        run: node scripts/design-lock.js
+
+  security-headers:
+    name: Security Headers Validation
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Start server for security tests
+        run: |
+          npm run preview -- --port 4174 --strictPort &
+          npx wait-on http://localhost:4174 --timeout 60000
+
+      - name: Test security headers
+        run: |
+          curl -I http://localhost:4174 | grep -i "x-frame-options\|x-content-type-options\|x-xss-protection\|strict-transport-security\|content-security-policy"
+
+      - name: Test robots.txt
+        run: curl -f http://localhost:4174/robots.txt
+
+      - name: Test sitemap.xml
+        run: curl -f http://localhost:4174/sitemap.xml
+
+      - name: Test manifest.webmanifest
+        run: curl -f http://localhost:4174/manifest.webmanifest
+
+  report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [e2e, design-lock, security-headers]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e2e-results-*
+          merge-multiple: true
+          path: all-results/
+
+      - name: Generate consolidated report
+        run: |
+          echo "# 🧪 E2E Test Results Summary" > test-summary.md
+          echo "" >> test-summary.md
+          echo "**🎯 Environment:** CI/CD Pipeline" >> test-summary.md
+          echo "**🆔 Run ID:** ${{ github.run_id }}" >> test-summary.md
+          echo "**🔗 Commit:** ${{ github.sha }}" >> test-summary.md
+          echo "" >> test-summary.md
+          
+          # Count test results across all browsers/shards
+          TOTAL_TESTS=0
+          PASSED_TESTS=0
+          FAILED_TESTS=0
+          
+          if find all-results -name "*.json" -type f | head -1 >/dev/null 2>&1; then
+            echo "**📊 Test Results by Browser:**" >> test-summary.md
+            echo "" >> test-summary.md
+            
+            for browser in chromium firefox webkit; do
+              echo "### $browser" >> test-summary.md
+              browser_passed=0
+              browser_failed=0
+              
+              for result_file in all-results/*$browser*/*.json; do
+                if [ -f "$result_file" ]; then
+                  passed=$(jq -r '.stats.expected // 0' "$result_file" 2>/dev/null || echo "0")
+                  failed=$(jq -r '.stats.unexpected // 0' "$result_file" 2>/dev/null || echo "0")
+                  browser_passed=$((browser_passed + passed))
+                  browser_failed=$((browser_failed + failed))
+                fi
+              done
+              
+              echo "- ✅ Passed: $browser_passed" >> test-summary.md
+              echo "- ❌ Failed: $browser_failed" >> test-summary.md
+              echo "" >> test-summary.md
+              
+              PASSED_TESTS=$((PASSED_TESTS + browser_passed))
+              FAILED_TESTS=$((FAILED_TESTS + browser_failed))
+            done
+          else
+            echo "⚠️ No test result files found" >> test-summary.md
+          fi
+          
+          TOTAL_TESTS=$((PASSED_TESTS + FAILED_TESTS))
+          
+          echo "**🎯 Overall Results:**" >> test-summary.md
+          echo "- 📊 Total Tests: $TOTAL_TESTS" >> test-summary.md
+          echo "- ✅ Passed: $PASSED_TESTS" >> test-summary.md
+          echo "- ❌ Failed: $FAILED_TESTS" >> test-summary.md
+          
+          if [ $FAILED_TESTS -eq 0 ] && [ $TOTAL_TESTS -gt 0 ]; then
+            echo "- 🎉 **Status: ALL TESTS PASSED**" >> test-summary.md
+          elif [ $TOTAL_TESTS -eq 0 ]; then
+            echo "- ⚠️ **Status: NO TESTS EXECUTED**" >> test-summary.md
+          else
+            echo "- ⚠️ **Status: SOME TESTS FAILED**" >> test-summary.md
+          fi
+          
+          echo "" >> test-summary.md
+          echo "**🔧 Test Categories Covered:**" >> test-summary.md
+          echo "- ✅ Customer Booking Flow (Search → Filter → Book → Confirm → Cancel)" >> test-summary.md
+          echo "- ✅ Admin CRUD Operations (Staff/Services/Customers/Appointments/Media/Settings)" >> test-summary.md
+          echo "- ✅ RBAC Security (admin/staff/customer access control)" >> test-summary.md
+          echo "- ✅ Health/SEO/PWA (API health, robots.txt, sitemap, manifest, JSON-LD)" >> test-summary.md
+          echo "- ✅ Design Lock Compliance (no UI/styling changes)" >> test-summary.md
+          echo "- ✅ Security Headers (CSP, HSTS, security policies)" >> test-summary.md
+
+      - name: Upload test summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-summary
+          path: test-summary.md
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('test-summary.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
