@@ -1,59 +1,39 @@
 -- Business Settings RLS Policies
--- Controls access to business settings
+-- Controls access to business settings (UPDATED FOR CONSOLIDATED SCHEMA)
 
--- Enable RLS on settings table
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+-- Enable RLS on business_settings table
+ALTER TABLE business_settings ENABLE ROW LEVEL SECURITY;
 
 -- Policy 1: Admins can manage all settings
-CREATE POLICY "Admins can manage all settings"
-ON settings
+CREATE POLICY "Admins can manage all business settings"
+ON business_settings
 FOR ALL
 TO authenticated
 USING (
   EXISTS (
-    SELECT 1 FROM profiles 
-    WHERE profiles.id = auth.uid() 
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
     AND profiles.role = 'admin'
   )
 );
 
--- Policy 2: Staff can read business settings (public ones)
-CREATE POLICY "Staff can read public business settings"
-ON settings
+-- Policy 2: Authenticated users can read business settings
+CREATE POLICY "Authenticated users can read business settings"
+ON business_settings
 FOR SELECT
 TO authenticated
 USING (
-  is_public = true
-  AND EXISTS (
-    SELECT 1 FROM profiles 
-    WHERE profiles.id = auth.uid() 
-    AND profiles.role IN ('staff', 'admin')
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
   )
 );
 
--- Policy 3: Customers can read very limited public settings
-CREATE POLICY "Customers can read limited public settings"  
-ON settings
-FOR SELECT
-TO authenticated
-USING (
-  is_public = true
-  AND category = 'business'
-  AND key IN ('business_name', 'business_address', 'business_phone', 'business_email', 'opening_hours', 'max_advance_booking_days')
-  AND EXISTS (
-    SELECT 1 FROM profiles 
-    WHERE profiles.id = auth.uid() 
-    AND profiles.role = 'customer'
-  )
-);
-
--- Policy 4: Anonymous users can read very basic public info
+-- Policy 3: Anonymous users can read basic business info
 CREATE POLICY "Anonymous can read basic business info"
-ON settings  
+ON business_settings
 FOR SELECT
 TO anon
 USING (
-  is_public = true
-  AND category = 'business'
-  AND key IN ('business_name', 'opening_hours')
+  key IN ('business_name', 'business_address', 'business_phone', 'business_email', 'opening_hours', 'working_hours')
 );
