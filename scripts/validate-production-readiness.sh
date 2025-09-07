@@ -15,7 +15,7 @@ else
     exit 1
 fi
 
-# 2. Preview Test  
+# 2. Preview Test
 echo "🔍 Testing Preview Server..."
 npm run preview -- --port 4174 --host 127.0.0.1 &
 PREVIEW_PID=$!
