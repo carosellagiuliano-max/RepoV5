@@ -14,8 +14,8 @@ import {
   validateMethod,
   createSuccessResponse,
   createErrorResponse
-} from '../../src/lib/monitoring/middleware'
-import { Logger, MonitoringContext, HealthCheck as SharedHealthCheck } from '../../src/lib/monitoring/types'
+} from '../../lib/monitoring/middleware'
+import { Logger, MonitoringContext, HealthCheck as SharedHealthCheck } from '../../lib/monitoring/types'
 import nodemailer from 'nodemailer'
 
 const supabaseUrl = process.env.SUPABASE_URL!
