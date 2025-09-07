@@ -18,6 +18,7 @@
     "test:e2e:quick": "scripts/run-enhanced-e2e-tests.sh --quick",
     "test:seed": "tsx scripts/seed-test-data.ts",
     "test:clean": "tsx scripts/clean-test-data.ts",
+    "validate:production": "./scripts/validate-production-readiness.sh",
     "db:migrate": "supabase db push",
     "db:seed": "npm run test:seed",
     "db:reset": "npm run test:clean && npm run db:migrate && npm run db:seed",

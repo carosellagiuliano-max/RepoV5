@@ -85,10 +85,17 @@ export default defineConfig({
     },
   ],
   // Enhanced web server configuration
-  webServer: process.env.CI ? undefined : {
+  webServer: process.env.CI ? {
+    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+    url: 'http://localhost:4173',
+    timeout: 300000, // 5 minutes as required
+    reuseExistingServer: false,
+    stdout: 'ignore',
+    stderr: 'pipe',
+  } : {
     command: 'npm run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173',
-    timeout: 120000,
+    timeout: 300000, // 5 minutes as required 
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',
     stderr: 'pipe',

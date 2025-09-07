@@ -74,7 +74,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     if (!signature) {
       console.error('Missing Stripe signature')
       return {
-        statusCode: 401,
+        statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({ error: 'Missing signature' })
       }
@@ -91,7 +91,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     } catch (err) {
       console.error('Webhook signature verification failed:', err)
       return {
-        statusCode: 401,
+        statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({ error: 'Invalid signature' })
       }
