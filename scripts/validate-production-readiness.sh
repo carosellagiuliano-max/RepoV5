@@ -17,7 +17,7 @@ fi
 
 # 2. Preview Test  
 echo "🔍 Testing Preview Server..."
-npm run preview -- --port 4174 --host 127.0.0.1 &
+npm run preview -- --port 4174 &
 PREVIEW_PID=$!
 sleep 5
 

@@ -7,7 +7,7 @@
 
 import { Context } from '@netlify/functions'
 import { createRequestLogger } from '../monitoring/logger'
-import { errorTracker } from '../../hooks/use-error-tracking'
+import { errorTracker } from './server-error-stub'
 import { Logger, RequestContext, MonitoringContext as SharedMonitoringContext } from './types'
 
 export interface NetlifyEvent {
