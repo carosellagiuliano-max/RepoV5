@@ -140,8 +140,8 @@ async function handleGetAvailability(event: NetlifyEvent) {
       const { data: availableStaff, error } = await supabase
         .rpc('rpc_get_available_staff', {
           p_service_id: service_id,
-          p_starts_at: startOfDay,
-          p_ends_at: endOfDay,
+          p_start_time: startOfDay,  // ✅ FIXED: Changed from p_starts_at
+          p_end_time: endOfDay,      // ✅ FIXED: Changed from p_ends_at
           p_buffer_minutes: bufferMinutes
         })
 

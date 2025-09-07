@@ -275,9 +275,9 @@ describe('Booking Engine Tests', () => {
         p_customer_id: 'customer-uuid',
         p_staff_id: 'staff-uuid',
         p_service_id: 'service-uuid',
-        p_starts_at: '2024-03-15T10:00:00Z',
-        p_ends_at: '2024-03-15T11:00:00Z',
-        p_price: 50.00,
+        p_start_time: '2024-03-15T10:00:00Z',  // ✅ FIXED: Changed from p_starts_at
+        p_end_time: '2024-03-15T11:00:00Z',    // ✅ FIXED: Changed from p_ends_at
+        p_price_cents: 5000,  // ✅ FIXED: Changed from p_price (50.00 * 100)
         p_notes: 'Test booking',
         p_user_id: 'user-uuid'
       })

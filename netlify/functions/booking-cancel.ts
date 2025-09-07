@@ -166,7 +166,7 @@ async function handleCancelBooking(event: NetlifyEvent) {
     }
 
     // Check if appointment is in the past
-    const appointmentStart = new Date(appointment.starts_at)
+    const appointmentStart = new Date(appointment.start_time)  // ✅ FIXED: Changed from starts_at
     const now = new Date()
     if (appointmentStart < now) {
       return {

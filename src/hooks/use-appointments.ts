@@ -34,9 +34,9 @@ export const useCreateAppointment = () => {
       customer_id: string
       staff_id: string
       service_id: string
-      starts_at: string
-      ends_at: string
-      price: number
+      start_time: string  // ✅ FIXED: Changed from starts_at
+      end_time: string    // ✅ FIXED: Changed from ends_at
+      price_cents: number // ✅ FIXED: Changed from price
       notes?: string
     }) => {
       const result = await bookingHelpers.createAppointment(appointmentData)
@@ -141,25 +141,24 @@ export const useAppointmentsByDateRange = (startDate: string, endDate: string) =
           *,
           customers (
             id,
-            profiles (full_name, email, phone)
+            profiles (first_name, last_name, email, phone)
           ),
           staff (
             id,
-            full_name,
-            email,
-            phone
+            profiles (first_name, last_name, email, phone)
           ),
           services (
             id,
             name,
             description,
             category,
-            duration_minutes
+            duration_minutes,
+            price_cents
           )
         `)
-        .gte('starts_at', startDate)
-        .lte('starts_at', endDate)
-        .order('starts_at', { ascending: true })
+        .gte('start_time', startDate)  // ✅ FIXED: Changed from starts_at
+        .lte('start_time', endDate)    // ✅ FIXED: Changed from starts_at
+        .order('start_time', { ascending: true })  // ✅ FIXED: Changed from starts_at
 
       // If not admin, filter by customer
       if (!isAdmin) {
@@ -199,24 +198,25 @@ export const useStaffAppointments = (staffId: string, startDate?: string, endDat
           *,
           customers (
             id,
-            profiles (full_name, email, phone)
+            profiles (first_name, last_name, email, phone)
           ),
           services (
             id,
             name,
             description,
             category,
-            duration_minutes
+            duration_minutes,
+            price_cents
           )
         `)
         .eq('staff_id', staffId)
-        .order('starts_at', { ascending: true })
+        .order('start_time', { ascending: true })  // ✅ FIXED: Changed from starts_at
 
       if (startDate) {
-        query = query.gte('starts_at', startDate)
+        query = query.gte('start_time', startDate)  // ✅ FIXED: Changed from starts_at
       }
       if (endDate) {
-        query = query.lte('starts_at', endDate)
+        query = query.lte('start_time', endDate)    // ✅ FIXED: Changed from starts_at
       }
 
       const { data, error } = await query

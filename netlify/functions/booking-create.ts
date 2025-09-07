@@ -17,9 +17,9 @@ const BookingSchema = z.object({
   customer_id: z.string().uuid(),
   staff_id: z.string().uuid(),
   service_id: z.string().uuid(),
-  starts_at: z.string().datetime(),
-  ends_at: z.string().datetime(),
-  price: z.number().min(0),
+  start_time: z.string().datetime(),  // ✅ FIXED: Changed from starts_at
+  end_time: z.string().datetime(),    // ✅ FIXED: Changed from ends_at
+  price_cents: z.number().min(0),     // ✅ FIXED: Changed from price
   notes: z.string().optional()
 })
 
@@ -27,9 +27,9 @@ interface BookingRequest {
   customer_id: string
   staff_id: string
   service_id: string
-  starts_at: string
-  ends_at: string
-  price: number
+  start_time: string  // ✅ FIXED: Changed from starts_at
+  end_time: string    // ✅ FIXED: Changed from ends_at
+  price_cents: number // ✅ FIXED: Changed from price
   notes?: string
 }
 
@@ -158,10 +158,9 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
 
     // Get business settings for validation
     const { data: businessSettings, error: settingsError } = await supabase
-      .from('settings')
+      .from('business_settings')  // ✅ FIXED: Changed from settings
       .select('key, value')
       .in('key', ['buffer_time_minutes', 'max_advance_booking_days'])
-      .eq('category', 'business')
 
     if (settingsError) {
       console.error('Error fetching business settings:', settingsError)
@@ -184,8 +183,8 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
     // Validate appointment timing against business rules
     const { data: timingValidation, error: timingError } = await supabase
       .rpc('validate_appointment_timing', {
-        appointment_start: validatedData.starts_at,
-        appointment_end: validatedData.ends_at
+        appointment_start: validatedData.start_time,  // ✅ FIXED: Changed from starts_at
+        appointment_end: validatedData.end_time        // ✅ FIXED: Changed from ends_at
       })
 
     if (timingError) {
@@ -213,8 +212,8 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
       .rpc('rpc_validate_appointment_slot', {
         p_staff_id: validatedData.staff_id,
         p_service_id: validatedData.service_id,
-        p_starts_at: validatedData.starts_at,
-        p_ends_at: validatedData.ends_at,
+        p_starts_at: validatedData.start_time,  // ✅ FIXED: Changed from starts_at
+        p_ends_at: validatedData.end_time,      // ✅ FIXED: Changed from ends_at
         p_buffer_minutes: bufferMinutes,
         p_exclude_appointment_id: null
       })
@@ -243,27 +242,30 @@ export const handler = async (event: NetlifyEvent, context: Context) => {
     const { data, error } = await supabase
       .from('appointments')
       .insert({
-        ...validatedData,
+        customer_id: validatedData.customer_id,
+        staff_id: validatedData.staff_id,
+        service_id: validatedData.service_id,
+        start_time: validatedData.start_time,  // ✅ FIXED: Changed from starts_at
+        end_time: validatedData.end_time,      // ✅ FIXED: Changed from ends_at
         status: 'pending'
       })
       .select(`
         *,
         customers (
           id,
-          profiles (full_name, email, phone)
+          profiles (first_name, last_name, email, phone)
         ),
         staff (
           id,
-          full_name,
-          email,
-          phone
+          profiles (first_name, last_name, email, phone)
         ),
         services (
           id,
           name,
           description,
           category,
-          duration_minutes
+          duration_minutes,
+          price_cents
         )
       `)
       .single()

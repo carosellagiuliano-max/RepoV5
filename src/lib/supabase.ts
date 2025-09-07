@@ -13,16 +13,18 @@ if (!supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Database types for the new schema
+// Database types for the new consolidated schema
 export type UserRole = 'admin' | 'customer' | 'staff'
-export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed'
-export type StaffStatus = 'active' | 'inactive'
+export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 
 export interface Profile {
   id: string
   email: string
-  full_name?: string
+  first_name?: string
+  last_name?: string
   phone?: string
+  avatar_url?: string
+  is_active: boolean
   role: UserRole
   created_at: string
   updated_at: string
@@ -31,14 +33,6 @@ export interface Profile {
 export interface Customer {
   id: string
   profile_id?: string
-  customer_number?: string
-  date_of_birth?: string
-  address_street?: string
-  address_city?: string
-  address_postal_code?: string
-  emergency_contact_name?: string
-  emergency_contact_phone?: string
-  notes?: string
   created_at: string
   updated_at: string
   // Relations
@@ -48,15 +42,12 @@ export interface Customer {
 export interface Staff {
   id: string
   profile_id?: string
-  staff_number: string
-  full_name: string
-  email?: string
-  phone?: string
-  status: StaffStatus
   specialties?: string[]
   bio?: string
   hire_date?: string
   hourly_rate?: number
+  commission_rate?: number
+  is_active: boolean
   avatar_url?: string
   created_at: string
   updated_at: string
@@ -71,7 +62,8 @@ export interface Service {
   description?: string
   category: string
   duration_minutes: number
-  base_price: number
+  price_cents: number  // ✅ FIXED: Changed from base_price
+  requires_consultation: boolean
   is_active: boolean
   sort_order: number
   created_at: string
@@ -101,12 +93,12 @@ export interface Appointment {
   customer_id: string
   staff_id: string
   service_id: string
-  starts_at: string
-  ends_at: string
+  start_time: string  // ✅ FIXED: Changed from starts_at
+  end_time: string    // ✅ FIXED: Changed from ends_at
   status: AppointmentStatus
-  price: number
   notes?: string
-  internal_notes?: string
+  cancellation_reason?: string
+  cancelled_at?: string
   created_at: string
   updated_at: string
   // Relations
@@ -118,15 +110,15 @@ export interface Appointment {
 export interface StaffAvailability {
   id: string
   staff_id: string
-  day_of_week: number // 0 = Sunday, 6 = Saturday
-  start_time: string // HH:MM format
-  end_time: string // HH:MM format
-  availability_type: 'available' | 'unavailable'
+  day_of_week: number
+  start_time: string
+  end_time: string
+  is_available: boolean
   created_at: string
   updated_at: string
 }
 
-export interface StaffTimeoff {
+export interface StaffTimeOff {
   id: string
   staff_id: string
   start_date: string
@@ -135,65 +127,154 @@ export interface StaffTimeoff {
   end_time?: string
   reason?: string
   type: string
+  is_approved: boolean
+  approved_by?: string
+  approved_at?: string
   created_at: string
   updated_at: string
 }
 
-export interface MediaAsset {
+export interface MediaFile {
   id: string
   filename: string
-  original_filename: string
+  original_name: string
   file_path: string
-  file_size?: number
-  mime_type?: string
-  width?: number
-  height?: number
+  file_size: number
+  mime_type: string
   category?: string
   tags?: string[]
-  alt_text?: string
-  caption?: string
   uploaded_by?: string
   is_public: boolean
+  title?: string
+  description?: string
+  storage_bucket?: string
+  width?: number
+  height?: number
+  blur_hash?: string
   created_at: string
   updated_at: string
 }
 
-export interface Setting {
+export interface BusinessSetting {
   id: string
   key: string
-  value: unknown
+  value: string
   description?: string
-  category: string
-  is_public: boolean
   created_at: string
   updated_at: string
 }
 
-export interface AvailableSlot {
-  start_time: string
-  end_time: string
-  duration_minutes: number
-}
+// Helper functions for data transformation
+export const transformServicePrice = (priceCents: number): number => {
+  return priceCents / 100; // Convert cents to euros for display
+};
 
-export interface StaffWithAvailability extends Staff {
-  available_slots: AvailableSlot[]
-}
+export const transformAppointmentTime = (appointment: any): any => {
+  return {
+    ...appointment,
+    starts_at: appointment.start_time, // For backward compatibility
+    ends_at: appointment.end_time,
+    price: appointment.price_cents ? transformServicePrice(appointment.price_cents) : undefined
+  };
+};
 
-// Legacy appointment interface for backwards compatibility
-export interface LegacyAppointment {
-  id: string
-  user_id: string
-  starts_at: string
-  ends_at: string
-  service_type: string
-  service_name: string
-  hairdresser_name: string
-  price: number
-  status: 'pending' | 'confirmed' | 'cancelled'
-  notes?: string
-  created_at: string
-  updated_at: string
-}
+// API helper functions
+export const getServices = async () => {
+  const { data, error } = await supabase
+    .from('services')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true });
+
+  if (error) throw error;
+  return data;
+};
+
+export const getStaff = async () => {
+  const { data, error } = await supabase
+    .from('staff')
+    .select(`
+      *,
+      profiles (
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        avatar_url
+      )
+    `)
+    .eq('is_active', true);
+
+  if (error) throw error;
+  return data;
+};
+
+export const getAppointments = async (userId?: string) => {
+  let query = supabase
+    .from('appointments')
+    .select(`
+      *,
+      customers (
+        id,
+        profiles (
+          first_name,
+          last_name,
+          email
+        )
+      ),
+      staff (
+        id,
+        profiles (
+          first_name,
+          last_name
+        )
+      ),
+      services (
+        name,
+        duration_minutes,
+        price_cents
+      )
+    `)
+    .order('start_time', { ascending: true });
+
+  if (userId) {
+    // Filter by user role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (profile?.role === 'customer') {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('profile_id', userId)
+        .single();
+
+      if (customer) {
+        query = query.eq('customer_id', customer.id);
+      }
+    } else if (profile?.role === 'staff') {
+      const { data: staffMember } = await supabase
+        .from('staff')
+        .select('id')
+        .eq('profile_id', userId)
+        .single();
+
+      if (staffMember) {
+        query = query.eq('staff_id', staffMember.id);
+      }
+    }
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  // Transform data for backward compatibility
+  return data?.map(transformAppointmentTime);
+};
 
 // Auth helper functions
 export const authHelpers = {
@@ -227,9 +308,9 @@ export const bookingHelpers = {
     customer_id: string
     staff_id: string
     service_id: string
-    starts_at: string
-    ends_at: string
-    price: number
+    start_time: string  // ✅ FIXED: Changed from starts_at
+    end_time: string    // ✅ FIXED: Changed from ends_at
+    price_cents: number // ✅ FIXED: Changed from price
     notes?: string
   }) {
     const { data: session } = await supabase.auth.getSession()
@@ -247,7 +328,7 @@ export const bookingHelpers = {
     })
 
     const result = await response.json()
-    
+
     if (!response.ok) {
       throw new Error(result.error || 'Failed to create appointment')
     }
@@ -271,7 +352,7 @@ export const bookingHelpers = {
     })
 
     const result = await response.json()
-    
+
     if (!response.ok) {
       throw new Error(result.error || 'Failed to cancel appointment')
     }
@@ -297,21 +378,20 @@ export const bookingHelpers = {
         *,
         staff (
           id,
-          full_name,
-          email,
-          phone
+          profiles (first_name, last_name, email, phone)
         ),
         services (
           id,
           name,
           description,
           category,
-          duration_minutes
+          duration_minutes,
+          price_cents
         )
       `)
       .eq('customer_id', customer.id)
-      .order('starts_at', { ascending: true })
-    
+      .order('start_time', { ascending: true })  // ✅ FIXED: Changed from starts_at
+
     return { data, error }
   },
 
@@ -322,24 +402,23 @@ export const bookingHelpers = {
         *,
         customers (
           id,
-          profiles (full_name, email, phone)
+          profiles (first_name, last_name, email, phone)
         ),
         staff (
           id,
-          full_name,
-          email,
-          phone
+          profiles (first_name, last_name, email, phone)
         ),
         services (
           id,
           name,
           description,
           category,
-          duration_minutes
+          duration_minutes,
+          price_cents
         )
       `)
-      .order('starts_at', { ascending: true })
-    
+      .order('start_time', { ascending: true })  // ✅ FIXED: Changed from starts_at
+
     return { data, error }
   }
 }

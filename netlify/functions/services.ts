@@ -17,7 +17,7 @@ const ServiceSchema = z.object({
   description: z.string().optional(),
   category: z.string().min(1).max(100),
   duration_minutes: z.number().int().min(1).max(480), // max 8 hours
-  base_price: z.number().min(0),
+  price_cents: z.number().min(0),  // ✅ FIXED: Changed from base_price
   is_active: z.boolean().default(true),
   sort_order: z.number().int().default(0)
 })
