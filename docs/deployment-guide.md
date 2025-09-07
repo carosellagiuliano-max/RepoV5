@@ -118,35 +118,59 @@ After project creation:
 3. **Copy anon public key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 4. **Copy service_role key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` ⚠️ Keep this secret!
 
-### B3. Execute Database Migrations
+### B3. Execute Database Migrations (Automated Script)
 
-Execute SQL files **in this exact order** using Supabase SQL Editor:
+To ensure a safe and reliable database setup, we will use an automated script to run all necessary SQL migrations. This avoids the errors of a manual setup.
 
-1. **Go to SQL Editor** in Supabase dashboard
-2. **Create new query** and execute each file content:
+**1. Get Database Connection Details:**
 
-```sql
--- 1. Core Schema (copy content from docs/db/01_initial_schema.sql)
--- 2. RLS Policies (copy content from docs/db/02_rls_policies.sql)
--- 3. Functions & Views (copy content from docs/db/03_functions_views.sql)
--- 4. Sample Data (copy content from docs/db/04_sample_data.sql)
--- 5. Schema Updates (copy content from docs/db/05_schema_updates.sql)
--- 6. Enhanced Functions (copy content from docs/db/06_enhanced_functions.sql)
--- 7. Customer Management (copy content from docs/db/07_customer_management_gdpr.sql)
--- 8. Customer RLS (copy content from docs/db/08_customer_rls_policies.sql)
--- 9. Media Management (copy content from docs/db/09_media_management.sql)
--- 10. Media RLS (copy content from docs/db/10_media_rls_policies.sql)
--- 11. Business Settings (copy content from docs/db/11_business_settings.sql)
--- 12. Business RLS (copy content from docs/db/12_business_settings_rls.sql)
--- 13. Booking Enhancements (copy content from docs/db/13_booking_engine_enhancements.sql)
--- 14. Analytics (copy content from docs/db/14_analytics_enhancements.sql)
--- 15. Stripe Payments (copy content from docs/db/15_stripe_payments_schema.sql)
--- 16. Stripe RLS (copy content from docs/db/16_stripe_payments_rls.sql)
--- 17. RBAC Enhanced (copy content from docs/db/17_rbac_enhanced_policies.sql)
--- 18. RBAC Tests (copy content from docs/db/18_rbac_tests.sql)
--- 19. Security Compliance (copy content from docs/db/19_security_compliance_hardening.sql)
--- 20. E2E Testing (copy content from docs/db/20_e2e_testing_enhancements.sql)
+- In your Supabase dashboard, go to **Settings > Database**.
+- Under **Connection info**, find the following:
+  - **Host**: `db.YOUR_PROJECT_ID.supabase.co`
+  - **Database name**: `postgres`
+  - **Port**: `5432`
+  - **User**: `postgres`
+- You will also need the **Database Password** you saved when you created the project in step B1.
+
+**2. Run the Migration Script:**
+
+- Open a terminal on your local machine, inside the project folder.
+- Set the connection details as environment variables and run the script.
+
+**On macOS/Linux:**
+```bash
+export DB_HOST=db.YOUR_PROJECT_ID.supabase.co
+export DB_USER=postgres
+export DB_PASSWORD=YOUR_DATABASE_PASSWORD
+export DB_NAME=postgres
+export DB_PORT=5432
+
+npx tsx scripts/prod-db-migrate.ts
 ```
+
+**On Windows (Command Prompt):**
+```cmd
+set DB_HOST=db.YOUR_PROJECT_ID.supabase.co
+set DB_USER=postgres
+set DB_PASSWORD=YOUR_DATABASE_PASSWORD
+set DB_NAME=postgres
+set DB_PORT=5432
+
+npx tsx scripts/prod-db-migrate.ts
+```
+
+**On Windows (PowerShell):**
+```powershell
+$env:DB_HOST="db.YOUR_PROJECT_ID.supabase.co"
+$env:DB_USER="postgres"
+$env:DB_PASSWORD="YOUR_DATABASE_PASSWORD"
+$env:DB_NAME="postgres"
+$env:DB_PORT="5432"
+
+npx tsx scripts/prod-db-migrate.ts
+```
+
+The script will connect to your database and execute all migrations from the `docs/db` folder in the correct order. If any step fails, the entire process will be safely rolled back.
 
 ### B4. Configure Storage
 
