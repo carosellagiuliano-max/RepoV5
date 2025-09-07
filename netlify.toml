@@ -6,6 +6,10 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+[functions.esbuild]
+  format = "esm"
+  external = ["@sentry/browser", "@sentry/node"]
+
 [[headers]]
   for = "/*"
   [headers.values]
