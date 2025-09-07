@@ -10,8 +10,8 @@ ALTER TABLE staff_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE staff_availability ENABLE ROW LEVEL SECURITY;
 ALTER TABLE staff_timeoff ENABLE ROW LEVEL SECURITY;
-ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE media_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE business_settings ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to check if current user is admin
 CREATE OR REPLACE FUNCTION is_admin()
@@ -107,7 +107,7 @@ CREATE POLICY "customers_delete" ON customers FOR DELETE
 -- Active staff visible to all authenticated users, all staff to admin/staff
 CREATE POLICY "staff_select" ON staff FOR SELECT
   USING (
-    (status = 'active' AND auth.uid() IS NOT NULL) OR
+    (is_active = true AND auth.uid() IS NOT NULL) OR
     is_staff()
   );
 
@@ -237,8 +237,9 @@ CREATE POLICY "staff_timeoff_delete" ON staff_timeoff FOR DELETE
   );
 
 -- MEDIA_ASSETS POLICIES
+-- MEDIA_FILES POLICIES
 -- Public assets visible to all, private assets to uploader and admins
-CREATE POLICY "media_assets_select" ON media_assets FOR SELECT
+CREATE POLICY "media_files_select" ON media_files FOR SELECT
   USING (
     is_public = true OR
     uploaded_by = auth.uid() OR
@@ -246,40 +247,38 @@ CREATE POLICY "media_assets_select" ON media_assets FOR SELECT
   );
 
 -- Authenticated users can upload, admins can upload anything
-CREATE POLICY "media_assets_insert" ON media_assets FOR INSERT
+CREATE POLICY "media_files_insert" ON media_files FOR INSERT
   WITH CHECK (
     (auth.uid() IS NOT NULL AND uploaded_by = auth.uid()) OR
     is_admin()
   );
 
 -- Users can update their own uploads, admins can update all
-CREATE POLICY "media_assets_update" ON media_assets FOR UPDATE
+CREATE POLICY "media_files_update" ON media_files FOR UPDATE
   USING (
     uploaded_by = auth.uid() OR
     is_admin()
   );
 
 -- Users can delete their own uploads, admins can delete all
-CREATE POLICY "media_assets_delete" ON media_assets FOR DELETE
+CREATE POLICY "media_files_delete" ON media_files FOR DELETE
   USING (
     uploaded_by = auth.uid() OR
     is_admin()
   );
 
 -- SETTINGS POLICIES
--- Public settings visible to all, private settings to admins only
-CREATE POLICY "settings_select" ON settings FOR SELECT
-  USING (
-    is_public = true OR
-    is_admin()
-  );
-
--- Only admins can modify settings
-CREATE POLICY "settings_insert" ON settings FOR INSERT
-  WITH CHECK (is_admin());
-
-CREATE POLICY "settings_update" ON settings FOR UPDATE
+-- BUSINESS_SETTINGS POLICIES
+-- Admins can view all settings.
+CREATE POLICY "business_settings_select" ON business_settings FOR SELECT
   USING (is_admin());
 
-CREATE POLICY "settings_delete" ON settings FOR DELETE
+-- Only admins can modify settings
+CREATE POLICY "business_settings_insert" ON business_settings FOR INSERT
+  WITH CHECK (is_admin());
+
+CREATE POLICY "business_settings_update" ON business_settings FOR UPDATE
+  USING (is_admin());
+
+CREATE POLICY "business_settings_delete" ON business_settings FOR DELETE
   USING (is_admin());

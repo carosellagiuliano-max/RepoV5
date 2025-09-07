@@ -18,28 +18,30 @@ RETURNS TABLE(
 ) AS $$
 DECLARE
   day_of_week_num INTEGER;
-  start_time TIME;
-  end_time TIME;
+  start_time_of_day TIME;
+  end_time_of_day TIME;
 BEGIN
   -- Extract day of week and times
   day_of_week_num := EXTRACT(DOW FROM p_starts_at);
-  start_time := p_starts_at::TIME;
-  end_time := p_ends_at::TIME;
+  start_time_of_day := p_starts_at::TIME;
+  end_time_of_day := p_ends_at::TIME;
   
   RETURN QUERY
   SELECT DISTINCT
     s.id as staff_id,
-    s.full_name as staff_name,
-    s.email,
-    s.phone,
-    COALESCE(ss.custom_price, srv.base_price) as custom_price,
+    p.first_name || ' ' || p.last_name as staff_name,
+    p.email,
+    p.phone,
+    COALESCE(ss.custom_price, (srv.price_cents / 100.0)::DECIMAL) as custom_price,
     COALESCE(ss.estimated_duration_minutes, srv.duration_minutes) as estimated_duration
   FROM staff s
+  JOIN profiles p ON s.profile_id = p.id
   JOIN staff_services ss ON s.id = ss.staff_id
   JOIN services srv ON ss.service_id = srv.id
   WHERE 
     -- Staff is active and offers this service
-    s.status = 'active'
+    s.is_active = true
+    AND p.is_active = true
     AND ss.service_id = p_service_id
     AND ss.is_active = true
     AND srv.is_active = true
@@ -49,22 +51,23 @@ BEGIN
       SELECT 1 FROM staff_availability sa
       WHERE sa.staff_id = s.id
       AND sa.day_of_week = day_of_week_num
-      AND sa.start_time <= start_time
-      AND sa.end_time >= end_time
-      AND sa.availability_type = 'available'
+      AND sa.start_time <= start_time_of_day
+      AND sa.end_time >= end_time_of_day
+      AND sa.is_available = true
     )
     
     -- Staff is not on time off
     AND NOT EXISTS (
       SELECT 1 FROM staff_timeoff sto
       WHERE sto.staff_id = s.id
+      AND sto.is_approved = true
       AND p_starts_at::DATE BETWEEN sto.start_date AND sto.end_date
       AND (
         -- All day time off
         (sto.start_time IS NULL AND sto.end_time IS NULL) OR
         -- Specific time range overlaps
         (sto.start_time IS NOT NULL AND sto.end_time IS NOT NULL AND
-         NOT (end_time <= sto.start_time OR start_time >= sto.end_time))
+         NOT (end_time_of_day <= sto.start_time OR start_time_of_day >= sto.end_time))
       )
     )
     
@@ -74,11 +77,11 @@ BEGIN
       WHERE a.staff_id = s.id
       AND a.status IN ('pending', 'confirmed')
       AND NOT (
-        p_ends_at + (p_buffer_minutes || ' minutes')::INTERVAL <= a.starts_at OR
-        p_starts_at - (p_buffer_minutes || ' minutes')::INTERVAL >= a.ends_at
+        p_ends_at + (p_buffer_minutes || ' minutes')::INTERVAL <= a.start_time OR
+        p_starts_at - (p_buffer_minutes || ' minutes')::INTERVAL >= a.end_time
       )
     )
-  ORDER BY s.full_name;
+  ORDER BY staff_name;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -121,7 +124,7 @@ BEGIN
     FROM staff_availability sa
     WHERE sa.staff_id = p_staff_id
     AND sa.day_of_week = day_of_week_num
-    AND sa.availability_type = 'available'
+    AND sa.is_available = true
     ORDER BY sa.start_time
   LOOP
     current_time := availability_record.start_time;
@@ -136,6 +139,7 @@ BEGIN
         -- No time off conflicts
         SELECT 1 FROM staff_timeoff sto
         WHERE sto.staff_id = p_staff_id
+        AND sto.is_approved = true
         AND p_date BETWEEN sto.start_date AND sto.end_date
         AND (
           (sto.start_time IS NULL AND sto.end_time IS NULL) OR
@@ -149,8 +153,8 @@ BEGIN
         WHERE a.staff_id = p_staff_id
         AND a.status IN ('pending', 'confirmed')
         AND NOT (
-          slot_end + (p_buffer_minutes || ' minutes')::INTERVAL <= a.starts_at OR
-          slot_start - (p_buffer_minutes || ' minutes')::INTERVAL >= a.ends_at
+          slot_end + (p_buffer_minutes || ' minutes')::INTERVAL <= a.start_time OR
+          slot_start - (p_buffer_minutes || ' minutes')::INTERVAL >= a.end_time
         )
       ) THEN
         -- This slot is available
@@ -170,8 +174,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION rpc_validate_appointment_slot(
   p_staff_id UUID,
   p_service_id UUID,
-  p_starts_at TIMESTAMPTZ,
-  p_ends_at TIMESTAMPTZ,
+  p_start_time TIMESTAMPTZ,
+  p_end_time TIMESTAMPTZ,
   p_buffer_minutes INTEGER DEFAULT 10,
   p_exclude_appointment_id UUID DEFAULT NULL
 )
@@ -179,8 +183,8 @@ RETURNS JSON AS $$
 DECLARE
   result JSON;
   day_of_week_num INTEGER;
-  start_time TIME;
-  end_time TIME;
+  start_time_of_day TIME;
+  end_time_of_day TIME;
   service_duration INTEGER;
   staff_active BOOLEAN;
   service_active BOOLEAN;
@@ -197,25 +201,25 @@ BEGIN
   );
   
   -- Basic validations
-  IF p_starts_at >= p_ends_at THEN
+  IF p_start_time >= p_end_time THEN
     result := jsonb_set(result::jsonb, '{errors}', 
       (result->>'errors')::jsonb || '["Invalid time range: end time must be after start time"]'::jsonb);
     RETURN result;
   END IF;
   
-  IF p_starts_at < NOW() THEN
+  IF p_start_time < NOW() THEN
     result := jsonb_set(result::jsonb, '{errors}', 
       (result->>'errors')::jsonb || '["Cannot book appointments in the past"]'::jsonb);
     RETURN result;
   END IF;
   
   -- Extract time components
-  day_of_week_num := EXTRACT(DOW FROM p_starts_at);
-  start_time := p_starts_at::TIME;
-  end_time := p_ends_at::TIME;
+  day_of_week_num := EXTRACT(DOW FROM p_start_time);
+  start_time_of_day := p_start_time::TIME;
+  end_time_of_day := p_end_time::TIME;
   
   -- Check if staff is active
-  SELECT status = 'active' INTO staff_active
+  SELECT is_active INTO staff_active
   FROM staff WHERE id = p_staff_id;
   
   IF NOT COALESCE(staff_active, false) THEN
@@ -253,9 +257,9 @@ BEGIN
     SELECT 1 FROM staff_availability sa
     WHERE sa.staff_id = p_staff_id
     AND sa.day_of_week = day_of_week_num
-    AND sa.start_time <= start_time
-    AND sa.end_time >= end_time
-    AND sa.availability_type = 'available'
+    AND sa.start_time <= start_time_of_day
+    AND sa.end_time >= end_time_of_day
+    AND sa.is_available = true
   ) INTO has_availability;
   
   IF NOT has_availability THEN
@@ -268,11 +272,12 @@ BEGIN
   SELECT EXISTS(
     SELECT 1 FROM staff_timeoff sto
     WHERE sto.staff_id = p_staff_id
-    AND p_starts_at::DATE BETWEEN sto.start_date AND sto.end_date
+    AND sto.is_approved = true
+    AND p_start_time::DATE BETWEEN sto.start_date AND sto.end_date
     AND (
       (sto.start_time IS NULL AND sto.end_time IS NULL) OR
       (sto.start_time IS NOT NULL AND sto.end_time IS NOT NULL AND
-       NOT (end_time <= sto.start_time OR start_time >= sto.end_time))
+       NOT (end_time_of_day <= sto.start_time OR start_time_of_day >= sto.end_time))
     )
   ) INTO has_timeoff;
   
@@ -289,8 +294,8 @@ BEGIN
     AND a.status IN ('pending', 'confirmed')
     AND (p_exclude_appointment_id IS NULL OR a.id != p_exclude_appointment_id)
     AND NOT (
-      p_ends_at + (p_buffer_minutes || ' minutes')::INTERVAL <= a.starts_at OR
-      p_starts_at - (p_buffer_minutes || ' minutes')::INTERVAL >= a.ends_at
+      p_end_time + (p_buffer_minutes || ' minutes')::INTERVAL <= a.start_time OR
+      p_start_time - (p_buffer_minutes || ' minutes')::INTERVAL >= a.end_time
     )
   ) INTO has_conflict;
   
@@ -311,44 +316,46 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE VIEW appointment_details AS
 SELECT 
   a.id,
-  a.starts_at,
-  a.ends_at,
+  a.start_time,
+  a.end_time,
   a.status,
-  a.price,
   a.notes,
-  a.internal_notes,
+  a.cancellation_reason,
+  a.cancelled_at,
   a.created_at,
   a.updated_at,
   -- Customer details
   c.id as customer_id,
-  p_customer.full_name as customer_name,
+  p_customer.first_name || ' ' || p_customer.last_name as customer_name,
   p_customer.email as customer_email,
   p_customer.phone as customer_phone,
   -- Staff details
   s.id as staff_id,
-  s.full_name as staff_name,
-  s.email as staff_email,
-  s.phone as staff_phone,
+  p_staff.first_name || ' ' || p_staff.last_name as staff_name,
+  p_staff.email as staff_email,
+  p_staff.phone as staff_phone,
   -- Service details
   srv.id as service_id,
   srv.name as service_name,
   srv.description as service_description,
   srv.category as service_category,
-  srv.duration_minutes as service_duration
+  srv.duration_minutes as service_duration,
+  srv.price_cents as service_price_cents
 FROM appointments a
 JOIN customers c ON a.customer_id = c.id
 JOIN profiles p_customer ON c.profile_id = p_customer.id
 JOIN staff s ON a.staff_id = s.id
+JOIN profiles p_staff ON s.profile_id = p_staff.id
 JOIN services srv ON a.service_id = srv.id;
 
 -- View for staff with their services
 CREATE OR REPLACE VIEW staff_with_services AS
 SELECT 
   s.id as staff_id,
-  s.full_name,
-  s.email,
-  s.phone,
-  s.status,
+  p.first_name || ' ' || p.last_name as full_name,
+  p.email,
+  p.phone,
+  s.is_active,
   s.specialties,
   s.bio,
   s.avatar_url,
@@ -357,13 +364,14 @@ SELECT
       'service_id', srv.id,
       'service_name', srv.name,
       'category', srv.category,
-      'base_price', srv.base_price,
+      'price_cents', srv.price_cents,
       'custom_price', ss.custom_price,
       'duration_minutes', srv.duration_minutes,
       'estimated_duration', ss.estimated_duration_minutes
     )
   ) FILTER (WHERE srv.id IS NOT NULL) as services
 FROM staff s
+JOIN profiles p ON s.profile_id = p.id
 LEFT JOIN staff_services ss ON s.id = ss.staff_id AND ss.is_active = true
 LEFT JOIN services srv ON ss.service_id = srv.id AND srv.is_active = true
-GROUP BY s.id, s.full_name, s.email, s.phone, s.status, s.specialties, s.bio, s.avatar_url;
+GROUP BY s.id, p.first_name, p.last_name, p.email, p.phone, s.is_active, s.specialties, s.bio, s.avatar_url;
